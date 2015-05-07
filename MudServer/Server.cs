@@ -14,7 +14,8 @@ namespace ServerCore {
 		const int BacklogSize = 20;
 
 		internal void Run () {
-		
+
+			LoadData();
 			BuildWorld ();
 			
 			Socket server = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -25,8 +26,13 @@ namespace ServerCore {
 			while (true) {
 				Socket conn = server.Accept ();
 				Connection conObject = new Connection (conn);
-				Console.WriteLine ("Connection accepted -- Added Player " + conObject.Player.ID);
+				Console.WriteLine ("Connection accepted -- " + conn.RemoteEndPoint);
 			}
+		}
+
+		private void LoadData() {
+
+			Data.LoadStaticData();
 		}
 
 		void BuildWorld () {

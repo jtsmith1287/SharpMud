@@ -11,24 +11,34 @@ namespace GameCore {
 		Connection Conn;
 		public Coordinate3 Location;
 		public bool Admin = true;
+		public Data Stats;
 		public PlayerState State;
 
-		public PlayerEntity (Connection conn, Guid id) {
-		
-			if (LoadSavedState ()) {
-				// Do stuff with loaded data
+		public PlayerEntity (Connection conn, Guid id, string name) {
+
+			Conn = conn;
+			ID = id;
+			Name = name;
+
+			if (LoadSavedState (id)) {
+				Move(Stats.Location);
 			} else {
 				Move (Coordinate3.Zero);
 			}
-			ID = id;
+
 			Players.Add (ID, this);
 			Conn.Send ("Welcome!");	
 			State = PlayerState.Active;
 		}
 
-		bool LoadSavedState () {
-			
-			return false;
+		bool LoadSavedState (Guid id) {
+
+			Stats = Data.GetData(id);
+			if (Stats == null) {
+				return false;
+			} else {
+				return true;
+			}
 		}
 
 		public bool Move (Direction direction) {

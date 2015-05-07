@@ -12,7 +12,8 @@ namespace GameCore {
 			string stringCoord = string.Format ("{0} {1} {2}", room.Location.X, room.Location.Y, room.Location.Z);
 			
 			// Check if the room exists already and return false if it does.
-			if (Rooms.TryGetValue (stringCoord, out room)) {
+			Room maybeRoom;
+			if (Rooms.TryGetValue (stringCoord, out maybeRoom)) {
 				return false;
 			}
 			Rooms.Add (stringCoord, room);
@@ -20,7 +21,10 @@ namespace GameCore {
 		}
 
 		public static Room GetRoom (Coordinate3 location) {
-		
+
+			if (location == null) {
+				return null;
+			}
 			Room room;
 			string stringCoord = string.Format ("{0} {1} {2}", location.X, location.Y, location.Z);
 			Rooms.TryGetValue (stringCoord, out room);
