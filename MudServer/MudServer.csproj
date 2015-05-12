@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.XML" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -49,6 +49,8 @@
     <Compile Include="Main.cs" />
     <Compile Include="PlayerState.cs" />
     <Compile Include="Data.cs" />
+    <Compile Include="Actions.cs" />
+    <Compile Include="AdminActions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

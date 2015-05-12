@@ -29,7 +29,21 @@ namespace GameCore {
 			string stringCoord = string.Format ("{0} {1} {2}", location.X, location.Y, location.Z);
 			Rooms.TryGetValue (stringCoord, out room);
 			return room;
+		}
+
+		/// <summary>
+		/// Gets the room by ID. Incredibly slow, avoid using.
+		/// </summary>
+		/// <returns>The room by ID.</returns>
+		/// <param name="id">Identifier.</param>
+		public static Room GetRoomByID (Guid id) {
 			
+			foreach (var entry in Rooms) {
+				if (entry.Value.ID == id) {
+					return entry.Value;
+				}
+			}
+			return null;
 		}
 	}
 }
