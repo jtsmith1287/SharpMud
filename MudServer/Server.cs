@@ -13,21 +13,30 @@ namespace ServerCore {
 		const int PortNumber = 4000;
 		const int BacklogSize = 20;
 
-		internal void Run () {
+		internal void Run() {
+
+			Console.CancelKeyPress += SaveData;
 
 			LoadData();
-			BuildWorld ();
-			
-			Socket server = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			server.Bind (new IPEndPoint (IPAddress.Any, PortNumber));
-			server.Listen (BacklogSize);
-			
-			Console.WriteLine ("Server booted. Listening for connections.");
+			BuildWorld();
+
+			Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			server.Bind(new IPEndPoint(IPAddress.Any, PortNumber));
+			server.Listen(BacklogSize);
+
+			Console.WriteLine("Server booted. Listening for connections.");
 			while (true) {
-				Socket conn = server.Accept ();
-				Connection conObject = new Connection (conn);
-				Console.WriteLine ("Connection accepted -- " + conn.RemoteEndPoint);
+				Socket conn = server.Accept();
+				Connection conObject = new Connection(conn);
+				Console.WriteLine("Connection accepted -- " + conn.RemoteEndPoint);
 			}
+		}
+
+		private void SaveData(object sender, ConsoleCancelEventArgs e) {
+
+			Console.WriteLine("SAVING");
+			World.CleanRooms();
+			Data.SaveStaticData();
 		}
 
 		private void LoadData() {
@@ -35,9 +44,9 @@ namespace ServerCore {
 			Data.LoadStaticData();
 		}
 
-		void BuildWorld () {
-			
-			new Room (Coordinate3.Zero, "Starting Room");
+		void BuildWorld() {
+
+			new Room(Coordinate3.Zero, "Starting Room");
 		}
 	}
 }

@@ -45,6 +45,13 @@ namespace GameCore {
 			}
 			return null;
 		}
+
+		internal static void CleanRooms() {
+
+			foreach (var entry in Rooms) {
+
+			}
+		}
 	}
 }
 

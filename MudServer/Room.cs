@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using GameCore.Util;
 
 namespace GameCore {
@@ -8,16 +9,24 @@ namespace GameCore {
 
 		public Coordinate3 Location;
 		public string Name;
-		public List<Guid> ConnectedRooms = new List<Guid> ();
-		public List<Guid> EntitiesHere = new List<Guid> ();
+		public string Description;
+		public List<Guid> ConnectedRooms = new List<Guid>();
+		[NonSerialized]
+		public List<Guid> EntitiesHere = new List<Guid>();
 		public Guid ID;
 
-		public Room (Coordinate3 location, string name) {
-			
+		public Room(Coordinate3 location, string name) {
+
 			Location = location;
 			Name = name;
-			ID = Guid.NewGuid ();
-			World.AddRoom (this);
+			ID = Guid.NewGuid();
+			World.AddRoom(this);
+		}
+
+		[OnDeserializing]
+		void InitializeEntitiesList(StreamingContext c) {
+
+			EntitiesHere = new List<Guid>();
 		}
 	}
 }

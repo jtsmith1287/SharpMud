@@ -31,15 +31,15 @@ namespace GameCore.Util {
 			Room room = World.GetRoom (location);
 			// A room already exists in this location
 			if (room != null) {
-				player.MessageToClient ("You're trying to build a room that already exists. Would you like to link them? (y|n)");
+				player.SendToClient ("You're trying to build a room that already exists. Would you like to link them? (y|n)");
 				string reply = player.WaitForClientReply ();
 				if (reply != null && reply == "y") {
 					Room playerRoom = World.GetRoom (player.Location);
 					playerRoom.ConnectedRooms.Add (room.ID);
 					room.ConnectedRooms.Add (playerRoom.ID);
-					player.MessageToClient (string.Format ("{0} and {1} have been connected.", room.Name, playerRoom.Name));
+					player.SendToClient (string.Format ("{0} and {1} have been connected.", room.Name, playerRoom.Name));
 				} else {
-					player.MessageToClient ("Aborting build");
+					player.SendToClient ("Aborting build");
 				}
 				// Clear to build a new room at this location.
 			} else {
@@ -47,7 +47,7 @@ namespace GameCore.Util {
 				Room playerRoom = World.GetRoom (player.Location);
 				room.ConnectedRooms.Add (playerRoom.ID);
 				playerRoom.ConnectedRooms.Add (room.ID);
-				player.MessageToClient (string.Format ("{0} has been created @ ({1}, {2}. {3}).", room.Name, room.Location.X, room.Location.Y, room.Location.Z));
+				player.SendToClient (string.Format ("{0} has been created @ ({1}, {2}. {3}).", room.Name, room.Location.X, room.Location.Y, room.Location.Z));
 			}
 			
 		}
