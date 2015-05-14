@@ -8,7 +8,7 @@ using GameCore.Util;
 namespace GameCore {
 	public class PlayerEntity : BaseMobile {
 
-		public static Dictionary<Guid, PlayerEntity> Players = new Dictionary<Guid, PlayerEntity>();
+		public static Dictionary<Guid, PlayerEntity> Players = new Dictionary<Guid, PlayerEntity> ();
 		Connection Conn;
 
 		public Coordinate3 Location {
@@ -23,7 +23,14 @@ namespace GameCore {
 		public bool Admin = true;
 		public PlayerState State;
 
-		public PlayerEntity(Connection conn, Data data) {
+		public static PlayerEntity GetPlayerByID (Guid id) {
+		
+			PlayerEntity player;
+			Players.TryGetValue (id, out player);
+			return player;
+		}
+
+		public PlayerEntity (Connection conn, Data data) {
 
 			Conn = conn;
 			ID = data.ID;
@@ -37,53 +44,37 @@ namespace GameCore {
 			}
 
 			if (data.Location != null) {
-				Move(data.Location);
+				Move (data.Location);
 			} else {
-				Move(Coordinate3.Zero);
+				Move (Coordinate3.Zero);
 			}
 
-			Players.Add(ID, this);
-			Conn.Send("Welcome!");
+			Players.Add (ID, this);
+			Conn.Send ("Welcome!");
 			State = PlayerState.Active;
 		}
 
-		public bool Move(Coordinate3 newLocation) {
+		public void Close () {
 
-			Room newRoom = World.GetRoom(newLocation);
-			if (newRoom != null) {
-				Room oldRoom = World.GetRoom(Location);
-				if (oldRoom != null)
-					oldRoom.EntitiesHere.Remove(ID);
-				Location = newRoom.Location;
-				newRoom.EntitiesHere.Add(ID);
-				Conn.Send("You have arrived at " + newRoom.Name + ".");
-				Actions.Look(this);
-				return true;
-			}
-			return false;
-		}
-
-		public void Close() {
-
-			Conn.SendClosingMessage();
+			Conn.SendClosingMessage ();
 			if (Conn.socket.Connected) {
-				Conn.socket.Close();
+				Conn.socket.Close ();
 			}
-			Players.Remove(ID);
-			Conn.Dispose();
+			Players.Remove (ID);
+			Conn.Dispose ();
 		}
 
-		public void SendToClient(string msg) {
+		public override void SendToClient (string msg) {
 
-			Conn.Send(msg);
+			Conn.Send (msg);
 		}
 
-		public string WaitForClientReply() {
+		public string WaitForClientReply () {
 
 			try {
-				string reply = Conn.Reader.ReadLine();
+				string reply = Conn.Reader.ReadLine ();
 				if (reply != null) {
-					return reply.Trim();
+					return reply.Trim ();
 				} else {
 					// null
 					return reply;

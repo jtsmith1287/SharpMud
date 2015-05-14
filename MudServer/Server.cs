@@ -13,49 +13,50 @@ namespace ServerCore {
 		const int PortNumber = 4000;
 		const int BacklogSize = 20;
 
-		internal void Run() {
+		internal void Run () {
 
 			Console.CancelKeyPress += CleanServerShutdown;
 
-			LoadData();
-			BuildWorld();
+			LoadData ();
+			BuildWorld ();
 
-			Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			server.Bind(new IPEndPoint(IPAddress.Any, PortNumber));
-			server.Listen(BacklogSize);
+			Socket server = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			server.Bind (new IPEndPoint (IPAddress.Any, PortNumber));
+			server.Listen (BacklogSize);
 
-			Console.WriteLine("Server booted. Listening for connections.");
+			Console.WriteLine ("Server booted. Listening for connections.");
 			while (true) {
-				Socket conn = server.Accept();
-				Connection conObject = new Connection(conn);
-				Console.WriteLine("Connection accepted -- " + conn.RemoteEndPoint);
+				Socket conn = server.Accept ();
+				Connection conObject = new Connection (conn);
+				Console.WriteLine ("Connection accepted -- " + conn.RemoteEndPoint);
 			}
 		}
 
-		private void CleanServerShutdown(object sender, ConsoleCancelEventArgs e) {
+		private void CleanServerShutdown (object sender, ConsoleCancelEventArgs e) {
 
-			Console.WriteLine("Aborting threads...");
-			World.StopAllSpawnThreads();
-			Console.WriteLine("Terminating connections and disposing of resources...");
+			Console.WriteLine ("Aborting threads...");
+			World.StopAllSpawnThreads ();
+			Console.WriteLine ("Terminating connections and disposing of resources...");
 			PlayerEntity[] players = new PlayerEntity[PlayerEntity.Players.Count];
-			PlayerEntity.Players.Values.CopyTo(players, 0);
+			PlayerEntity.Players.Values.CopyTo (players, 0);
 			foreach (var player in players) {
-				player.Close();
+				player.Close ();
 			}
-			Console.WriteLine("Saving data...");
-			Data.SaveData();
-			Console.Write("Press ENTER to close the console.");
-			Console.ReadLine();
+			Console.WriteLine ("Saving data...");
+			Data.SaveData ();
+			Console.Write ("Press ENTER to close the console.");
+			Console.ReadLine ();
 		}
 
-		private void LoadData() {
+		private void LoadData () {
 
-			Data.LoadData();
+			Data.LoadData ();
+			Data.PopulateSpawnDataTemplates ();
 		}
 
-		void BuildWorld() {
+		void BuildWorld () {
 
-			new Room(Coordinate3.Zero, "Starting Room");
+			new Room (Coordinate3.Zero, "Starting Room");
 		}
 	}
 }

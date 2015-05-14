@@ -10,18 +10,18 @@ namespace GameCore.Util {
 		public Disposition Behaviour;
 		public Group Faction;
 
-		public SpawnData() {
-
+		public SpawnData (string name) {
+			
 			// For Testing only
 			Behaviour = Disposition.Hostile;
 			Faction = Group.Orc;
-			Name = "Orc";
+			Name = name;
 			Level = 1;
 			Health = 8;
 			MaxHealth = 8;
 		}
 
-		SpawnData(string name, Guid id)
+		SpawnData (string name, Guid id)
 			: base(name, id) {
 		}
 	}

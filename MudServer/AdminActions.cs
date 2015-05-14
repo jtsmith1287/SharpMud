@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace GameCore.Util {
 	public static class AdminActions {
@@ -57,10 +58,18 @@ namespace GameCore.Util {
 			Room room = World.GetRoom (player.Location);
 			//TODO: The spawndata should be generated based on the args
 			// Create the creates that will be spawning here.
-			SpawnData creature_1 = new SpawnData ();
-			SpawnData creature_2 = new SpawnData ();
+			
+			List<SpawnData> spawnList = new List<SpawnData> ();
+			for (int i = 1; i < args.Length; i++) {
+				player.SendToClient ("Trying to find some " + args [i] + " DNA ...");
+				SpawnData spawn;
+				if (Data.NameSpawnPairs.TryGetValue (args [i], out spawn)) {
+					spawnList.Add (spawn);
+					player.SendToClient (spawn.Name + " created!");
+				}
+			}
 
-			Spawner spawner = new Spawner (room, creature_1, creature_2);
+			new Spawner (room, spawnList);
 			player.SendToClient ("Spawner created.");
 		}
 	}

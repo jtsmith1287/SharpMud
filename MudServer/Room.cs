@@ -24,6 +24,26 @@ namespace GameCore {
 			World.AddRoom (this);
 		}
 
+		public string GetDirection (Coordinate3 destination) {
+			
+			Coordinate3 diff = Location - destination;
+			
+			if (diff.X == 1)
+				return "west";
+			if (diff.X == -1)
+				return "east";
+			if (diff.Y == 1)
+				return "south";
+			if (diff.Y == -1)
+				return "north";
+			if (diff.Z == 1)
+				return "down";
+			if (diff.Z == -1)
+				return "up";
+			else
+				return "";
+		}
+
 		[OnDeserializing]
 		void InitializeEntitiesList (StreamingContext c) {
 
