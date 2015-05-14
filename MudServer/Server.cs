@@ -13,40 +13,40 @@ namespace ServerCore {
 		const int PortNumber = 4000;
 		const int BacklogSize = 20;
 
-		internal void Run() {
+		internal void Run () {
 
 			Console.CancelKeyPress += SaveData;
 
-			LoadData();
-			BuildWorld();
+			LoadData ();
+			BuildWorld ();
 
-			Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			server.Bind(new IPEndPoint(IPAddress.Any, PortNumber));
-			server.Listen(BacklogSize);
+			Socket server = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			server.Bind (new IPEndPoint (IPAddress.Any, PortNumber));
+			server.Listen (BacklogSize);
 
-			Console.WriteLine("Server booted. Listening for connections.");
+			Console.WriteLine ("Server booted. Listening for connections.");
 			while (true) {
-				Socket conn = server.Accept();
-				Connection conObject = new Connection(conn);
-				Console.WriteLine("Connection accepted -- " + conn.RemoteEndPoint);
+				Socket conn = server.Accept ();
+				Connection conObject = new Connection (conn);
+				Console.WriteLine ("Connection accepted -- " + conn.RemoteEndPoint);
 			}
 		}
 
-		private void SaveData(object sender, ConsoleCancelEventArgs e) {
+		private void SaveData (object sender, ConsoleCancelEventArgs e) {
 
-			Console.WriteLine("SAVING");
-			World.CleanRooms();
-			Data.SaveStaticData();
+			Console.WriteLine ("SAVING");
+			World.StopAllSpawnThreads ();
+			Data.SaveStaticData ();
 		}
 
-		private void LoadData() {
+		private void LoadData () {
 
-			Data.LoadStaticData();
+			Data.LoadStaticData ();
 		}
 
-		void BuildWorld() {
+		void BuildWorld () {
 
-			new Room(Coordinate3.Zero, "Starting Room");
+			new Room (Coordinate3.Zero, "Starting Room");
 		}
 	}
 }

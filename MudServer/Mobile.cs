@@ -6,7 +6,11 @@ namespace GameCore {
 	
 		Disposition disposition = Disposition.Neutral;
 
-		public Mobile () {
+		public Mobile (Data data, Disposition disp) {
+			
+			Name = data.Name;
+			Stats = data;
+			disposition = disp;
 		}
 	}
 }

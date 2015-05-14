@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using GameCore.Util;
 
@@ -6,6 +7,7 @@ namespace GameCore {
 	public static class World {
 		
 		public static Dictionary<string, Room> Rooms = new Dictionary<string, Room> ();
+		public static List<Thread> SpawnThreads = new List<Thread> ();
 
 		public static bool AddRoom (Room room) {
 		
@@ -46,10 +48,10 @@ namespace GameCore {
 			return null;
 		}
 
-		internal static void CleanRooms() {
-
-			foreach (var entry in Rooms) {
-
+		internal static void StopAllSpawnThreads () {
+			
+			foreach (Thread thread in SpawnThreads) {
+				thread.Abort ();
 			}
 		}
 	}

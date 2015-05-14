@@ -5,6 +5,7 @@ namespace GameCore {
 		
 		public Guid ID;
 		public string Name;
+		public Data Stats;
 
 		public void GenerateID () {
 			

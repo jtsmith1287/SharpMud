@@ -10,43 +10,57 @@ namespace ServerCore.Util {
 		/// </summary>
 		/// <returns>A whitespace delimited array of strings.</returns>
 		/// <param name="line">A string.</param>
-		public static string[] ProcessLine(string line) {
+		public static string[] ProcessLine (string line) {
 
-			return line.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+			return line.Split (" ".ToCharArray (), StringSplitOptions.RemoveEmptyEntries);
 		}
 
-		public static void HandleLine(string line, PlayerEntity player) {
+		public static void HandleLine (string line, PlayerEntity player) {
 
-			string[] args = ProcessLine(line);
+			string[] args = ProcessLine (line);
+			string arg = args [0];
 
-			bool processed = false;
-			foreach (string arg in args) {
-				if (processed) {
-					break;
+			switch (arg) {
+			default:
+				if (player.Admin) {
+					HandleLineAdmin (args, player);
+				} else {
+					player.SendToClient ("No command found. Try again.");
 				}
-				switch (arg) {
-					default:
-						player.SendToClient("No command found. Try again.");
-						processed = true;
-						break;
-					case "e":
-					case "w":
-					case "n":
-					case "s":
-						processed = true;
-						Actions.MoveRooms(player, arg);
-						break;
-					case "build":
-						AdminActions.BuildRoom(player, args[1]);
-						break;
-					case "look":
-						processed = true;
-						Actions.Look(player);
-						break;
-				}
+				break;
+			// Movement
+			case "e":
+			case "w":
+			case "n":
+			case "s":
+				Actions.MoveRooms (player, arg);
+				break;
+			case "look":
+				Actions.Look (player);
+				break;
+			case "stats":
+				Actions.ViewStats (player);
+				break;
+			case "who":
+				Actions.ViewAllPlayers (player);
+				break;
 			}
+		}
 
+		private static void HandleLineAdmin (string[] args, PlayerEntity player) {
+		
+
+			switch (args [0]) {
+			default:
+				player.SendToClient ("No command found. Try again.");
+				break;
+			case "build":
+				AdminActions.BuildRoom (player, args [1]);
+				break;
+			case "spawn":
+				AdminActions.CreateSpawner (player, args);
+				break;
+			}
 		}
 	}
 }
-

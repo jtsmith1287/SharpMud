@@ -51,6 +51,18 @@ namespace GameCore.Util {
 			}
 			
 		}
+
+		public static void CreateSpawner (PlayerEntity player, string[] args) {
+			
+			Room room = World.GetRoom (player.Location);
+			//TODO: The spawndata should be generated based on the args
+			// Create the creates that will be spawning here.
+			SpawnData creature_1 = new SpawnData ();
+			SpawnData creature_2 = new SpawnData ();
+
+			Spawner spawner = new Spawner (room, creature_1, creature_2);
+			player.SendToClient ("Spawner created.");
+		}
 	}
 }
 

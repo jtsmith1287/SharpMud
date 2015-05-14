@@ -61,6 +61,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <Reference Include="Mono.Posix" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -79,6 +80,8 @@
     <Compile Include="Data.cs" />
     <Compile Include="Actions.cs" />
     <Compile Include="AdminActions.cs" />
+    <Compile Include="Spawner.cs" />
+    <Compile Include="SpawnData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MudServer_TemporaryKey.pfx" />
