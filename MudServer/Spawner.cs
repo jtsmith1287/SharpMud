@@ -8,37 +8,61 @@ namespace GameCore.Util {
 	public class Spawner {
 
 		Guid ID;
-		SpawnData[] Spawns;
+		SpawnData[] m_SpawnData;
 		[NonSerialized]
-		bool m_Spawning;
+		List<Mobile> m_Spawns = new List<Mobile>();
+		int MaxNumberOfSpawn = 3;
+		bool m_Spawning = false;
+		Coordinate3 m_Location;
 
-		public Spawner (Room room, params SpawnData[] spawnData) {
-			
-			Spawns = spawnData;
-			room.SpawnersHere.Add (this);
-			ID = Guid.NewGuid ();
+
+		public Spawner(Room room, params SpawnData[] spawnData) {
+
+			m_SpawnData = spawnData;
+			room.SpawnersHere.Add(this);
+			m_Location = room.Location;
+			ID = Guid.NewGuid();
 			m_Spawning = true;
-			StartSpawnThread ();
+			StartSpawnThread(new StreamingContext());
 		}
 
-		[OnDeserializing]
-		internal void StartSpawnThread () {
-			
+		[OnDeserialized]
+		internal void StartSpawnThread(StreamingContext context) {
+
 			m_Spawning = true;
-			Thread thread = new Thread (SpawnThread);
-			World.SpawnThreads.Add (thread);
-			thread.Start ();
+			m_Spawns = new List<Mobile>();
+			Thread thread = new Thread(SpawnThread);
+			World.SpawnThreads.Add(thread);
+			thread.Start();
 		}
 
-		void SpawnThread () {
-			
+		void SpawnThread() {
+
+			Random rand = new Random();
+			int spawnPause = 5000;
+			int spawnTimer = DateTime.Now.Millisecond + spawnPause;
+			Console.WriteLine(spawnTimer);
+
 			while (m_Spawning) {
-				foreach (SpawnData data in Spawns) {
-					Console.Write ("Spawning " + data.Name + " ");
+				Console.WriteLine(DateTime.Now.Millisecond);
+				if (m_Spawns.Count < MaxNumberOfSpawn) {
+					if (spawnTimer < DateTime.Now.Millisecond) {
+						Mobile newMob = new Mobile(m_SpawnData[rand.Next(m_SpawnData.Length)], this);
+						m_Spawns.Add(newMob);
+						newMob.Move(m_Location);
+						spawnTimer = DateTime.Now.Millisecond + spawnPause;
+					}
 				}
-				Console.WriteLine ();
-				Thread.Sleep (1000);
+				foreach (Mobile mob in m_Spawns) {
+					mob.ExecuteLogic();
+				}
+				Thread.Sleep(1000);
 			}
+		}
+
+		internal void Remove(Mobile mobile) {
+
+			m_Spawns.Remove(mobile);
 		}
 	}
 }

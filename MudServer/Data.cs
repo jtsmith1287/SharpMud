@@ -9,83 +9,116 @@ namespace GameCore {
 	[Serializable]
 	public class Data {
 
+		#region Static Fields
 		[NonSerialized]
-		public static Dictionary<string, string> UsernamePwdPairs = new Dictionary<string, string> ();
+		public static Dictionary<string, string> UsernamePwdPairs = new Dictionary<string, string>();
 		[NonSerialized]
-		public static Dictionary<string, Guid> UsernameIDPairs = new Dictionary<string, Guid> ();
+		public static Dictionary<string, Guid> UsernameIDPairs = new Dictionary<string, Guid>();
 		[NonSerialized]
-		public static Dictionary<Guid, Data> IDDataPairs = new Dictionary<Guid, Data> ();
+		public static Dictionary<Guid, Data> IDDataPairs = new Dictionary<Guid, Data>();
+		#endregion
 		#region Exposed Data
 		public string Name;
 		public int Level;
 		public Coordinate3 Location;
 		public Guid ID;
+		int m_Health;
+		public int MaxHealth;
+		public int Health {
+			get {
+				return m_Health;
+			}
+			set {
+				m_Health = value;
+				if (m_Health > MaxHealth)
+					m_Health = MaxHealth;
+				if (m_Health < 0) {
+					m_Health = 0;
+					OnZeroHealth();
+				}
+			}
+		}
+		public delegate void BaseDelegate();
+		public event BaseDelegate OnZeroHealth;
 		#endregion
-		protected Data () {
+		protected Data() {
 		}
 
-		public Data (string username, Guid id) {
+		public Data(string username, Guid id) {
 
 			Name = username;
 			ID = id;
 			Level = 1;
-			Data.IDDataPairs.Add (id, this);
+			Data.IDDataPairs.Add(id, this);
 		}
 
-		public static Data GetData (Guid id) {
+		public static Data GetData(Guid id) {
 
 			Data data;
-			if (IDDataPairs.TryGetValue (id, out data)) {
+			if (IDDataPairs.TryGetValue(id, out data)) {
 				return data;
 			} else {
 				return data;
 			}
 		}
 
-		internal static void SaveStaticData () {
+		#region Data Saving/Loading
+		internal static void SaveData() {
 
-			BinaryFormatter bf = new BinaryFormatter ();
-			Stream stream = new FileStream ("userpwd", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize (stream, UsernamePwdPairs);
-			stream.Close ();
+			BinaryFormatter bf = new BinaryFormatter();
+			FileStream stream = new FileStream("userpwd", FileMode.Create, FileAccess.Write, FileShare.None);
+			bf.Serialize(stream, UsernamePwdPairs);
+			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
+			stream.Close();
 
-			stream = new FileStream ("userid", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize (stream, UsernameIDPairs);
-			stream.Close ();
+			stream = new FileStream("userid", FileMode.Create, FileAccess.Write, FileShare.None);
+			bf.Serialize(stream, UsernameIDPairs);
+			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
+			stream.Close();
 
-			stream = new FileStream ("iddata", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize (stream, IDDataPairs);
-			stream.Close ();
+			stream = new FileStream("iddata", FileMode.Create, FileAccess.Write, FileShare.None);
+			bf.Serialize(stream, IDDataPairs);
+			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
+			stream.Close();
 
-			stream = new FileStream ("world", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize (stream, World.Rooms);
-			stream.Close ();
+			stream = new FileStream("world", FileMode.Create, FileAccess.Write, FileShare.None);
+			bf.Serialize(stream, World.Rooms);
+			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
+			stream.Close();
 		}
 
-		internal static void LoadStaticData () {
+		internal static void LoadData() {
 
 			try {
-				BinaryFormatter bf = new BinaryFormatter ();
-				Stream stream = new FileStream ("userpwd", FileMode.Open, FileAccess.Read, FileShare.Read);
-				UsernamePwdPairs = (Dictionary<string, string>)bf.Deserialize (stream);
-				stream.Close ();
+				long bytes = 0;
+				BinaryFormatter bf = new BinaryFormatter();
+				Stream stream = new FileStream("userpwd", FileMode.Open, FileAccess.Read, FileShare.Read);
+				UsernamePwdPairs = (Dictionary<string, string>)bf.Deserialize(stream);
+				bytes += stream.Length;
+				stream.Close();
 
-				stream = new FileStream ("userid", FileMode.Open, FileAccess.Read, FileShare.Read);
-				UsernameIDPairs = (Dictionary<string, Guid>)bf.Deserialize (stream);
-				stream.Close ();
+				stream = new FileStream("userid", FileMode.Open, FileAccess.Read, FileShare.Read);
+				UsernameIDPairs = (Dictionary<string, Guid>)bf.Deserialize(stream);
+				bytes += stream.Length;
+				stream.Close();
 
-				stream = new FileStream ("iddata", FileMode.Open, FileAccess.Read, FileShare.Read);
-				IDDataPairs = (Dictionary<Guid, Data>)bf.Deserialize (stream);
-				stream.Close ();
+				stream = new FileStream("iddata", FileMode.Open, FileAccess.Read, FileShare.Read);
+				IDDataPairs = (Dictionary<Guid, Data>)bf.Deserialize(stream);
+				bytes += stream.Length;
+				stream.Close();
 
-				stream = new FileStream ("world", FileMode.Open, FileAccess.Read, FileShare.Read);
-				World.Rooms = (Dictionary<string, Room>)bf.Deserialize (stream);
-				stream.Close ();
+				stream = new FileStream("world", FileMode.Open, FileAccess.Read, FileShare.Read);
+				World.Rooms = (Dictionary<string, Room>)bf.Deserialize(stream);
+				bytes += stream.Length;
+				stream.Close();
+
+				Console.WriteLine(string.Format("Loaded {0}kb of data into memory.", bytes / 1000f));
 
 			} catch (IOException) {
-				Data.SaveStaticData ();
+				Data.SaveData();
 			}
 		}
+		#endregion
 	}
 }
 

@@ -9,10 +9,10 @@ using GameCore;
 using ServerCore.Util;
 
 namespace ServerCore {
-	public class Connection {
+	public class Connection : IDisposable {
 
 		static object BigLock = new object();
-		Socket socket;
+		internal Socket socket;
 		public StreamReader Reader;
 		public StreamWriter Writer;
 		static ArrayList connections = new ArrayList();
@@ -46,22 +46,27 @@ namespace ServerCore {
 						ArgumentHandler.HandleLine(line.Trim(), Player);
 					}
 				}
-			} finally {
+			} catch (IOException) { } finally {
 				lock (BigLock) {
-					SendClosingMessage();
-					socket.Close();
-					OnDisconnect();
+					if (socket.Connected) {
+						SendClosingMessage();
+						socket.Close();
+						OnDisconnect();
+					}
 				}
 			}
 		}
 
 		public void Send(string msg) {
 
-			Writer.WriteLine(msg);
-			Writer.Flush();
+
+			try {
+				Writer.WriteLine(msg);
+				Writer.Flush();
+			} catch (IOException) { } catch (ObjectDisposedException) { }
 		}
 
-		void SendClosingMessage() {
+		public void SendClosingMessage() {
 
 			Send("Thanks for playing! You're being cleanly disconnected now. Bye!");
 		}
@@ -120,7 +125,7 @@ namespace ServerCore {
 			}
 			connections.Add(this);
 			Console.WriteLine("Starting save thread for new data");
-			new Thread(Data.SaveStaticData).Start();
+			new Thread(Data.SaveData).Start();
 		}
 
 		void OnDisconnect() {
@@ -128,6 +133,14 @@ namespace ServerCore {
 			connections.Remove(this);
 			Player.Close();
 			Console.WriteLine(Player.ID + " has disconnected");
+		}
+
+		public void Dispose() {
+
+			Console.Write("Disposing of " + Player.Name + "'s resources...");
+			Reader.Dispose();
+			Writer.Dispose();
+			Console.WriteLine(" done!");
 		}
 	}
 }

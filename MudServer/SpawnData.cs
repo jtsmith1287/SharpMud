@@ -6,20 +6,23 @@ namespace GameCore.Util {
 	/// </summary>
 	[Serializable]
 	public class SpawnData : Data {
-	
-		Disposition Behaviour;
-		Group Faction;
 
-		public SpawnData () {
-			
+		public Disposition Behaviour;
+		public Group Faction;
+
+		public SpawnData() {
+
 			// For Testing only
 			Behaviour = Disposition.Hostile;
 			Faction = Group.Orc;
 			Name = "Orc";
 			Level = 1;
+			Health = 8;
+			MaxHealth = 8;
 		}
 
-		SpawnData (string name, Guid id) : base(name, id) {
+		SpawnData(string name, Guid id)
+			: base(name, id) {
 		}
 	}
 }
