@@ -7,16 +7,22 @@ namespace GameCore {
 		public static void Look(PlayerEntity player) {
 
 			Room room = World.GetRoom(player.Location);
-			string rawString = "{0}\n=============================\n{1}\nPlayers: {2}";
+			string rawString = "\n {0}\n=============================\n{1}\nPlayers: {2}\nAlso here: {3}";
 			string visiblePlayers = "";
-			PlayerEntity entityInRoom;
+			string visibleMobs = "";
+			PlayerEntity playerInRoom;
+			Mobile mobInRoom;
 
 			foreach (Guid id in room.EntitiesHere) {
 				if (id == player.ID) {
 					continue;
 				}
-				if (PlayerEntity.Players.TryGetValue(id, out entityInRoom)) {
-					visiblePlayers += entityInRoom.Name + ", ";
+				if (PlayerEntity.Players.TryGetValue(id, out playerInRoom)) {
+					visiblePlayers += playerInRoom.Name + ", ";
+				} else {
+					World.Mobiles.TryGetValue(id, out mobInRoom);
+					if (mobInRoom != null)
+						visibleMobs += mobInRoom.Name + ", ";
 				}
 			}
 
@@ -24,7 +30,8 @@ namespace GameCore {
 				string mesage = string.Format(rawString,
 											   room.Name,
 											   room.Description,
-											   visiblePlayers);
+											   visiblePlayers,
+											   visibleMobs);
 				player.SendToClient(mesage);
 			} else {
 				player.SendToClient("Somehow... you're nowhere. Try logging in again.");

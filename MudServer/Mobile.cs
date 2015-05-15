@@ -23,6 +23,7 @@ namespace GameCore {
 		void OnDeath() {
 
 			SpawnerParent.Remove(this);
+			World.Mobiles.Remove(ID);
 		}
 	}
 }

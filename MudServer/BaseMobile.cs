@@ -8,41 +8,47 @@ namespace GameCore {
 		public string Name;
 		public Data Stats;
 
-		public void GenerateID () {
+		public void GenerateID() {
 
-			ID = Guid.NewGuid ();
+			ID = Guid.NewGuid();
 		}
 
-		public virtual void Move (Coordinate3 location) {
+		public virtual void Move(Coordinate3 location) {
 
-			Room oldRoom = World.GetRoom (Stats.Location);
-			Room newRoom = World.GetRoom (location);
+			Room oldRoom = World.GetRoom(Stats.Location);
+			Room newRoom = World.GetRoom(location);
 
-			if (oldRoom != null && newRoom != null) {
-				oldRoom.EntitiesHere.Remove (ID);
-				Stats.Location = location;
-				Stats.Location = newRoom.Location;
-				
+			if (oldRoom != null) {
+				oldRoom.EntitiesHere.Remove(ID);
+				Stats.Location = null;
+
 				foreach (Guid id in oldRoom.EntitiesHere) {
-					var player = PlayerEntity.GetPlayerByID (id);
+					var player = PlayerEntity.GetPlayerByID(id);
 					if (player != null) {
-						player.SendToClient (Name + " has left to the " + oldRoom.GetDirection (newRoom.Location));
+						player.SendToClient(Name + " has left to the " + oldRoom.GetDirection(newRoom.Location));
 					}
 				}
+			}
+			if (newRoom != null) {
 				foreach (Guid id in newRoom.EntitiesHere) {
-					var player = PlayerEntity.GetPlayerByID (id);
+					var player = PlayerEntity.GetPlayerByID(id);
 					if (player != null) {
-						player.SendToClient (Name + " has arrived from the " + newRoom.GetDirection (oldRoom.Location));
+						if (oldRoom != null)
+							player.SendToClient(
+								Name + " has arrived from the " + newRoom.GetDirection(oldRoom.Location));
+						else
+							player.SendToClient(Name + " has arrived.");
 					}
 				}
-				newRoom.EntitiesHere.Add (ID);
-				var thisPlayer = PlayerEntity.GetPlayerByID (Stats.ID);
+				newRoom.EntitiesHere.Add(ID);
+				Stats.Location = newRoom.Location;
+				var thisPlayer = PlayerEntity.GetPlayerByID(Stats.ID);
 				if (thisPlayer != null)
-					Actions.Look (thisPlayer);
+					Actions.Look(thisPlayer);
 			}
 		}
 
-		public virtual void SendToClient (string msg) {
+		public virtual void SendToClient(string msg) {
 		}
 	}
 }

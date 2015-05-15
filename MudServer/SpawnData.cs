@@ -9,9 +9,10 @@ namespace GameCore.Util {
 
 		public Disposition Behaviour;
 		public Group Faction;
+		public bool Humanoid = true;
 
-		public SpawnData (string name) {
-			
+		public SpawnData(string name) {
+
 			// For Testing only
 			Behaviour = Disposition.Hostile;
 			Faction = Group.Orc;
@@ -21,7 +22,7 @@ namespace GameCore.Util {
 			MaxHealth = 8;
 		}
 
-		SpawnData (string name, Guid id)
+		SpawnData(string name, Guid id)
 			: base(name, id) {
 		}
 	}
