@@ -2,28 +2,27 @@ using System;
 using GameCore.Util;
 
 namespace GameCore {
-
 	public class Mobile : BaseMobile {
 
 		public Spawner SpawnerParent;
 
-		public Mobile(SpawnData data, Spawner spawner) {
+		public Mobile (SpawnData data, Spawner spawner) {
 
 			Name = data.Name;
-			Stats = data;
+			Stats = (SpawnData)data.ShallowCopy ();
 			SpawnerParent = spawner;
-			GenerateID();
+			GenerateID ();
 		}
 
-		public void ExecuteLogic() {
+		public void ExecuteLogic () {
 
-			Console.WriteLine("I am a " + Name + " and I'm alive...");
+			Console.WriteLine ("I am a " + Name + " and I'm alive...");
 		}
 
-		void OnDeath() {
+		void OnDeath () {
 
-			SpawnerParent.Remove(this);
-			World.Mobiles.Remove(ID);
+			SpawnerParent.Remove (this);
+			World.Mobiles.Remove (ID);
 		}
 	}
 }

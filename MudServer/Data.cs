@@ -133,6 +133,11 @@ namespace GameCore {
 			var spider = new SpawnData ("Spider");
 			Data.NameSpawnPairs.Add (spider.Name, spider);
 		}
+
+		public Data ShallowCopy () {
+		
+			return (Data)this.MemberwiseClone ();
+		}
 	}
 }
 
