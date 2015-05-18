@@ -7,19 +7,14 @@ namespace GameCore.Util {
 	[Serializable]
 	public class SpawnData : Data {
 
-		public Disposition Behaviour;
-		public Group Faction;
+		public Disposition Behaviour { get; set; }
+		public Group Faction { get; set; }
 		public bool Humanoid = true;
 
 		public SpawnData(string name) {
 
-			// For Testing only
-			Behaviour = Disposition.Hostile;
-			Faction = Group.Orc;
 			Name = name;
 			Level = 1;
-			Health = 8;
-			MaxHealth = 8;
 		}
 
 		SpawnData(string name, Guid id)

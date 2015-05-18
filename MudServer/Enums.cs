@@ -10,6 +10,12 @@ namespace GameCore.Util {
 	public enum Group {
 		Player,
 		Orc,
+		Goblin,
+		Spider,
+		Wyrm,
+		Dragon,
+		Undead,
+		Werewolf,
 	}
 }
 

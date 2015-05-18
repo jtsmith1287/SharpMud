@@ -13,35 +13,35 @@ namespace GameCore.Util {
 		public static Coordinate3 Zero {
 			get {
 				if (Coordinate3.zero == null) {
-					zero = new Coordinate3 (0, 0, 0);
-					return zero;
+					zero = new Coordinate3(0, 0, 0);
+					return (Coordinate3)zero.MemberwiseClone();
 				} else {
-					return zero;
+					return (Coordinate3)zero.MemberwiseClone();
 				}
 			}
 			private set { }
 		}
 
-		public Coordinate3 (int x, int y, int z) {
+		public Coordinate3(int x, int y, int z) {
 
- X = x;
+			X = x;
 			Y = y;
 			Z = z;
 		}
 
-		public static Coordinate3 operator - (Coordinate3 one, Coordinate3 two) {
+		public static Coordinate3 operator -(Coordinate3 one, Coordinate3 two) {
 
-			return new Coordinate3 (one.X - two.X, one.Y - two.Y, one.Z - two.Z);
+			return new Coordinate3(one.X - two.X, one.Y - two.Y, one.Z - two.Z);
 		}
 
-		public static Coordinate3 operator + (Coordinate3 one, Coordinate3 two) {
+		public static Coordinate3 operator +(Coordinate3 one, Coordinate3 two) {
 
-			return new Coordinate3 (one.X + two.X, one.Y + two.Y, one.Z + two.Z);
+			return new Coordinate3(one.X + two.X, one.Y + two.Y, one.Z + two.Z);
 		}
 
-		public static bool operator == (Coordinate3 one, Coordinate3 two) {
+		public static bool operator ==(Coordinate3 one, Coordinate3 two) {
 
-			if (System.Object.ReferenceEquals (one, two)) {
+			if (System.Object.ReferenceEquals(one, two)) {
 				return true;
 			}
 			if ((object)one == null || (object)two == null) {
@@ -54,9 +54,9 @@ namespace GameCore.Util {
 			}
 		}
 
-		public static bool operator != (Coordinate3 one, Coordinate3 two) {
+		public static bool operator !=(Coordinate3 one, Coordinate3 two) {
 
-			if (System.Object.ReferenceEquals (one, two)) {
+			if (System.Object.ReferenceEquals(one, two)) {
 				return false;
 			}
 			if (one == null || two == null) {

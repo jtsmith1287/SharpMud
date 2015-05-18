@@ -1,13 +1,20 @@
 using System;
+using System.Collections.Generic;
 using GameCore.Util;
 
 namespace GameCore {
 	public static class Actions {
 
+
 		public static void Look(PlayerEntity player) {
 
 			Room room = World.GetRoom(player.Location);
-			string rawString = "\n {0}\n=============================\n{1}\nPlayers: {2}\nAlso here: {3}";
+			string rawString = "\n " +
+				Color.Green + "{0}\n" +
+				Color.GreenD + "=============================\n{1}" +
+				Color.Cyan + "\nPlayers: {2}" +
+				Color.Magenta + "\nAlso here: {3}" +
+				Color.Reset;
 			string visiblePlayers = "";
 			string visibleMobs = "";
 			PlayerEntity playerInRoom;
@@ -32,7 +39,7 @@ namespace GameCore {
 											   room.Description,
 											   visiblePlayers,
 											   visibleMobs);
-				player.SendToClient(mesage);
+				player.SendToClient(mesage, Color.GreenD);
 			} else {
 				player.SendToClient("Somehow... you're nowhere. Try logging in again.");
 			}

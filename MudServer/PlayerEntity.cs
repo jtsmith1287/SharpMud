@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using ServerCore;
 using GameCore.Util;
+using System.Runtime.Serialization;
 
 namespace GameCore {
 	public class PlayerEntity : BaseMobile {
@@ -36,11 +37,8 @@ namespace GameCore {
 			ID = data.ID;
 			Name = data.Name;
 			Stats = data;
+			Stats.OnZeroHealth += Die;
 			Players.Add(ID, this);
-
-			if (new Coordinate3(1, 2, 3) == new Coordinate3(1, 2, 3)) {
-				Console.WriteLine("YAAAYYY!!");
-			}
 
 			// The player hasn't been initialized yet.
 			if (Stats.MaxHealth == 0) {
@@ -49,10 +47,8 @@ namespace GameCore {
 			}
 
 			if (data.Location != null) {
-				Console.WriteLine("Moving to existing position");
 				Move(data.Location);
 			} else {
-				Console.WriteLine("Moving to 0,0,0");
 				Move(Coordinate3.Zero);
 			}
 
@@ -70,9 +66,10 @@ namespace GameCore {
 			Conn.Dispose();
 		}
 
-		public override void SendToClient(string msg) {
+		public override void SendToClient(string msg, string colorSequence = "") {
 
-			Conn.Send(msg);
+			//TODO: Word wrap this to 80 characters
+			Conn.Send(colorSequence + msg + Color.Reset);
 		}
 
 		public string WaitForClientReply() {
@@ -89,6 +86,18 @@ namespace GameCore {
 				// Player disconnected.
 				return null;
 			}
+		}
+
+		private void Die(Data data) {
+
+			SendToClient("You have been slain!");
+			Move(Coordinate3.Zero);
+			data.Health = data.MaxHealth;
+		}
+
+		[OnDeserialized]
+		void OnDeserialized() {
+			Stats.OnZeroHealth += Die;
 		}
 	}
 }
