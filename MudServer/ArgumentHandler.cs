@@ -18,56 +18,52 @@ namespace ServerCore.Util {
 		public static void HandleLine(string line, PlayerEntity player) {
 
 			string[] args = ProcessLine(line);
-			string arg;
 
-			if (args.Length > 0) {
-				arg = args[0];
-			} else {
+			if (args.Length == 0) {
 				player.SendToClient("Yes?");
 				return;
 			}
 
-			switch (arg) {
-				default:
-					if (player.Admin) {
-						HandleLineAdmin(args, player);
-					} else {
-						player.SendToClient("No command found. Try again.");
-					}
-					break;
-				// Movement
-				case "e":
-				case "w":
-				case "n":
-				case "s":
-					Actions.MoveRooms(player, arg);
-					break;
-				case "look":
-					Actions.Look(player);
-					break;
-				case "stats":
-					Actions.ViewStats(player);
-					break;
-				case "who":
-					Actions.ViewAllPlayers(player);
-					break;
+			// Loop over possible commands until user input matches a command stored.
+			foreach (var entry in Actions.ActionCalls) {
+				if (AutoComplete(args[0], entry.Key)) {
+					entry.Value(player, args);
+					return;
+				}
 			}
+			if (player.Admin) {
+				foreach (var entry in AdminActions.ActionCalls) {
+					if (AutoComplete(args[0], entry.Key)) {
+						entry.Value(player, args);
+						return;
+					}
+				}
+			}
+
+			player.SendToClient("Nope, that's not a thing, sorry!", Color.Yellow);
 		}
 
-		private static void HandleLineAdmin(string[] args, PlayerEntity player) {
+		private static bool AutoComplete(string p1, string p2) {
 
+			char[] arg = p1.ToCharArray();
+			char[] value = p2.ToCharArray();
 
-			switch (args[0]) {
-				default:
-					player.SendToClient("No command found. Try again.");
-					break;
-				case "build":
-					AdminActions.BuildRoom(player, args[1]);
-					break;
-				case "spawn":
-					AdminActions.CreateSpawner(player, args);
-					break;
+			// If the command typed has been typed in full
+			if (arg == value) {
+				return true;
 			}
+			// If the command typed has more characters than this full command it's clearly not a match.
+			if (value.Length < arg.Length) {
+				return false;
+			}
+
+			for (int i = 0; i < arg.Length; i++) {
+				if (arg[i] != value[i]) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 	}
 }

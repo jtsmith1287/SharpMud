@@ -4,11 +4,18 @@ using System.Collections.Generic;
 namespace GameCore.Util {
 	public static class AdminActions {
 
-		public static void BuildRoom(PlayerEntity player, string direction) {
+		public static Dictionary<string, Action<PlayerEntity, string[]>> ActionCalls =
+			new Dictionary<string, Action<PlayerEntity, string[]>>{
+				{"build",		new Action<PlayerEntity, string[]>(AdminActions.BuildRoom)},
+				{"spawn",		new Action<PlayerEntity, string[]>(AdminActions.CreateSpawner)},
+				
+			};
+
+		public static void BuildRoom(PlayerEntity player, string[] args) {
 
 			Coordinate3 location = new Coordinate3(player.Location.X, player.Location.Y, player.Location.Z);
 
-			switch (direction) {
+			switch (args[0]) {
 				case "n":
 					location.Y += 1;
 					break;
