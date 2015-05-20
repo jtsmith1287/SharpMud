@@ -27,14 +27,19 @@ namespace ServerCore.Util {
 			// Loop over possible commands until user input matches a command stored.
 			foreach (var entry in Actions.ActionCalls) {
 				if (AutoComplete(args[0], entry.Key)) {
+					args[0] = entry.Key;
 					entry.Value(player, args);
+					player.DisplayVitals();
 					return;
 				}
 			}
 			if (player.Admin) {
 				foreach (var entry in AdminActions.ActionCalls) {
 					if (AutoComplete(args[0], entry.Key)) {
+						// overwite the incomplete typed command with the full command.
+						args[0] = entry.Key;
 						entry.Value(player, args);
+						player.DisplayVitals();
 						return;
 					}
 				}
@@ -43,7 +48,7 @@ namespace ServerCore.Util {
 			player.SendToClient("Nope, that's not a thing, sorry!", Color.Yellow);
 		}
 
-		private static bool AutoComplete(string p1, string p2) {
+		public static bool AutoComplete(string p1, string p2) {
 
 			char[] arg = p1.ToCharArray();
 			char[] value = p2.ToCharArray();

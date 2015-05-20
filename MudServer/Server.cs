@@ -18,7 +18,7 @@ namespace ServerCore {
 
 			Console.CancelKeyPress += CleanServerShutdown;
 
-			LoadData();
+			Data.LoadData();
 			BuildWorld();
 
 			Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -39,24 +39,27 @@ namespace ServerCore {
 
 		private void CleanServerShutdown(object sender, ConsoleCancelEventArgs e) {
 
-			Console.WriteLine("Aborting threads...");
-			World.StopAllSpawnThreads();
 			Console.WriteLine("Terminating connections and disposing of resources...");
+			if (PlayerEntity.PlayerThread != null) {
+				PlayerEntity.PlayerThread.Abort();
+			}
 			PlayerEntity[] players = new PlayerEntity[PlayerEntity.Players.Count];
 			PlayerEntity.Players.Values.CopyTo(players, 0);
 			foreach (var player in players) {
-				player.Close();
+				player.SendToClient("Thanks for playing! The server is shutting down now!");
+				player.OnDisconnect();
 			}
+			Console.WriteLine("Aborting threads...");
+			World.StopAllSpawnThreads();
 			Console.WriteLine("Saving data...");
-			Data.SaveData();
+			Data.SaveData(
+				DataPaths.IdData,
+				DataPaths.Spawn,
+				DataPaths.UserId,
+				DataPaths.UserPwd,
+				DataPaths.World);
 			Console.Write("Press ENTER to close the console.");
 			Console.ReadLine();
-		}
-
-		private void LoadData() {
-
-			Data.LoadData();
-			//Data.PopulateSpawnDataTemplates ();
 		}
 
 		void BuildWorld() {

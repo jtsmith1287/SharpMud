@@ -81,6 +81,11 @@ namespace GameCore {
 		protected Data() {
 		}
 
+		public int GetTickModifier() {
+
+			return Dex * 10;
+		}
+
 		public Data(string username, Guid id) {
 
 			Name = username;
@@ -89,79 +94,85 @@ namespace GameCore {
 			Data.IDDataPairs.Add(id, this);
 		}
 
-		public static Data GetData(Guid id) {
-
-			Data data;
-			if (IDDataPairs.TryGetValue(id, out data)) {
-				return data;
-			} else {
-				return data;
-			}
-		}
 		#region Data Saving/Loading
-		internal static void SaveData() {
+		internal static void SaveData(params string[] paths) {
 
 			BinaryFormatter bf = new BinaryFormatter();
-			FileStream stream = new FileStream("userpwd", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize(stream, UsernamePwdPairs);
-			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
-			stream.Close();
+			FileStream stream;
 
-			stream = new FileStream("userid", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize(stream, UsernameIDPairs);
-			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
-			stream.Close();
+			foreach (string path in paths) {
+				stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+				switch (path) {
+					case DataPaths.IdData:
+						bf.Serialize(stream, IDDataPairs);
+						break;
+					case DataPaths.UserId:
+						bf.Serialize(stream, UsernameIDPairs);
+						break;
+					case DataPaths.UserPwd:
+						bf.Serialize(stream, UsernamePwdPairs);
+						break;
+					case DataPaths.World:
+						bf.Serialize(stream, World.Rooms);
+						break;
+					case DataPaths.Spawn:
+						bf.Serialize(stream, Data.NameSpawnPairs);
+						break;
+				}
 
-			stream = new FileStream("iddata", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize(stream, IDDataPairs);
-			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
-			stream.Close();
-
-			stream = new FileStream("world", FileMode.Create, FileAccess.Write, FileShare.None);
-			bf.Serialize(stream, World.Rooms);
-			Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
-			stream.Close();
+				Console.WriteLine(string.Format("Saving {0}: {1}kb", stream.Name, stream.Length / 1000f));
+				stream.Close();
+			}
 		}
 
 		internal static void LoadData() {
 
-			try {
-				long bytes = 0;
-				BinaryFormatter bf = new BinaryFormatter();
-				Stream stream = new FileStream("userpwd", FileMode.Open, FileAccess.Read, FileShare.Read);
-				UsernamePwdPairs = (Dictionary<string, string>)bf.Deserialize(stream);
-				bytes += stream.Length;
-				stream.Close();
+			Data.LoadData(
+				DataPaths.IdData,
+				DataPaths.Spawn,
+				DataPaths.UserId,
+				DataPaths.UserPwd,
+				DataPaths.World);
+		}
 
-				stream = new FileStream("userid", FileMode.Open, FileAccess.Read, FileShare.Read);
-				UsernameIDPairs = (Dictionary<string, Guid>)bf.Deserialize(stream);
-				bytes += stream.Length;
-				stream.Close();
+		internal static void LoadData(params string[] paths) {
 
-				stream = new FileStream("iddata", FileMode.Open, FileAccess.Read, FileShare.Read);
-				IDDataPairs = (Dictionary<Guid, Data>)bf.Deserialize(stream);
-				bytes += stream.Length;
-				stream.Close();
+			long bytes = 0;
+			BinaryFormatter bf = new BinaryFormatter();
+			Stream stream;
 
-				stream = new FileStream("world", FileMode.Open, FileAccess.Read, FileShare.Read);
-				World.Rooms = (Dictionary<string, Room>)bf.Deserialize(stream);
-				bytes += stream.Length;
-				stream.Close();
-
+			foreach (string path in paths) {
 				try {
-					stream = new FileStream("spawn", FileMode.Open, FileAccess.Read, FileShare.Read);
-					NameSpawnPairs = (Dictionary<string, SpawnData>)bf.Deserialize(stream);
+					stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+					switch (path) {
+						case DataPaths.IdData:
+							IDDataPairs = (Dictionary<Guid, Data>)bf.Deserialize(stream);
+							break;
+						case DataPaths.UserId:
+							UsernameIDPairs = (Dictionary<string, Guid>)bf.Deserialize(stream);
+							break;
+						case DataPaths.UserPwd:
+							UsernamePwdPairs = (Dictionary<string, string>)bf.Deserialize(stream);
+							break;
+						case DataPaths.World:
+							World.Rooms = (Dictionary<string, Room>)bf.Deserialize(stream);
+							break;
+						case DataPaths.Spawn:
+							NameSpawnPairs = (Dictionary<string, SpawnData>)bf.Deserialize(stream);
+							break;
+					}
 					bytes += stream.Length;
 					stream.Close();
-				} catch (IOException) {
-					Console.WriteLine("No spawn file found. Spawners may not function.");
+				} catch (IOException e) {
+					Console.WriteLine(e.Source);
+					Console.WriteLine(e.Message);
+					Data.SaveData(path);
 				}
-
-				Console.WriteLine(string.Format("Loaded {0}kb of data into memory.", bytes / 1000f));
-
-			} catch (IOException) {
-				Data.SaveData();
 			}
+
+			Console.WriteLine(string.Format("Loaded {0}kb of data into memory.", bytes / 1000f));
+
+
 		}
 
 		public static void SaveSpawnTemplates() {
@@ -173,19 +184,7 @@ namespace GameCore {
 			stream.Close();
 		}
 		#endregion
-		// Temporary data populating until tool is created to replace this.
-		public static void PopulateSpawnDataTemplates() {
 
-			var orc = new SpawnData("Orc");
-			orc.Int = 8;
-			orc.Str = 12;
-			orc.Dex = 10;
-			Data.NameSpawnPairs.Add(orc.Name, orc);
-			var goblin = new SpawnData("Goblin");
-			Data.NameSpawnPairs.Add(goblin.Name, goblin);
-			var spider = new SpawnData("Spider");
-			Data.NameSpawnPairs.Add(spider.Name, spider);
-		}
 
 		public Data ShallowCopy() {
 

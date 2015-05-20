@@ -10,93 +10,94 @@ namespace GameCore.Util {
 		Guid ID;
 		SpawnData[] m_SpawnData;
 		[NonSerialized]
-		List<Mobile> m_Spawns = new List<Mobile> ();
-		List<Mobile> m_DeadSpawn = new List<Mobile> ();
+		List<Mobile> m_Spawns = new List<Mobile>();
+		[NonSerialized]
+		List<Mobile> m_DeadSpawn = new List<Mobile>();
 		int MaxNumberOfSpawn = 3;
 		bool m_Spawning = false;
 		Coordinate3 m_Location;
 
-		public Spawner (Room room, List<SpawnData> spawnList) {
+		public Spawner(Room room, List<SpawnData> spawnList) {
 
-			m_SpawnData = spawnList.ToArray ();
-			room.SpawnersHere.Add (this);
+			m_SpawnData = spawnList.ToArray();
+			room.SpawnersHere.Add(this);
 			m_Location = room.Location;
-			ID = Guid.NewGuid ();
+			ID = Guid.NewGuid();
 			m_Spawning = true;
 
-			StartSpawnThread (new StreamingContext ());
+			StartSpawnThread(new StreamingContext());
 		}
 
 		[OnDeserialized]
-		internal void StartSpawnThread (StreamingContext context) {
+		internal void StartSpawnThread(StreamingContext context) {
 
 			m_Spawning = true;
-			m_Spawns = new List<Mobile> ();
-			m_DeadSpawn = new List<Mobile> ();
-			Thread thread = new Thread (SpawnThread);
-			World.SpawnThreads.Add (thread);
-			thread.Start ();
+			m_Spawns = new List<Mobile>();
+			m_DeadSpawn = new List<Mobile>();
+			Thread thread = new Thread(SpawnThread);
+			World.SpawnThreads.Add(thread);
+			thread.Start();
 		}
 
-		void SpawnThread () {
+		void SpawnThread() {
 
-			Random rand = new Random ();
-			DateTime spawnTime = DateTime.Now.Add (new TimeSpan (0, 0, 2));
+			Random rand = new Random();
+			DateTime spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 2));
 
 			while (m_Spawning) {
 				if (m_Spawns.Count < MaxNumberOfSpawn) {
 					if (spawnTime < DateTime.Now) {
-						Mobile newMob = new Mobile (m_SpawnData [rand.Next (0, m_SpawnData.Length)], this);
-						m_Spawns.Add (newMob);
+						Mobile newMob = new Mobile(m_SpawnData[rand.Next(0, m_SpawnData.Length)], this);
+						m_Spawns.Add(newMob);
 						newMob.Stats.OnZeroHealth += QueueDestroyMob;
-						newMob.Move (m_Location);
-						World.Mobiles.Add (newMob.ID, newMob);
+						newMob.Move(m_Location);
+						World.Mobiles.Add(newMob.ID, newMob);
 
-						spawnTime = DateTime.Now.Add (new TimeSpan (0, 0, 5));
+						spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 5));
 					}
 				}
 				foreach (Mobile mob in m_Spawns) {
 					if (!mob.IsDead)
-						mob.ExecuteLogic ();
+						mob.ExecuteLogic();
 				}
-				
+
 				if (m_DeadSpawn.Count > 0) {
 					lock (m_DeadSpawn) {
 						for (int i = 0; i < m_DeadSpawn.Count; i++) {
-							DestroyMob (m_DeadSpawn [i]);
+							DestroyMob(m_DeadSpawn[i]);
 						}
-						m_DeadSpawn.Clear ();
+						m_DeadSpawn.Clear();
 					}
 				}
 				// Regulates AI logic to roughly 30 ticks a second.
-				Thread.Sleep (33);
+				Thread.Sleep(33);
 			}
 		}
 
-		private void DestroyMob (Mobile mob) {
+		private void DestroyMob(Mobile mob) {
 
 			lock (m_Spawns) {
-				m_Spawns.Remove (mob);
+				m_Spawns.Remove(mob);
 			}
-			Room room = World.GetRoom (mob.Stats.Location);
+			Room room = World.GetRoom(mob.Stats.Location);
 			if (room != null) {
 				lock (room.EntitiesHere) {
-					room.EntitiesHere.Remove (mob.ID);
+					room.EntitiesHere.Remove(mob.ID);
 				}
 			}
 			lock (World.Mobiles) {
-				World.Mobiles.Remove (mob.ID);
+				World.Mobiles.Remove(mob.ID);
 			}
-			mob.BroadcastLocal (mob.Name + " has died!", Color.Yellow);
+			mob.BroadcastLocal(mob.Name + " has died!", Color.Yellow);
 			mob.Stats.Location = null;
 		}
 
-		private void QueueDestroyMob (Data data) {
+		private void QueueDestroyMob(Data data) {
 
 			foreach (Mobile spawn in m_Spawns) {
 				if (spawn.ID == data.ID) {
 					spawn.IsDead = true;
-					m_DeadSpawn.Add (spawn);
+					m_DeadSpawn.Add(spawn);
 				}
 			}
 		}

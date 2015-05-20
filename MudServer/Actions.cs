@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GameCore.Util;
+using ServerCore.Util;
 
 namespace GameCore {
 	public static class Actions {
@@ -22,6 +23,39 @@ namespace GameCore {
 
 		public static void Attack(PlayerEntity player, string[] args) {
 
+			if (args.Length < 2) {
+				player.SendToClient("Attack what?", Color.Red);
+				return;
+			}
+			Room room = World.GetRoom(player.Location);
+			if (room == null) {
+				player.SendToClient("Woah, you're nowhere. Try logging in again.", Color.Red);
+				return;
+			}
+			string name = args[1].ToLower();
+			PlayerEntity targetPlayer;
+			Mobile targetMob;
+			foreach (Guid id in room.EntitiesHere) {
+				if (World.Mobiles.TryGetValue(id, out targetMob)) {
+					if (ArgumentHandler.AutoComplete(name, targetMob.Name.ToLower())) {
+						player.Target = targetMob;
+						player.InCombat = true;
+						break;
+					}
+				} else if (PlayerEntity.Players.TryGetValue(id, out targetPlayer)) {
+					if (ArgumentHandler.AutoComplete(name, targetPlayer.Name.ToLower())) {
+						player.Target = targetPlayer;
+						player.InCombat = true;
+						break;
+					}
+				}
+			}
+			if (player.InCombat) {
+				player.SendToClient(string.Format(
+					"*Combat engaged with {0}!*", player.Target.Name), Color.Yellow);
+			} else {
+				player.SendToClient("Nothing here by that name...", Color.Red);
+			}
 
 		}
 
@@ -37,6 +71,7 @@ namespace GameCore {
 				Color.Reset;
 			string visiblePlayers = "";
 			string visibleMobs = "";
+			string exits = "";
 			PlayerEntity playerInRoom;
 			Mobile mobInRoom;
 
@@ -53,13 +88,17 @@ namespace GameCore {
 				}
 			}
 
+			foreach (var entry in room.ConnectedRooms) {
+				exits += entry.Key + ", ";
+			}
+
 			if (room != null) {
 				string mesage = string.Format(rawString,
 											   room.Name,
 											   room.Description,
 											   visiblePlayers,
 											   visibleMobs,
-											   "");
+											   exits);
 				player.SendToClient(mesage, Color.GreenD);
 			} else {
 				player.SendToClient("Somehow... you're nowhere. Try logging in again.");
@@ -68,40 +107,20 @@ namespace GameCore {
 
 		public static void MoveRooms(PlayerEntity player, string[] args) {
 
-			Coordinate3 location = new Coordinate3(player.Location.X, player.Location.Y, player.Location.Z);
 
-			switch (args[0]) {
-				case "n":
-					location.Y += 1;
-					break;
-				case "s":
-					location.Y -= 1;
-					break;
-				case "e":
-					location.X += 1;
-					break;
-				case "w":
-					location.X -= 1;
-					break;
-				case "u":
-					location.Z += 1;
-					break;
-				case "d":
-					location.Z -= 1;
-					break;
-			}
-
-			Room room = World.GetRoom(location);
+			Room room = World.GetRoom(player.Location);
 			if (room != null) {
-				Room playerRoom = World.GetRoom(player.Location);
-				foreach (Guid id in playerRoom.ConnectedRooms) {
-					if (id == room.ID) {
-						player.Move(room.Location);
-						break;
-					}
+				Coordinate3 locationOfNewRoom;
+				if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom)) {
+					player.Move(locationOfNewRoom);
+				} else {
+					Console.Write(locationOfNewRoom);
+					Console.WriteLine(args[0]);
+					player.SendToClient("There's no exit in that direction!", Color.Red);
 				}
 			} else {
-				player.SendToClient("There's no exit in that direction!");
+				player.SendToClient(
+					"Woah. Somethin' is busted. You're nowhere -- so please re-log in.", Color.Red);
 			}
 		}
 

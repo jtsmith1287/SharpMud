@@ -11,6 +11,7 @@ namespace GameCore {
 		public Data Stats;
 		public bool InCombat = false;
 		public bool IsDead = false;
+		protected Random Rnd = new Random();
 		public BaseMobile Target;
 		protected Stopwatch RoundTimer = new Stopwatch();
 
@@ -80,6 +81,40 @@ namespace GameCore {
 					return true;
 			}
 			return false;
+		}
+
+		protected void StrikeTarget(BaseMobile target) {
+
+			int dmg = Rnd.Next((int)(Stats.Str / 4f), (int)(Stats.Str / 3f));
+			int dodgeVal = Rnd.Next(1, 101);
+			if (dodgeVal >= 105 - target.Stats.Dex) {
+				BroadcastLocal(string.Format(
+					"{0} dodged {1}'s attack!", target.Name, Name), Color.RedD, Target.ID);
+				target.SendToClient(string.Format(
+					"You dodged {0}'s attack!", Name), Color.RedD);
+				SendToClient(string.Format(
+					"{0} dodged your attack!", target.Name), Color.RedD);
+			} else if (false) {
+				// other possibilities for no damage TBD
+			} else {
+				target.Stats.Health -= dmg;
+				target.DisplayVitals();
+				BroadcastLocal(string.Format(
+					"{0} was struck by {1} for {2} damage!", target.Name, Name, dmg), Color.Red, target.ID);
+				target.SendToClient(string.Format(
+					"You were struck by {0} for {1} damage!", Name, dmg), Color.Red);
+				SendToClient(string.Format(
+					"You struck {0} for {1} damage!", target.Name, dmg), Color.Red);
+			}
+		}
+
+		public void DisplayVitals() {
+
+			string vitalsColor = Color.Green;
+			if ((float)Stats.Health / Stats.MaxHealth < 0.33f)
+				vitalsColor = Color.Red;
+
+			SendToClient(string.Format("-- HP: {0}/{1} --", Stats.Health, Stats.MaxHealth), vitalsColor);
 		}
 	}
 }

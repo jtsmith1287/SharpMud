@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ServerCore.Util;
 
 namespace GameCore.Util {
 	public static class AdminActions {
@@ -13,49 +14,50 @@ namespace GameCore.Util {
 
 		public static void BuildRoom(PlayerEntity player, string[] args) {
 
+			string direction;
 			Coordinate3 location = new Coordinate3(player.Location.X, player.Location.Y, player.Location.Z);
 
-			switch (args[0]) {
-				case "n":
-					location.Y += 1;
-					break;
-				case "s":
-					location.Y -= 1;
-					break;
-				case "e":
-					location.X += 1;
-					break;
-				case "w":
-					location.X -= 1;
-					break;
-				case "u":
-					location.Z += 1;
-					break;
-				case "d":
-					location.Z -= 1;
-					break;
+			if (args.Length < 2) {
+				player.SendToClient("Please provide a direction!", Color.Red);
+				return;
 			}
 
-			Room room = World.GetRoom(location);
+			if (!Room.DirectionNames.TryGetValue(args[1], out direction)) {
+				player.SendToClient(
+					"That's not a valid direction for this command. Try using 'e' or 'n'.", Color.Red);
+				return;
+			}
+
+			Room newRoom = World.GetRoom(location + Room.DirectionMap[args[1]]);
+
 			// A room already exists in this location
-			if (room != null) {
-				player.SendToClient("You're trying to build a room that already exists. Would you like to link them? (y|n)");
+			if (newRoom != null) {
+				player.SendToClient(string.Format(
+					"You're trying to build a room that already exists. ({0}, {1}, {2})\n" +
+					"Would you like to link them? (y|n)",
+					newRoom.Location.X,
+					newRoom.Location.Y,
+					newRoom.Location.Z), Color.Yellow);
+
 				string reply = player.WaitForClientReply();
-				if (reply != null && reply == "y") {
+
+				if (reply != null && (reply == "y" || reply == "yes")) {
 					Room playerRoom = World.GetRoom(player.Location);
-					playerRoom.ConnectedRooms.Add(room.ID);
-					room.ConnectedRooms.Add(playerRoom.ID);
-					player.SendToClient(string.Format("{0} and {1} have been connected.", room.Name, playerRoom.Name));
+					playerRoom.ConnectedRooms.Add(direction, newRoom.Location);
+					newRoom.ConnectedRooms.Add(newRoom.GetDirection(playerRoom.Location), playerRoom.Location);
+					player.SendToClient(string.Format(
+						"{0} and {1} have been connected.", newRoom.Name, playerRoom.Name));
 				} else {
 					player.SendToClient("Aborting build");
 				}
 				// Clear to build a new room at this location.
 			} else {
-				room = new Room(location, "###");
+				newRoom = new Room(location + Room.DirectionMap[args[1]], "###");
 				Room playerRoom = World.GetRoom(player.Location);
-				room.ConnectedRooms.Add(playerRoom.ID);
-				playerRoom.ConnectedRooms.Add(room.ID);
-				player.SendToClient(string.Format("{0} has been created @ ({1}, {2}. {3}).", room.Name, room.Location.X, room.Location.Y, room.Location.Z));
+				playerRoom.ConnectedRooms.Add(direction, newRoom.Location);
+				newRoom.ConnectedRooms.Add(newRoom.GetDirection(playerRoom.Location), playerRoom.Location);
+				player.SendToClient(string.Format(
+					"{0} has been created to the {1}!).", newRoom.Name, direction), Color.White);
 			}
 
 		}

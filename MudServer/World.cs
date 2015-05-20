@@ -8,6 +8,7 @@ namespace GameCore {
 
 		public static Dictionary<string, Room> Rooms = new Dictionary<string, Room>();
 		public static Dictionary<Guid, Mobile> Mobiles = new Dictionary<Guid, Mobile>();
+		public static Dictionary<string, Guid> NameToPlayerPairs = new Dictionary<string, Guid>();
 		public static List<Thread> SpawnThreads = new List<Thread>();
 
 		public static bool AddRoom(Room room) {

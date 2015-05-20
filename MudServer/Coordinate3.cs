@@ -68,6 +68,18 @@ namespace GameCore.Util {
 				return true;
 			}
 		}
+
+		public override bool Equals(object obj) {
+			return base.Equals(obj);
+		}
+
+		public override int GetHashCode() {
+			return base.GetHashCode();
+		}
+		public override string ToString() {
+
+			return string.Format("Coordinate3({0}, {1}, {2})", X, Y, Z);
+		}
 	}
 }
 

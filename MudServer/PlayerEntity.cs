@@ -5,11 +5,16 @@ using System.Collections.Generic;
 using ServerCore;
 using GameCore.Util;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace GameCore {
 	public class PlayerEntity : BaseMobile {
 
 		public static Dictionary<Guid, PlayerEntity> Players = new Dictionary<Guid, PlayerEntity>();
+		public static Thread PlayerThread;
+		System.Diagnostics.Stopwatch HealTick = new System.Diagnostics.Stopwatch();
+		System.Diagnostics.Stopwatch CombatTick = new System.Diagnostics.Stopwatch();
+		int TickDuration = 3000;
 		Connection Conn;
 
 		public Coordinate3 Location {
@@ -54,16 +59,63 @@ namespace GameCore {
 
 			Conn.Send("Welcome!");
 			State = PlayerState.Active;
+			DisplayVitals();
+			CombatTick.Start();
+			HealTick.Start();
+
+			if (PlayerThread == null) {
+				PlayerThread = new Thread(RunAllPlayerLogic);
+				PlayerThread.Start();
+				Console.WriteLine("PlayerThread started.");
+			}
+		}
+
+		/// <summary>
+		/// Runs all persistent logic for all players on a separate thread.
+		/// </summary>
+		void RunAllPlayerLogic() {
+
+			try {
+				while (true) {
+					lock (Players) {
+						foreach (var entry in Players) {
+							if (entry.Value.State == PlayerState.Active) {
+								entry.Value.ExecuteLogic();
+							}
+						}
+					}
+					Thread.Sleep(33);
+				}
+			} catch (ThreadAbortException) {
+
+				Console.WriteLine("PlayerThread aborted.");
+			}
+		}
+
+		void ExecuteLogic() {
+
+			if (InCombat && Target != null) {
+				if (CombatTick.ElapsedMilliseconds >= TickDuration - Stats.GetTickModifier()) {
+					if (Target.Stats.Location != Stats.Location) {
+						InCombat = false;
+						Target = null;
+						SendToClient("*Target lost. Combat disengaged!*", Color.Yellow);
+					} else {
+						StrikeTarget(Target);
+						CombatTick.Restart();
+					}
+					DisplayVitals();
+				}
+			}
 		}
 
 		public void Close() {
 
-			Conn.SendClosingMessage();
-			if (Conn.socket.Connected) {
-				Conn.socket.Close();
+			lock (Players) {
+				Players.Remove(ID);
 			}
-			Players.Remove(ID);
-			Conn.Dispose();
+			Target = null;
+			InCombat = false;
 		}
 
 		public override void SendToClient(string msg, string colorSequence = "") {
@@ -98,6 +150,10 @@ namespace GameCore {
 		[OnDeserialized]
 		void OnDeserialized() {
 			Stats.OnZeroHealth += Die;
+		}
+
+		internal void OnDisconnect() {
+			Conn.OnDisconnect();
 		}
 	}
 }

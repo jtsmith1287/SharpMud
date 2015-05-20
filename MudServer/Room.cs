@@ -7,20 +7,27 @@ namespace GameCore {
 	[Serializable]
 	public class Room {
 
-		[NonSerialized]
-		public static Dictionary<string, string> DirectionExtensions = new Dictionary<string, string> { 
+		public static Dictionary<string, string> DirectionNames = new Dictionary<string, string>(){
 			{"n", "north"},
 			{"s", "south"},
 			{"e", "east"},
 			{"w", "west"},
+			{"u", "up"},
 			{"d", "down"},
-			{"u", "up"}
+		};
+		public static Dictionary<string, Coordinate3> DirectionMap = new Dictionary<string, Coordinate3>(){
+			{"n", new Coordinate3(0, 1, 0)},
+			{"s", new Coordinate3(0, -1, 0)},
+			{"e", new Coordinate3(1, 0, 0)},
+			{"w", new Coordinate3(-1, 0, 0)},
+			{"u", new Coordinate3(0, 0, 1)},
+			{"d", new Coordinate3(0, 0, -1)},
 		};
 
 		public Coordinate3 Location;
 		public string Name;
 		public string Description;
-		public List<Guid> ConnectedRooms = new List<Guid>();
+		public Dictionary<string, Coordinate3> ConnectedRooms = new Dictionary<string, Coordinate3>();
 		[NonSerialized]
 		public List<Guid> EntitiesHere = new List<Guid>();
 		public List<Spawner> SpawnersHere = new List<Spawner>();
