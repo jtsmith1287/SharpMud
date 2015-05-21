@@ -80,6 +80,40 @@ namespace GameCore.Util {
 
 			return string.Format("Coordinate3({0}, {1}, {2})", X, Y, Z);
 		}
+
+		/// <summary>
+		/// Find the greatest of this coordinate's X, Y or Z values;
+		/// </summary>
+		/// <returns>Largest coordinate value</returns>
+		public int Max() {
+
+			int max = 0;
+			if (X > max)
+				max = X;
+			if (Y > max)
+				max = Y;
+			if (Z > max)
+				max = Z;
+
+			return max;
+		}
+
+		/// <summary>
+		/// Find the smallest of this coordinate's X, Y or Z values;
+		/// </summary>
+		/// <returns>Smallest coordinate value</returns>
+		public int Min() {
+
+			int min = int.MaxValue;
+			if (X < min)
+				min = X;
+			if (Y < min)
+				min = Y;
+			if (Z < min)
+				min = Z;
+
+			return min;
+		}
 	}
 }
 

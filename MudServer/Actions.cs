@@ -18,6 +18,8 @@ namespace GameCore {
 				{"stats",		new Action<PlayerEntity, string[]>(Actions.ViewStats)},
 				{"who",			new Action<PlayerEntity, string[]>(Actions.ViewAllPlayers)},
 				{"look",		new Action<PlayerEntity, string[]>(Actions.Look)},
+				{"exp",         new Action<PlayerEntity, string[]>(Actions.ShowExp)},
+				{"sneak",		new Action<PlayerEntity, string[]>(Actions.Sneak)},		
 			};
 
 
@@ -52,7 +54,7 @@ namespace GameCore {
 			}
 			if (player.InCombat) {
 				player.SendToClient(string.Format(
-					"*Combat engaged with {0}!*", player.Target.Name), Color.Yellow);
+					"* Combat engaged with {0}! *", player.Target.Name), Color.White);
 			} else {
 				player.SendToClient("Nothing here by that name...", Color.Red);
 			}
@@ -80,11 +82,16 @@ namespace GameCore {
 					continue;
 				}
 				if (PlayerEntity.Players.TryGetValue(id, out playerInRoom)) {
-					visiblePlayers += playerInRoom.Name + ", ";
+					if (!playerInRoom.Hidden) {
+						visiblePlayers += playerInRoom.Name + ", ";
+					}
 				} else {
 					World.Mobiles.TryGetValue(id, out mobInRoom);
-					if (mobInRoom != null)
-						visibleMobs += mobInRoom.Name + ", ";
+					if (mobInRoom != null) {
+						if (!mobInRoom.Hidden) {
+							visibleMobs += mobInRoom.Name + ", ";
+						}
+					}
 				}
 			}
 
@@ -122,6 +129,23 @@ namespace GameCore {
 				player.SendToClient(
 					"Woah. Somethin' is busted. You're nowhere -- so please re-log in.", Color.Red);
 			}
+		}
+
+		public static void ShowExp(PlayerEntity player, string[] args) {
+
+			player.SendToClient(string.Format("Experience: {0}/{1}",
+				player.Stats.Exp, player.Stats.ExpToNextLevel));
+		}
+
+		public static void Sneak(PlayerEntity player, string[] args) {
+
+			if (player.InCombat) {
+				player.SendToClient("\n\tYou can't sneak! You're being stared at!\n");
+				return;
+			}
+			//TODO: This should be chance
+			player.Hidden = true;
+			player.SendToClient("You are sneaking...", Color.Magenta);
 		}
 
 		public static void ViewAllPlayers(PlayerEntity player, string[] args) {

@@ -29,7 +29,7 @@ namespace GameCore.Util {
 		}
 
 		[OnDeserialized]
-		internal void StartSpawnThread(StreamingContext context) {
+		private void StartSpawnThread(StreamingContext context) {
 
 			m_Spawning = true;
 			m_Spawns = new List<Mobile>();
@@ -42,7 +42,7 @@ namespace GameCore.Util {
 		void SpawnThread() {
 
 			Random rand = new Random();
-			DateTime spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 2));
+			DateTime spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 
 			while (m_Spawning) {
 				if (m_Spawns.Count < MaxNumberOfSpawn) {
@@ -53,7 +53,7 @@ namespace GameCore.Util {
 						newMob.Move(m_Location);
 						World.Mobiles.Add(newMob.ID, newMob);
 
-						spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 5));
+						spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 					}
 				}
 				foreach (Mobile mob in m_Spawns) {
@@ -97,7 +97,10 @@ namespace GameCore.Util {
 			foreach (Mobile spawn in m_Spawns) {
 				if (spawn.ID == data.ID) {
 					spawn.IsDead = true;
+					spawn.Target = null;
+					spawn.InCombat = false;
 					m_DeadSpawn.Add(spawn);
+					break;
 				}
 			}
 		}

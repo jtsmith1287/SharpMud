@@ -20,6 +20,8 @@ namespace GameCore {
 		public static Dictionary<string, SpawnData> NameSpawnPairs = new Dictionary<string, SpawnData>();
 		#endregion
 		#region Exposed Data
+		[NonSerialized]
+		public BaseMobile thisBaseMobile;
 		public string Name;
 		public int Level;
 		public Coordinate3 Location;
@@ -32,12 +34,23 @@ namespace GameCore {
 				return m_Health;
 			}
 			set {
+				// If this object is dead, we can't make it more dead.
+				if (m_Health == 0 && value < 0) {
+					return;
+				}
 				m_Health = value;
 				if (m_Health > MaxHealth)
 					m_Health = MaxHealth;
-				if (m_Health < 0) {
+				if (m_Health <= 0) {
 					m_Health = 0;
-					OnZeroHealth(this);
+					thisBaseMobile.Target = null;
+					thisBaseMobile.InCombat = false;
+					OnZeroHealthEvent(this);
+					try {
+						thisBaseMobile.TriggerOnDeath(this);
+					} catch (NullReferenceException) {
+
+					}
 				}
 			}
 		}
@@ -71,13 +84,41 @@ namespace GameCore {
 				m_Int = value;
 			}
 		}
+		public int ExpToNextLevel = 1000;
+		int m_Exp = 0;
+		public bool StatAllocationNeeded = false;
+		public int Exp {
+			get {
+				return m_Exp;
+			}
+			set {
+				m_Exp = value;
+				if (m_Exp >= ExpToNextLevel) {
+					LevelUp();
+				}
+			}
+		}
 
-
-		public delegate void BaseDelegate(Data data);
-
-		[field: NonSerialized]
-		public event BaseDelegate OnZeroHealth;
 		#endregion
+		#region Constructors
+
+		// delegate void BaseDelegate(Data data);
+
+		//[field: NonSerialized]
+		//public event BaseDelegate OnZeroHealth;
+		[field: NonSerialized]
+		event Action<Data> OnZeroHealthEvent = delegate { };
+		public event Action<Data> OnZeroHealth {
+			add {
+				//Prevent double subscription
+				OnZeroHealthEvent -= value;
+				OnZeroHealthEvent += value;
+			}
+			remove {
+				OnZeroHealthEvent -= value;
+			}
+		}
+
 		protected Data() {
 		}
 
@@ -93,7 +134,27 @@ namespace GameCore {
 			Level = 1;
 			Data.IDDataPairs.Add(id, this);
 		}
+		#endregion
+		#region Instance Methods
+		internal int GrantExperience() {
 
+			return (int)(m_Str + m_Dex + m_Int + (int)((float)MaxHealth / 3));
+		}
+
+		private void LevelUp() {
+
+			while (m_Exp < ExpToNextLevel) {
+				m_Str++;
+				m_Dex++;
+				m_Int++;
+				MaxHealth += 6;
+				StatAllocationNeeded = true;
+				Level++;
+				ExpToNextLevel += (int)(ExpToNextLevel * 1.5f);
+				thisBaseMobile.SendToClient(string.Format("You are now level {0}!", Level), Color.Cyan);
+			}
+		}
+		#endregion
 		#region Data Saving/Loading
 		internal static void SaveData(params string[] paths) {
 

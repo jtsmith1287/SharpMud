@@ -14,6 +14,7 @@ namespace GameCore {
 		public static Thread PlayerThread;
 		System.Diagnostics.Stopwatch HealTick = new System.Diagnostics.Stopwatch();
 		System.Diagnostics.Stopwatch CombatTick = new System.Diagnostics.Stopwatch();
+		System.Diagnostics.Stopwatch ReviveTick = new System.Diagnostics.Stopwatch();
 		int TickDuration = 3000;
 		Connection Conn;
 
@@ -43,7 +44,10 @@ namespace GameCore {
 			Name = data.Name;
 			Stats = data;
 			Stats.OnZeroHealth += Die;
+			Stats.thisBaseMobile = this;
+			Stats.OnZeroHealth += Die;
 			Players.Add(ID, this);
+
 
 			// The player hasn't been initialized yet.
 			if (Stats.MaxHealth == 0) {
@@ -94,17 +98,33 @@ namespace GameCore {
 
 		void ExecuteLogic() {
 
+			if (IsDead) {
+				if (ReviveTick.ElapsedMilliseconds > 5000) {
+					Stats.Health = Stats.MaxHealth;
+					IsDead = false;
+					Move(Coordinate3.Zero);
+					SendToClient("You have been revived! Welcome back to the land of the living.", Color.Green);
+					ReviveTick.Reset();
+				}
+				return;
+			}
+
 			if (InCombat && Target != null) {
 				if (CombatTick.ElapsedMilliseconds >= TickDuration - Stats.GetTickModifier()) {
 					if (Target.Stats.Location != Stats.Location) {
 						InCombat = false;
 						Target = null;
-						SendToClient("*Target lost. Combat disengaged!*", Color.Yellow);
+						SendToClient("*Target lost. Combat disengaged!*", Color.White);
 					} else {
 						StrikeTarget(Target);
 						CombatTick.Restart();
 					}
 					DisplayVitals();
+				}
+			} else if (!InCombat) {
+				if (HealTick.ElapsedMilliseconds > TickDuration) {
+					Stats.Health += Rnd.Next((int)(Stats.Int / 4f), (int)(Stats.Int / 3f));
+					HealTick.Restart();
 				}
 			}
 		}
@@ -142,14 +162,12 @@ namespace GameCore {
 
 		private void Die(Data data) {
 
+			IsDead = true;
+			InCombat = false;
+			Target = null;
 			SendToClient("You have been slain!");
-			Move(Coordinate3.Zero);
-			data.Health = data.MaxHealth;
-		}
-
-		[OnDeserialized]
-		void OnDeserialized() {
-			Stats.OnZeroHealth += Die;
+			Move(new Coordinate3(int.MaxValue, int.MaxValue, int.MaxValue));
+			ReviveTick.Start();
 		}
 
 		internal void OnDisconnect() {

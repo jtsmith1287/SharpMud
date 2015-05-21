@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections;
 using GameCore.Util;
 
 namespace GameCore {
@@ -11,9 +13,10 @@ namespace GameCore {
 
 		public Mobile(SpawnData data, Spawner spawner) {
 
-			Name = data.Name;
+			Name = data.Name + Rnd.Next(1, 1000).ToString();
 			Stats = (SpawnData)data.ShallowCopy();
 			Stats.Health = Stats.MaxHealth;
+			Stats.thisBaseMobile = this;
 			SpawnerParent = spawner;
 			GenerateID();
 		}
@@ -27,8 +30,6 @@ namespace GameCore {
 			} else {
 				NonCombatAction();
 			}
-
-
 		}
 
 		public void Attack(BaseMobile target) {
@@ -67,7 +68,7 @@ namespace GameCore {
 			return false;
 		}
 
-		void BreakCombat() {
+		public void BreakCombat() {
 
 			Target = null;
 			InCombat = false;
@@ -92,48 +93,38 @@ namespace GameCore {
 
 			PlayerEntity player;
 			Mobile mob;
+			SpawnData thisData = (SpawnData)Stats;
 			foreach (Guid id in World.GetRoom(Stats.Location).EntitiesHere) {
+				if (id == Stats.ID) { continue; }
 				if (PlayerEntity.Players.TryGetValue(id, out player)) {
+					if (player.Hidden) { continue; }
 					Target = player;
 					player.SendToClient(Name + " sees you!", Color.Red);
+					player.InCombat = true;
 					break;
 				} else if (World.Mobiles.TryGetValue(id, out mob)) {
-					Target = mob;
-					break;
+					if (!mob.IsDead && !mob.Hidden) {
+						SpawnData data = (SpawnData)mob.Stats;
+						if (data.Faction == thisData.Faction) { continue; }
+						Target = mob;
+						break;
+					}
 				}
 			}
 
 			if (Target != null) {
 				InCombat = true;
-				Attack(Target);
 				RoundTimer.Start();
 			}
 		}
 
 		void Wander() {
 
-			Coordinate3 vector = Coordinate3.Zero;
-			int[] posNegOptions = new int[] {
-				-1,
-				1
-			};
-			int posNegChoice = posNegOptions[Rnd.Next(0, 2)];
-			int x_y_or_z = Rnd.Next(1, 4);
-
-			switch (x_y_or_z) {
-				case 1:
-					vector.X += posNegChoice;
-					break;
-				case 2:
-					vector.Y += posNegChoice;
-					break;
-				case 3:
-					vector.Z += posNegChoice;
-					break;
-			}
-			//TODO: Try to only attempt to move in known existing directions.
-			if (World.GetRoom(Stats.Location + vector) != null) {
-				Move(Stats.Location + vector);
+			Room room = World.GetRoom(Stats.Location);
+			if (room != null) {
+				// Randomly choose a <string, coordinate3> element from connected rooms.
+				var element = room.ConnectedRooms.ElementAt(Rnd.Next(0, room.ConnectedRooms.Count));
+				Move(element.Value);
 			}
 
 		}

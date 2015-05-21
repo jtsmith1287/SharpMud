@@ -17,10 +17,15 @@ namespace ServerCore.Util {
 
 		public static void HandleLine(string line, PlayerEntity player) {
 
+			if (player.IsDead) {
+				player.SendToClient("\n\tBut you're dead... Just relax and enjoy the ride.\n", Color.Red);
+				return;
+			}
+
 			string[] args = ProcessLine(line);
 
 			if (args.Length == 0) {
-				player.SendToClient("Yes?");
+				player.DisplayVitals();
 				return;
 			}
 

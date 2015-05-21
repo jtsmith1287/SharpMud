@@ -65,6 +65,7 @@ namespace ServerCore {
 		void BuildWorld() {
 
 			new Room(Coordinate3.Zero, "Starting Room");
+			new Room(new Coordinate3(int.MaxValue, int.MaxValue, int.MaxValue), "Purgatory");
 		}
 	}
 }
