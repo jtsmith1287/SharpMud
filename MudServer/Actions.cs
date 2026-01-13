@@ -6,20 +6,20 @@ using ServerCore.Util;
 namespace GameCore {
 	public static class Actions {
 
-		public static Dictionary<string, Action<PlayerEntity, string[]>> ActionCalls =
+		public static readonly Dictionary<string, Action<PlayerEntity, string[]>> ActionCalls =
 			new Dictionary<string, Action<PlayerEntity, string[]>>{
-				{"attack",		new Action<PlayerEntity, string[]>(Actions.Attack)},
-				{"north",		new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"south",		new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"east",		new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"west",		new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"up",			new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"down",		new Action<PlayerEntity, string[]>(Actions.MoveRooms)},
-				{"stats",		new Action<PlayerEntity, string[]>(Actions.ViewStats)},
-				{"who",			new Action<PlayerEntity, string[]>(Actions.ViewAllPlayers)},
-				{"look",		new Action<PlayerEntity, string[]>(Actions.Look)},
-				{"exp",         new Action<PlayerEntity, string[]>(Actions.ShowExp)},
-				{"sneak",		new Action<PlayerEntity, string[]>(Actions.Sneak)},		
+				{"attack",		Attack},
+				{"north",		MoveRooms},
+				{"south",		MoveRooms},
+				{"east",		MoveRooms},
+				{"west",		MoveRooms},
+				{"up",			MoveRooms},
+				{"down",		MoveRooms},
+				{"stats",		ViewStats},
+				{"who",			ViewAllPlayers},
+				{"look",		Look},
+				{"exp",         ShowExp},
+				{"sneak",		Sneak},		
 			};
 
 

@@ -10,6 +10,8 @@ namespace GameCore {
 		public static Dictionary<Guid, Mobile> Mobiles = new Dictionary<Guid, Mobile>();
 		public static Dictionary<string, Guid> NameToPlayerPairs = new Dictionary<string, Guid>();
 		public static List<Thread> SpawnThreads = new List<Thread>();
+		public static List<Spawner> Spawners = new List<Spawner>();
+		private static Thread _aiThread;
 
 		public static bool AddRoom(Room room) {
 
@@ -52,8 +54,34 @@ namespace GameCore {
 
 		internal static void StopAllSpawnThreads() {
 
+			if (_aiThread != null) {
+				_aiThread.Abort();
+			}
+
 			foreach (Thread thread in SpawnThreads) {
 				thread.Abort();
+			}
+		}
+
+		public static void StartAIThread() {
+			if (_aiThread == null) {
+				_aiThread = new Thread(RunAIUpdate);
+				_aiThread.Start();
+			}
+		}
+
+		private static void RunAIUpdate() {
+			try {
+				while (true) {
+					lock (Spawners) {
+						foreach (var spawner in Spawners) {
+							spawner.Update();
+						}
+					}
+					Thread.Sleep(33);
+				}
+			} catch (ThreadAbortException) {
+				Console.WriteLine("AI Thread aborted.");
 			}
 		}
 	}

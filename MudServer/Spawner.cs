@@ -16,6 +16,10 @@ namespace GameCore.Util {
 		int MaxNumberOfSpawn = 3;
 		bool m_Spawning = false;
 		Coordinate3 m_Location;
+		[NonSerialized]
+		Random m_Rand;
+		[NonSerialized]
+		DateTime m_SpawnTime;
 
 		public Spawner(Room room, List<SpawnData> spawnList) {
 
@@ -25,52 +29,55 @@ namespace GameCore.Util {
 			ID = Guid.NewGuid();
 			m_Spawning = true;
 
-			StartSpawnThread(new StreamingContext());
+			World.Spawners.Add(this);
+			World.StartAIThread();
+
+			m_Spawns = new List<Mobile>();
+			m_DeadSpawn = new List<Mobile>();
+			m_Rand = new Random();
+			m_SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 		}
 
 		[OnDeserialized]
-		private void StartSpawnThread(StreamingContext context) {
+		private void OnDeserialized(StreamingContext context) {
 
 			m_Spawning = true;
 			m_Spawns = new List<Mobile>();
 			m_DeadSpawn = new List<Mobile>();
-			Thread thread = new Thread(SpawnThread);
-			World.SpawnThreads.Add(thread);
-			thread.Start();
+			m_Rand = new Random();
+			m_SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+
+			World.Spawners.Add(this);
+			World.StartAIThread();
 		}
 
-		void SpawnThread() {
+		public void Update() {
 
-			Random rand = new Random();
-			DateTime spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+			if (!m_Spawning) return;
 
-			while (m_Spawning) {
-				if (m_Spawns.Count < MaxNumberOfSpawn) {
-					if (spawnTime < DateTime.Now) {
-						Mobile newMob = new Mobile(m_SpawnData[rand.Next(0, m_SpawnData.Length)], this);
-						m_Spawns.Add(newMob);
-						newMob.Stats.OnZeroHealth += QueueDestroyMob;
-						newMob.Move(m_Location);
-						World.Mobiles.Add(newMob.ID, newMob);
+			if (m_Spawns.Count < MaxNumberOfSpawn) {
+				if (m_SpawnTime < DateTime.Now) {
+					Mobile newMob = new Mobile(m_SpawnData[m_Rand.Next(0, m_SpawnData.Length)], this);
+					m_Spawns.Add(newMob);
+					newMob.Stats.OnZeroHealth += QueueDestroyMob;
+					newMob.Move(m_Location);
+					World.Mobiles.Add(newMob.ID, newMob);
 
-						spawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+					m_SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+				}
+			}
+			foreach (Mobile mob in m_Spawns) {
+				if (!mob.IsDead)
+					mob.ExecuteLogic();
+			}
+
+			if (m_DeadSpawn.Count > 0) {
+				lock (m_DeadSpawn) {
+					for (int i = 0; i < m_DeadSpawn.Count; i++) {
+						DestroyMob(m_DeadSpawn[i]);
 					}
+					m_DeadSpawn.Clear();
 				}
-				foreach (Mobile mob in m_Spawns) {
-					if (!mob.IsDead)
-						mob.ExecuteLogic();
-				}
-
-				if (m_DeadSpawn.Count > 0) {
-					lock (m_DeadSpawn) {
-						for (int i = 0; i < m_DeadSpawn.Count; i++) {
-							DestroyMob(m_DeadSpawn[i]);
-						}
-						m_DeadSpawn.Clear();
-					}
-				}
-				// Regulates AI logic to roughly 30 ticks a second.
-				Thread.Sleep(33);
 			}
 		}
 

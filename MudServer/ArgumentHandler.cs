@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GameCore;
 using GameCore.Util;
 
@@ -30,7 +31,7 @@ namespace ServerCore.Util {
 			}
 
 			// Loop over possible commands until user input matches a command stored.
-			foreach (var entry in Actions.ActionCalls) {
+			foreach (KeyValuePair<string, Action<PlayerEntity, string[]>> entry in Actions.ActionCalls) {
 				if (AutoComplete(args[0], entry.Key)) {
 					args[0] = entry.Key;
 					entry.Value(player, args);
