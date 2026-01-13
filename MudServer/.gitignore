@@ -1,0 +1,23 @@
+﻿# Build and Debug files
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+Debug/
+Release/
+x64/
+x86/
+
+# IDE files
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docuser
+
+# Other temporary files
+*.log
+*.tmp
+*.bak
+*.pdb

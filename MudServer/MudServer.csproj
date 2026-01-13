@@ -56,7 +56,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -122,6 +122,9 @@
   <ItemGroup>
     <None Include="Properties\DataSources\GameCore.Data.datasource" />
     <None Include="Properties\DataSources\GameCore.Util.SpawnData.datasource" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
