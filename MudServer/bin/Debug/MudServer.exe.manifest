@@ -3,7 +3,7 @@
   <asmv1:assemblyIdentity name="MudServer.exe" version="1.0.0.1" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="x86" type="win32" />
   <application />
   <entryPoint>
-    <assemblyIdentity name="MudServer" version="1.0.9509.43028" language="neutral" processorArchitecture="x86" />
+    <assemblyIdentity name="MudServer" version="1.0.9510.16411" language="neutral" processorArchitecture="x86" />
     <commandLine file="MudServer.exe" parameters="" />
   </entryPoint>
   <trustInfo>
@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="56832">
-      <assemblyIdentity name="MudServer" version="1.0.9509.43028" language="neutral" processorArchitecture="x86" />
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="59904">
+      <assemblyIdentity name="MudServer" version="1.0.9510.16411" language="neutral" processorArchitecture="x86" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
-        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-        <dsig:DigestValue>R7tADCeWwJgcvMUs3DrOuiy5GpI=</dsig:DigestValue>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>OLPH5CC1YHUQNUXiiKJ8cww39mP2SqzdUX/43uRajGA=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -58,8 +58,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-      <dsig:DigestValue>1KUu3uC/vEjt0CUnu/AdQwhK0o0=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>Nw6NQCBOUU4L1Rs5KKCYg691t+sl2pBUgiICS+0cewE=</dsig:DigestValue>
     </hash>
   </file>
   <file name="gen_world.py" size="12343">
@@ -67,8 +67,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-      <dsig:DigestValue>hoMisYmoVTorIbpckdmSkUgaVy4=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>gdqmLnXM/bMqGDbWQszPpPs+eBolsM8H1YlQQz4kZkM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="validate_world.py" size="11089">
@@ -76,8 +76,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-      <dsig:DigestValue>QdiFklx/+5bIGwc3sW4rPqlBHOo=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>Qq4R406wKrpXAV+BFhCADbzQzpMA2lJSDJUWqxIagjg=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>

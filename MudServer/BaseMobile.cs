@@ -154,19 +154,16 @@ namespace GameCore {
 
 			int dodgeVal = Rnd.Next(1, 101);
 			if (dodgeVal >= 108 - Math.Sqrt((double)target.Stats.Dex * 7)) {
-				BroadcastLocal(string.Format(
-					"{0} dodged {1}'s attack!", target.Name, Name), Color.RedD, Target.ID);
-				target.SendToClient(string.Format(
-					"You dodged {0}'s attack!", Name), Color.RedD);
-				SendToClient(string.Format(
-					"{0} dodged your attack!", target.Name), Color.RedD);
+				BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, Target.ID);
+				target.SendToClient($"You dodged {Name}'s attack!", Color.RedD);
+				SendToClient($"{target.Name} dodged your attack!", Color.RedD);
 			} else if (false) {
 				// other possibilities for no damage TBD
 			} else if (target.Stats.Health > 0 && !target.IsDead) {
 				int dmg = Rnd.Next((int)(Stats.Str / 4f), (int)(Stats.Str / 3f));
 				if (Hidden) {
 					Hidden = false;
-					SendToClient("You surprise attack " + target.Name + "!", Color.White);
+					SendToClient($"You surprise attack {target.Name}!", Color.White);
 					dmg *= 2;
 				}
 				target.OnDeath += OnDeathEventReceiver;
@@ -175,17 +172,14 @@ namespace GameCore {
 					target.InCombat = true;
 					target.LastCombatTick = World.CombatTick;
 					target.CombatEnergy = 0;
-					target.SendToClient(Name + " attacked you! You're now in combat!", Color.Red);
+					target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
 				}
-				BroadcastLocal(string.Format(
-					"{0} was struck by {1} for {2} damage!", target.Name, Name, dmg), Color.Red, target.ID);
-				target.SendToClient(string.Format(
-					Color.Yellow + "*" +
+				BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.ID);
+				target.SendToClient(Color.Yellow + "*" +
 					Color.White + "You " + Color.Red +
-					"were struck by {0} for {1} damage!", Name, dmg));
-				SendToClient(string.Format(
-					Color.White + "You " + Color.Red +
-					"struck {0} for {1} damage!", target.Name, dmg), Color.Red);
+					$"were struck by {Name} for {dmg} damage!");
+				SendToClient(Color.White + "You " + Color.Red +
+					$"struck {target.Name} for {dmg} damage!", Color.Red);
 				target.DisplayVitals();
 				target.Stats.Health -= dmg;
 			} else {

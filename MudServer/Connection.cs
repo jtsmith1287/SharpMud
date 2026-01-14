@@ -98,8 +98,8 @@ public class Connection : IDisposable {
                 }
 
                 if (providedPwd == truePwd) {
-                    if (Data.UsernameIDPairs.TryGetValue(username, out Guid id)) {
-                        if (Data.IDDataPairs.TryGetValue(id, out Data data)) {
+                    if (Data.UsernameIDPairs.TryGetValue(username, out var id)) {
+                        if (Data.IDDataPairs.TryGetValue(id, out var data)) {
                             Player = new PlayerEntity(this, data);
                             break;
                         } else {

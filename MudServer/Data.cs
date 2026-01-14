@@ -270,10 +270,11 @@ namespace GameCore {
 														if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
 															string[] coords = room.Key.Split(' ');
 															if (coords.Length == 3) {
-																int.TryParse(coords[0], out int x);
-																int.TryParse(coords[1], out int y);
-																int.TryParse(coords[2], out int z);
-																room.Value.Location = new Coordinate3(x, y, z);
+																if (int.TryParse(coords[0], out var x) && 
+																	int.TryParse(coords[1], out var y) && 
+																	int.TryParse(coords[2], out var z)) {
+																	room.Value.Location = new Coordinate3(x, y, z);
+																}
 															}
 														}
 														World.Rooms.Add(room.Key, room.Value);
@@ -289,10 +290,11 @@ namespace GameCore {
 									if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
 										string[] coords = room.Key.Split(' ');
 										if (coords.Length == 3) {
-											int.TryParse(coords[0], out int x);
-											int.TryParse(coords[1], out int y);
-											int.TryParse(coords[2], out int z);
-											room.Value.Location = new Coordinate3(x, y, z);
+											if (int.TryParse(coords[0], out var x) && 
+												int.TryParse(coords[1], out var y) && 
+												int.TryParse(coords[2], out var z)) {
+												room.Value.Location = new Coordinate3(x, y, z);
+											}
 										}
 									}
 								}
@@ -301,7 +303,7 @@ namespace GameCore {
 							foreach (var room in World.Rooms.Values) {
 								if (room.EntitiesHere == null) room.EntitiesHere = new List<Guid>();
 							}
-							Console.WriteLine(string.Format("Loaded {0} rooms.", World.Rooms.Count));
+							Console.WriteLine($"Loaded {World.Rooms.Count} rooms.");
 							break;
 						case DataPaths.Spawn:
 							NameSpawnPairs = serializer.Deserialize<Dictionary<string, SpawnData>>(json) ?? new Dictionary<string, SpawnData>();
@@ -317,7 +319,7 @@ namespace GameCore {
 				}
 			}
 
-			Console.WriteLine(string.Format("Loaded {0}kb of data into memory.", bytes / 1000f));
+			Console.WriteLine($"Loaded {bytes / 1000f}kb of data into memory.");
 
 
 		}

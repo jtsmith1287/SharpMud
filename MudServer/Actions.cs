@@ -138,30 +138,25 @@ public static class Actions {
         string visiblePlayers = "";
         string visibleMobs = "";
         string exits = "";
-        PlayerEntity playerInRoom;
-        Mobile mobInRoom;
 
         foreach (Guid id in room.EntitiesHere) {
             if (id == player.ID) {
                 continue;
             }
 
-            if (PlayerEntity.Players.TryGetValue(id, out playerInRoom)) {
+            if (PlayerEntity.Players.TryGetValue(id, out var playerInRoom)) {
                 if (!playerInRoom.Hidden) {
-                    visiblePlayers += playerInRoom.Name + ", ";
+                    visiblePlayers += $"{playerInRoom.Name}, ";
                 }
-            } else {
-                World.Mobiles.TryGetValue(id, out mobInRoom);
-                if (mobInRoom != null) {
-                    if (!mobInRoom.Hidden) {
-                        visibleMobs += mobInRoom.Name + ", ";
-                    }
+            } else if (World.Mobiles.TryGetValue(id, out var mobInRoom)) {
+                if (!mobInRoom.Hidden) {
+                    visibleMobs += $"{mobInRoom.Name}, ";
                 }
             }
         }
 
         foreach (var entry in room.ConnectedRooms) {
-            exits += entry.Key + ", ";
+            exits += $"{entry.Key}, ";
         }
 
         string mesage = string.Format(
@@ -230,14 +225,14 @@ public static class Actions {
     public static void ViewStats(PlayerEntity viewer, BaseMobile entity) {
         string message = "\n";
         message += "==========================================\n";
-        message += $" Name: {entity.Stats.Name}\n";
-        message += $" Level: {entity.Stats.Level}\n";
-        message += $" TNL: {entity.Stats.ExpToNextLevel - entity.Stats.Exp}\n";
+        message += string.Format(" Name: {0}\n", entity.Stats.Name);
+        message += string.Format(" Level: {0}\n", entity.Stats.Level);
+        message += string.Format(" TNL: {0}\n", entity.Stats.ExpToNextLevel - entity.Stats.Exp);
         message += "------------------------------------------\n";
-        message += $" {"Health:",-15} | {entity.Stats.Health,4} / {entity.Stats.MaxHealth,-4} \n";
-        message += $" {"Strength:",-15} | {entity.Stats.Str,-4} + {entity.Stats.BonusStr,-4} \n";
-        message += $" {"Dexterity:",-15} | {entity.Stats.Dex,-4} + {entity.Stats.BonusDex,-4} \n";
-        message += $" {"Intelligence:",-15} | {entity.Stats.Int,-4} + {entity.Stats.BonusInt,-4} \n";
+        message += string.Format(" {0,-15} | {1,4} / {2,-4} \n", "Health:", entity.Stats.Health, entity.Stats.MaxHealth);
+        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Strength:", entity.Stats.Str, entity.Stats.BonusStr);
+        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Dexterity:", entity.Stats.Dex, entity.Stats.BonusDex);
+        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Intelligence:", entity.Stats.Int, entity.Stats.BonusInt);
         message += "==========================================\n";
         viewer.SendToClient(message);
     }
