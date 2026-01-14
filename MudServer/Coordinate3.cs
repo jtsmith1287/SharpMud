@@ -1,13 +1,13 @@
 using System;
+using System.Web.Script.Serialization;
 
 namespace GameCore.Util {
-	[Serializable]
 	public class Coordinate3 {
 
-		public int X;
-		public int Y;
-		public int Z;
-		[NonSerialized]
+		public int X { get; set; }
+		public int Y { get; set; }
+		public int Z { get; set; }
+		[ScriptIgnore]
 		static Coordinate3 zero;
 
 		public static Coordinate3 Zero {
@@ -20,6 +20,15 @@ namespace GameCore.Util {
 				}
 			}
 			private set { }
+		}
+
+		public static Coordinate3 Purgatory {
+			get {
+				return new Coordinate3(int.MaxValue, int.MaxValue, int.MaxValue);
+			}
+		}
+
+		public Coordinate3() {
 		}
 
 		public Coordinate3(int x, int y, int z) {
@@ -70,11 +79,19 @@ namespace GameCore.Util {
 		}
 
 		public override bool Equals(object obj) {
-			return base.Equals(obj);
+			Coordinate3 other = obj as Coordinate3;
+			if (other == null) return false;
+			return this == other;
 		}
 
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			unchecked {
+				int hash = 17;
+				hash = hash * 23 + X.GetHashCode();
+				hash = hash * 23 + Y.GetHashCode();
+				hash = hash * 23 + Z.GetHashCode();
+				return hash;
+			}
 		}
 		public override string ToString() {
 

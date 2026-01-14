@@ -54,27 +54,17 @@ namespace ServerCore.Util {
 			player.SendToClient("Nope, that's not a thing, sorry!", Color.Yellow);
 		}
 
-		public static bool AutoComplete(string p1, string p2) {
+		public static bool AutoComplete(string typed, string full) {
 
-			char[] arg = p1.ToCharArray();
-			char[] value = p2.ToCharArray();
-
-			// If the command typed has been typed in full
-			if (arg == value) {
-				return true;
-			}
-			// If the command typed has more characters than this full command it's clearly not a match.
-			if (value.Length < arg.Length) {
+			if (string.IsNullOrEmpty(typed) || string.IsNullOrEmpty(full)) {
 				return false;
 			}
 
-			for (int i = 0; i < arg.Length; i++) {
-				if (arg[i] != value[i]) {
-					return false;
-				}
+			if (typed.Length > full.Length) {
+				return false;
 			}
 
-			return true;
+			return full.StartsWith(typed, StringComparison.OrdinalIgnoreCase);
 		}
 	}
 }

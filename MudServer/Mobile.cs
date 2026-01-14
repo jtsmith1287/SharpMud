@@ -21,13 +21,32 @@ namespace GameCore {
 			GenerateID();
 		}
 
-		public void ExecuteLogic() {
+		public void ExecuteLogic(int currentTick) {
 
 			if (InCombat) {
-				if (RoundTimer.ElapsedMilliseconds > (long)3000) {
-					Attack(Target);
+				if (LastCombatTick < currentTick) {
+					int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick : LastCombatTick);
+					if (LastCombatTick == -1) ticksPassed = 1;
+
+					float speedModifier = 1.0f + (Stats.GetTickModifier() / 3000f);
+					CombatEnergy += ticksPassed * speedModifier;
+
+					while (CombatEnergy >= 1.0f) {
+						if (Target == null || Target.IsDead || Target.Stats == null || Target.Stats.Health <= 0) {
+							BreakCombat();
+							break;
+						}
+						Attack(Target);
+						if (!InCombat) {
+							CombatEnergy = 0;
+							break;
+						}
+						CombatEnergy -= 1.0f;
+					}
+					LastCombatTick = currentTick;
 				}
 			} else {
+				CombatEnergy = 0;
 				NonCombatAction();
 			}
 		}
@@ -50,17 +69,17 @@ namespace GameCore {
 			}
 
 			StrikeTarget(target);
-			RoundTimer.Restart();
 		}
 
 		bool TryFollow(BaseMobile target) {
-
 			Room targetsRoom = World.GetRoom(target.Stats.Location);
 			Room thisRoom = World.GetRoom(this.Stats.Location);
 			if (thisRoom != null && targetsRoom != null) {
-				foreach (var entry in thisRoom.ConnectedRooms) {
-					if (entry.Value == targetsRoom.Location) {
-						Move(entry.Value);
+				lock (thisRoom.ConnectedRooms) {
+					foreach (var entry in thisRoom.ConnectedRooms) {
+						if (entry.Value == targetsRoom.Location) {
+							Move(entry.Value);
+						}
 					}
 				}
 			}
@@ -72,6 +91,7 @@ namespace GameCore {
 
 			Target = null;
 			InCombat = false;
+			CombatEnergy = 0;
 			RoundTimer.Reset();
 			RoundTimer.Stop();
 		}
@@ -90,14 +110,16 @@ namespace GameCore {
 		}
 
 		void SeekTarget() {
+			Room room = World.GetRoom(Stats.Location);
+			if (room == null) return;
 
 			PlayerEntity player;
 			Mobile mob;
 			SpawnData thisData = (SpawnData)Stats;
-			foreach (Guid id in World.GetRoom(Stats.Location).EntitiesHere) {
+			foreach (Guid id in room.EntitiesHere) {
 				if (id == Stats.ID) { continue; }
 				if (PlayerEntity.Players.TryGetValue(id, out player)) {
-					if (player.Hidden) { continue; }
+					if (player.Hidden || player.IsDead) { continue; }
 					Target = player;
 					player.SendToClient(Name + " sees you!", Color.Red);
 					player.InCombat = true;
@@ -114,19 +136,22 @@ namespace GameCore {
 
 			if (Target != null) {
 				InCombat = true;
-				RoundTimer.Start();
+				LastCombatTick = World.CombatTick;
+				CombatEnergy = 0;
 			}
 		}
 
 		void Wander() {
-
 			Room room = World.GetRoom(Stats.Location);
 			if (room != null) {
-				// Randomly choose a <string, coordinate3> element from connected rooms.
-				var element = room.ConnectedRooms.ElementAt(Rnd.Next(0, room.ConnectedRooms.Count));
-				Move(element.Value);
+				lock (room.ConnectedRooms) {
+					if (room.ConnectedRooms.Count > 0) {
+						// Randomly choose a <string, coordinate3> element from connected rooms.
+						var element = room.ConnectedRooms.ElementAt(Rnd.Next(0, room.ConnectedRooms.Count));
+						Move(element.Value);
+					}
+				}
 			}
-
 		}
 	}
 }

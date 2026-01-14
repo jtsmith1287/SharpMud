@@ -6,6 +6,7 @@ namespace GameCore.Util {
 		Active,
 		LoggingIn,
 		LoggingOut,
+		Resting,
 	}
 }
 

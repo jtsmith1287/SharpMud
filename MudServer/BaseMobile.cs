@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,8 @@ namespace GameCore {
 		public bool Hidden = false;
 		protected Random Rnd = new Random();
 		public BaseMobile Target;
+		public int LastCombatTick = -1;
+		public float CombatEnergy = 0;
 		protected Stopwatch RoundTimer = new Stopwatch();
 		/// <summary>
 		/// Do not add to this event directly. Use OnDeath.
@@ -53,18 +56,25 @@ namespace GameCore {
 			Room oldRoom = World.GetRoom(Stats.Location);
 			Room newRoom = World.GetRoom(location);
 
-			if (Stats.Location == location) {
-				BroadcastLocal(Name + " has arrived.", Color.Yellow);
-				lock (newRoom.EntitiesHere) {
-					try {
-						// In case we're already here, we don't want to add a duplicate of ourselves.
-						newRoom.EntitiesHere.Remove(ID);
-					} catch (InvalidOperationException) {
+			var thisPlayer = PlayerEntity.GetPlayerByID(Stats.ID);
+			if (thisPlayer != null && thisPlayer.State == PlayerState.Resting) {
+				thisPlayer.State = PlayerState.Active;
+				thisPlayer.SendToClient("You stop resting as you move.", Color.Cyan);
+			}
 
+			if (Stats.Location == location) {
+				if (newRoom != null) {
+					BroadcastLocal(Name + " has arrived.", Color.Yellow);
+					lock (newRoom.EntitiesHere) {
+						try {
+							// In case we're already here, we don't want to add a duplicate of ourselves.
+							newRoom.EntitiesHere.Remove(ID);
+						} catch (InvalidOperationException) {
+
+						}
+						newRoom.EntitiesHere.Add(ID);
 					}
-					newRoom.EntitiesHere.Add(ID);
 				}
-				var thisPlayer = PlayerEntity.GetPlayerByID(Stats.ID);
 				if (thisPlayer != null)
 					Actions.ActionCalls["look"](thisPlayer, new string[1]);
 				return;
@@ -96,9 +106,10 @@ namespace GameCore {
 					}
 				}
 				newRoom.EntitiesHere.Add(ID);
-				var thisPlayer = PlayerEntity.GetPlayerByID(Stats.ID);
-				if (thisPlayer != null)
+				if (thisPlayer != null) {
 					Actions.ActionCalls["look"](thisPlayer, new string[1]);
+					Actions.ShowMap( thisPlayer, new string[1]);
+				}
 			}
 		}
 
@@ -115,8 +126,12 @@ namespace GameCore {
 			PlayerEntity player;
 			Room room = World.GetRoom(Stats.Location);
 			if (room != null) {
-				for (int i = 0; i < room.EntitiesHere.Count; i++) {
-					if (PlayerEntity.Players.TryGetValue(room.EntitiesHere[i], out player)) {
+				Guid[] entities;
+				lock (room.EntitiesHere) {
+					entities = room.EntitiesHere.ToArray();
+				}
+				for (int i = 0; i < entities.Length; i++) {
+					if (PlayerEntity.Players.TryGetValue(entities[i], out player)) {
 						if (player.ID == ID || Contains<Guid>(ignore, player.ID)) {
 							continue;
 						}
@@ -155,6 +170,13 @@ namespace GameCore {
 					dmg *= 2;
 				}
 				target.OnDeath += OnDeathEventReceiver;
+				if (!target.InCombat || target.Target == null || target.Target.IsDead || (target.Target.Stats != null && target.Target.Stats.Health <= 0)) {
+					target.Target = this;
+					target.InCombat = true;
+					target.LastCombatTick = World.CombatTick;
+					target.CombatEnergy = 0;
+					target.SendToClient(Name + " attacked you! You're now in combat!", Color.Red);
+				}
 				BroadcastLocal(string.Format(
 					"{0} was struck by {1} for {2} damage!", target.Name, Name, dmg), Color.Red, target.ID);
 				target.SendToClient(string.Format(

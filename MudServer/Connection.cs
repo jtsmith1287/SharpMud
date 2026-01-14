@@ -29,6 +29,10 @@ public class Connection : IDisposable {
         try {
             OnConnect();
 
+            if (Player == null) {
+                return;
+            }
+
             while (socket.Connected) {
                 lock (BigLock) {
                     foreach (Connection conn in connections) {
@@ -100,10 +104,12 @@ public class Connection : IDisposable {
                             break;
                         } else {
                             Send("Error: User data not found. Please contact an admin.");
+                            this.socket.Close();
                             return;
                         }
                     } else {
                         Send("Error: User ID not found. Please contact an admin.");
+                        this.socket.Close();
                         return;
                     }
                 } else {

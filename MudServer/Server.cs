@@ -79,8 +79,13 @@ class Server {
     }
 
     void BuildWorld() {
+        // Rooms are now loaded from world.json.
+        // If world.json is empty or missing, you might want to re-enable these
+        // or ensure world.json always has at least the Starting Room and Purgatory.
+        /*
         new Room(Coordinate3.Zero, "Starting Room");
-        new Room(new Coordinate3(int.MaxValue, int.MaxValue, int.MaxValue), "Purgatory");
+        new Room(Coordinate3.Purgatory, "Purgatory");
+        */
     }
 }
 }

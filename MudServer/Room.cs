@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
 using GameCore.Util;
 
 namespace GameCore {
-	[Serializable]
 	public class Room {
 
 		public static Dictionary<string, string> DirectionNames = new Dictionary<string, string>(){
@@ -28,12 +27,18 @@ namespace GameCore {
 		public string Name;
 		public string Description;
 		public Dictionary<string, Coordinate3> ConnectedRooms = new Dictionary<string, Coordinate3>();
-		[NonSerialized]
+		public Dictionary<string, Coordinate3> InvisibleConnections = new Dictionary<string, Coordinate3>();
+		public bool IsEntryRoom = false;
+		[ScriptIgnore]
 		public List<Guid> EntitiesHere = new List<Guid>();
 		public List<Spawner> SpawnersHere = new List<Spawner>();
 		public Guid ID;
 
-		public Room(Coordinate3 location, string name) {
+		public Room() {
+			EntitiesHere = new List<Guid>();
+		}
+
+		public Room(Coordinate3 location, string name) : this() {
 
 			Location = location;
 			Name = name;
@@ -59,12 +64,6 @@ namespace GameCore {
 				return "up";
 			else
 				return "";
-		}
-
-		[OnDeserializing]
-		void InitializeEntitiesList(StreamingContext c) {
-
-			EntitiesHere = new List<Guid>();
 		}
 	}
 }

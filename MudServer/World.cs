@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Threading;
 using System.Collections.Generic;
@@ -12,6 +13,9 @@ namespace GameCore {
 		public static List<Thread> SpawnThreads = new List<Thread>();
 		public static List<Spawner> Spawners = new List<Spawner>();
 		private static Thread _aiThread;
+		public static int CombatTick { get; private set; }
+		private static long _lastCombatTickTime;
+		private const int CombatTickInterval = 3000;
 
 		public static bool AddRoom(Room room) {
 
@@ -65,6 +69,7 @@ namespace GameCore {
 
 		public static void StartAIThread() {
 			if (_aiThread == null) {
+				_lastCombatTickTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 				_aiThread = new Thread(RunAIUpdate);
 				_aiThread.Start();
 			}
@@ -73,8 +78,14 @@ namespace GameCore {
 		private static void RunAIUpdate() {
 			try {
 				while (true) {
+					long currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+					if (currentTime - _lastCombatTickTime >= CombatTickInterval) {
+						CombatTick++;
+						_lastCombatTickTime = currentTime;
+					}
+
 					lock (Spawners) {
-						foreach (var spawner in Spawners) {
+						foreach (var spawner in Spawners.ToArray()) {
 							spawner.Update();
 						}
 					}

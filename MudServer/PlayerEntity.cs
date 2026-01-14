@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.IO;
 using System.Collections;
@@ -13,7 +14,6 @@ namespace GameCore {
 		public static Dictionary<Guid, PlayerEntity> Players = new Dictionary<Guid, PlayerEntity>();
 		public static Thread PlayerThread;
 		System.Diagnostics.Stopwatch HealTick = new System.Diagnostics.Stopwatch();
-		System.Diagnostics.Stopwatch CombatTick = new System.Diagnostics.Stopwatch();
 		System.Diagnostics.Stopwatch ReviveTick = new System.Diagnostics.Stopwatch();
 		int TickDuration = 3000;
 		Connection Conn;
@@ -55,8 +55,12 @@ namespace GameCore {
 				Stats.Health = Stats.MaxHealth;
 			}
 
-			if (data.Location != null) {
+			if (data.Location != null && World.GetRoom(data.Location) != null) {
 				Move(data.Location);
+				if (data.Location == Coordinate3.Purgatory) {
+					IsDead = true;
+					ReviveTick.Start();
+				}
 			} else {
 				Move(Coordinate3.Zero);
 			}
@@ -64,7 +68,6 @@ namespace GameCore {
 			Conn.Send("Welcome!");
 			State = PlayerState.Active;
 			DisplayVitals();
-			CombatTick.Start();
 			HealTick.Start();
 
 			if (PlayerThread == null) {
@@ -81,10 +84,11 @@ namespace GameCore {
 
 			try {
 				while (true) {
+					int currentTick = World.CombatTick;
 					lock (Players) {
-						foreach (var entry in Players) {
-							if (entry.Value.State == PlayerState.Active) {
-								entry.Value.ExecuteLogic();
+						foreach (var entry in Players.ToArray()) {
+							if (entry.Value.State == PlayerState.Active || entry.Value.State == PlayerState.Resting) {
+								entry.Value.ExecuteLogic(currentTick);
 							}
 						}
 					}
@@ -96,7 +100,7 @@ namespace GameCore {
 			}
 		}
 
-		void ExecuteLogic() {
+		void ExecuteLogic(int currentTick) {
 
 			if (IsDead) {
 				if (ReviveTick.ElapsedMilliseconds > 5000) {
@@ -110,20 +114,49 @@ namespace GameCore {
 			}
 
 			if (InCombat && Target != null) {
-				if (CombatTick.ElapsedMilliseconds >= TickDuration - Stats.GetTickModifier()) {
-					if (Target.Stats.Location != Stats.Location) {
-						InCombat = false;
-						Target = null;
-						SendToClient("*Target lost. Combat disengaged!*", Color.White);
-					} else {
-						StrikeTarget(Target);
-						CombatTick.Restart();
+				if (State == PlayerState.Resting) {
+					State = PlayerState.Active;
+					SendToClient("You jump up as combat begins!", Color.Yellow);
+				}
+				if (LastCombatTick < currentTick) {
+					int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick : LastCombatTick);
+					if (LastCombatTick == -1) ticksPassed = 1; // Handle first tick
+
+					float speedModifier = 1.0f + (Stats.GetTickModifier() / 3000f);
+					CombatEnergy += ticksPassed * speedModifier;
+
+					while (CombatEnergy >= 1.0f) {
+						if (Target == null || Target.Stats == null || Target.IsDead || Target.Stats.Health <= 0 || Target.Stats.Location != Stats.Location) {
+							InCombat = false;
+							Target = null;
+							CombatEnergy = 0;
+							SendToClient("*Target lost. Combat disengaged!*", Color.White);
+							break;
+						} else {
+							StrikeTarget(Target);
+							CombatEnergy -= 1.0f;
+						}
 					}
 					DisplayVitals();
+					LastCombatTick = currentTick;
 				}
 			} else if (!InCombat) {
+				CombatEnergy = 0;
 				if (HealTick.ElapsedMilliseconds > TickDuration) {
-					Stats.Health += Rnd.Next((int)(Stats.Int / 4f), (int)(Stats.Int / 3f));
+					if (State == PlayerState.Resting) {
+						int healAmount = (int)(Stats.MaxHealth * 0.10f);
+						if (healAmount < 1) healAmount = 1;
+						Stats.Health += healAmount;
+						SendToClient(string.Format("You feel better... (+{0} HP)", healAmount), Color.Green);
+
+						if (Stats.Health >= Stats.MaxHealth) {
+							Stats.Health = Stats.MaxHealth;
+							State = PlayerState.Active;
+							SendToClient("You are fully rested and stand up.", Color.Cyan);
+						}
+					} else {
+						Stats.Health += Rnd.Next((int)(Stats.Int / 4f), (int)(Stats.Int / 3f));
+					}
 					HealTick.Restart();
 				}
 			}
@@ -166,7 +199,7 @@ namespace GameCore {
 			InCombat = false;
 			Target = null;
 			SendToClient("You have been slain!");
-			Move(new Coordinate3(int.MaxValue, int.MaxValue, int.MaxValue));
+			Move(Coordinate3.Purgatory);
 			ReviveTick.Start();
 		}
 
