@@ -69,33 +69,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnsiMap.cs" />
-    <Compile Include="Color.cs" />
-    <Compile Include="MobMaker.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MobMaker.Designer.cs">
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Actions.cs" />
+    <Compile Include="src\AdminActions.cs" />
+    <Compile Include="src\AnsiMap.cs" />
+    <Compile Include="src\ArgumentHandler.cs" />
+    <Compile Include="src\BaseMobile.cs" />
+    <Compile Include="src\CombatTests.cs" />
+    <Compile Include="src\Connection.cs" />
+    <Compile Include="src\Coordinate3.cs" />
+    <Compile Include="src\Data.cs" />
+    <Compile Include="src\Enums.cs" />
+    <Compile Include="src\Main.cs" />
+    <Compile Include="src\Mobile.cs" />
+    <Compile Include="src\PlayerEntity.cs" />
+    <Compile Include="src\PlayerState.cs" />
+    <Compile Include="src\Room.cs" />
+    <Compile Include="src\Server.cs" />
+    <Compile Include="src\SpawnData.cs" />
+    <Compile Include="src\Spawner.cs" />
+    <Compile Include="src\util\Color.cs" />
+    <Compile Include="src\util\MobMaker.cs" />
+    <Compile Include="src\util\MobMaker.Designer.cs">
       <DependentUpon>MobMaker.cs</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server.cs" />
-    <Compile Include="Connection.cs" />
-    <Compile Include="PlayerEntity.cs" />
-    <Compile Include="Coordinate3.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="BaseMobile.cs" />
-    <Compile Include="Mobile.cs" />
-    <Compile Include="ArgumentHandler.cs" />
-    <Compile Include="World.cs" />
-    <Compile Include="Room.cs" />
-    <Compile Include="Main.cs" />
-    <Compile Include="PlayerState.cs" />
-    <Compile Include="Data.cs" />
-    <Compile Include="Actions.cs" />
-    <Compile Include="AdminActions.cs" />
-    <Compile Include="Spawner.cs" />
-    <Compile Include="SpawnData.cs" />
-    <Compile Include="CombatTests.cs" />
+    <Compile Include="src\World.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">
@@ -120,18 +118,18 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MobMaker.resx">
-      <DependentUpon>MobMaker.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Properties\DataSources\GameCore.Data.datasource" />
     <None Include="Properties\DataSources\GameCore.Util.SpawnData.datasource" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
-    <Content Include="gen_world.py" />
-    <Content Include="validate_world.py" />
+    <Content Include="src\util\gen_world.py" />
+    <Content Include="src\util\validate_world.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="src\util\MobMaker.resx">
+      <DependentUpon>MobMaker.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
