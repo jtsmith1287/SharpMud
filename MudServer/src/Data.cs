@@ -2,6 +2,7 @@ using System;
 using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using GameCore;
 using GameCore.Util;
 
@@ -11,89 +12,77 @@ namespace GameCore {
 		#region Static Fields
 		private static readonly object SaveLock = new object();
 		public static Dictionary<string, string> UsernamePwdPairs = new Dictionary<string, string>();
-		public static Dictionary<string, Guid> UsernameIDPairs = new Dictionary<string, Guid>();
-		public static Dictionary<Guid, Data> IDDataPairs = new Dictionary<Guid, Data>();
+		public static Dictionary<string, Guid> UsernameIdPairs = new Dictionary<string, Guid>();
+		public static Dictionary<Guid, Data> IdDataPairs = new Dictionary<Guid, Data>();
 		public static Dictionary<string, SpawnData> NameSpawnPairs = new Dictionary<string, SpawnData>();
 		#endregion
 		#region Exposed Data
 		[ScriptIgnore]
-		public BaseMobile thisBaseMobile;
+		public BaseMobile ThisBaseMobile;
 		public string Name;
 		public int Level;
 		public Coordinate3 Location;
-		public Guid ID;
-		int m_Health;
+		public Guid Id;
+		private int _mHealth;
 		public int MaxHealth;
 
 		public int Health {
-			get {
-				return m_Health;
-			}
+			get => _mHealth;
 			set {
 				// If this object is dead, we can't make it more dead.
-				if (m_Health == 0 && value < 0) {
+				if (_mHealth == 0 && value < 0) {
 					return;
 				}
-				m_Health = value;
-				if (m_Health > MaxHealth)
-					m_Health = MaxHealth;
-				if (m_Health <= 0) {
-					m_Health = 0;
-					if (thisBaseMobile != null) {
-						thisBaseMobile.Target = null;
-						thisBaseMobile.InCombat = false;
+				_mHealth = value;
+				if (_mHealth > MaxHealth)
+					_mHealth = MaxHealth;
+				
+				if (_mHealth > 0) return;
+				
+				_mHealth = 0;
+				if (ThisBaseMobile != null) {
+					ThisBaseMobile.Target = null;
+					ThisBaseMobile.InCombat = false;
+				}
+				OnZeroHealthEvent(this);
+				try {
+					if (ThisBaseMobile != null) {
+						ThisBaseMobile.TriggerOnDeath(this);
 					}
-					OnZeroHealthEvent(this);
-					try {
-						if (thisBaseMobile != null) {
-							thisBaseMobile.TriggerOnDeath(this);
-						}
-					} catch (NullReferenceException) {
+				} catch (NullReferenceException) {
 
-					}
 				}
 			}
 		}
-		int m_Str = 10;
+
+		private int _str = 10;
 		public int BonusStr;
 		public int Str {
-			get {
-				return m_Str + BonusStr;
-			}
-			set {
-				m_Str = value;
-			}
+			get => _str + BonusStr;
+			set => _str = value;
 		}
-		int m_Dex = 10;
+
+		private int _dex = 10;
 		public int BonusDex;
 		public int Dex {
-			get {
-				return m_Dex + BonusDex;
-			}
-			set {
-				m_Dex = value;
-			}
+			get => _dex + BonusDex;
+			set => _dex = value;
 		}
-		int m_Int = 10;
+
+		private int _int = 10;
 		public int BonusInt;
 		public int Int {
-			get {
-				return m_Int + BonusInt;
-			}
-			set {
-				m_Int = value;
-			}
+			get => _int + BonusInt;
+			set => _int = value;
 		}
 		public int ExpToNextLevel = 100;
-		int m_Exp = 0;
+		private int _exp = 0;
 		public bool StatAllocationNeeded = false;
 		public int Exp {
-			get {
-				return m_Exp;
-			}
+			get => _exp;
 			set {
-				m_Exp = value;
-				if (m_Exp >= ExpToNextLevel) {
+				_exp = value;
+				if (_exp >= ExpToNextLevel) {
 					LevelUp();
 				}
 			}
@@ -119,8 +108,7 @@ namespace GameCore {
 			}
 		}
 
-		public Data() {
-		}
+		public Data() { }
 
 		public int GetTickModifier() {
 
@@ -130,40 +118,40 @@ namespace GameCore {
 		public Data(string username, Guid id) {
 
 			Name = username;
-			ID = id;
+			Id = id;
 			Level = 1;
-			Data.IDDataPairs.Add(id, this);
+			Data.IdDataPairs.Add(id, this);
 		}
 		#endregion
 		#region Instance Methods
 		internal int GrantExperience() {
 
-			return (int)(m_Str + m_Dex + m_Int + (int)((float)MaxHealth / 3));
+			return (int)(_str + _dex + _int + (int)((float)MaxHealth / 3));
 		}
 
 		private void LevelUp() {
 
-			while (m_Exp >= ExpToNextLevel) {
-				m_Str++;
-				m_Dex++;
-				m_Int++;
+			while (_exp >= ExpToNextLevel) {
+				_str++;
+				_dex++;
+				_int++;
 				MaxHealth += 6;
 				Level++;
 				ExpToNextLevel += (int)(ExpToNextLevel * 1.5f);
 
-				if (thisBaseMobile is PlayerEntity) {
+				if (ThisBaseMobile is PlayerEntity) {
 					StatAllocationNeeded = true;
-					thisBaseMobile.SendToClient(string.Format("You are now level {0}!", Level), Color.Cyan);
+					ThisBaseMobile.SendToClient($"You are now level {Level}!", Color.Cyan);
 				}
 			}
 		}
 		#endregion
 		#region Data Saving/Loading
-		internal static void SaveData(params string[] paths) {
+
+		public static void SaveData(params string[] paths) {
 
 			lock (SaveLock) {
 				JavaScriptSerializer serializer = new JavaScriptSerializer();
-				StreamWriter writer;
 
 				foreach (string path in paths) {
 					string json = "";
@@ -171,14 +159,14 @@ namespace GameCore {
 					switch (path) {
 						case DataPaths.IdData:
 							Dictionary<string, Data> stringIdData = new Dictionary<string, Data>();
-							foreach (var kvp in IDDataPairs) {
+							foreach (var kvp in IdDataPairs) {
 								stringIdData.Add(kvp.Key.ToString(), kvp.Value);
 							}
 							json = serializer.Serialize(stringIdData);
 							break;
 						case DataPaths.UserId:
 							Dictionary<string, string> stringUserId = new Dictionary<string, string>();
-							foreach (var kvp in UsernameIDPairs) {
+							foreach (var kvp in UsernameIdPairs) {
 								stringUserId.Add(kvp.Key, kvp.Value.ToString());
 							}
 							json = serializer.Serialize(stringUserId);
@@ -194,10 +182,11 @@ namespace GameCore {
 							break;
 					}
 
+					StreamWriter writer;
 					using (writer = new StreamWriter(path)) {
 						writer.Write(json);
 					}
-					Console.WriteLine(string.Format("Saving {0}: {1}kb", path, json.Length / 1000f));
+					Console.WriteLine($"Saving {path}: {json.Length / 1000f}kb");
 				}
 			}
 		}
@@ -212,11 +201,10 @@ namespace GameCore {
 				DataPaths.World);
 		}
 
-		internal static void LoadData(params string[] paths) {
+		public static void LoadData(params string[] paths) {
 
 			long bytes = 0;
 			JavaScriptSerializer serializer = new JavaScriptSerializer();
-			StreamReader reader;
 
 			foreach (string path in paths) {
 				try {
@@ -225,6 +213,7 @@ namespace GameCore {
 					}
 
 					string json;
+					StreamReader reader;
 					using (reader = new StreamReader(path)) {
 						json = reader.ReadToEnd();
 					}
@@ -233,19 +222,19 @@ namespace GameCore {
 
 					switch (path) {
 						case DataPaths.IdData:
-							var rawIdData = serializer.Deserialize<Dictionary<string, Data>>(json) ?? new Dictionary<string, Data>();
-							IDDataPairs = new Dictionary<Guid, Data>();
-							foreach (var entry in rawIdData) {
+							Dictionary<string, Data> rawIdData = serializer.Deserialize<Dictionary<string, Data>>(json) ?? new Dictionary<string, Data>();
+							IdDataPairs = new Dictionary<Guid, Data>();
+							foreach (KeyValuePair<string, Data> entry in rawIdData) {
 								Guid id = new Guid(entry.Key);
-								entry.Value.ID = id;
-								IDDataPairs.Add(id, entry.Value);
+								entry.Value.Id = id;
+								IdDataPairs.Add(id, entry.Value);
 							}
 							break;
 						case DataPaths.UserId:
-							var rawUserId = serializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
-							UsernameIDPairs = new Dictionary<string, Guid>();
-							foreach (var entry in rawUserId) {
-								UsernameIDPairs.Add(entry.Key, new Guid(entry.Value));
+							Dictionary<string, string> rawUserId = serializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+							UsernameIdPairs = new Dictionary<string, Guid>();
+							foreach (KeyValuePair<string, string> entry in rawUserId) {
+								UsernameIdPairs.Add(entry.Key, new Guid(entry.Value));
 							}
 							break;
 						case DataPaths.UserPwd:
@@ -255,60 +244,58 @@ namespace GameCore {
 							// Handle multiple map files
 							if (File.Exists(DataPaths.MapList)) {
 								string mapListJson = File.ReadAllText(DataPaths.MapList);
-								var mapList = serializer.Deserialize<Dictionary<string, List<string>>>(mapListJson);
+								Dictionary<string, List<string>> mapList = serializer.Deserialize<Dictionary<string, List<string>>>(mapListJson);
 								if (mapList != null && mapList.ContainsKey("Maps")) {
 									string mapDir = Path.GetDirectoryName(DataPaths.MapList);
 									foreach (string mapFileName in mapList["Maps"]) {
 										string mapFile = Path.Combine(mapDir, mapFileName);
-										if (File.Exists(mapFile)) {
-											string mapJson = File.ReadAllText(mapFile);
-											var rooms = serializer.Deserialize<Dictionary<string, Room>>(mapJson);
-											if (rooms != null) {
-												foreach (var room in rooms) {
-													if (!World.Rooms.ContainsKey(room.Key)) {
-														// Attempt to reconstruct Location from key if it's missing or zeroed
-														if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
-															string[] coords = room.Key.Split(' ');
-															if (coords.Length == 3) {
-																if (int.TryParse(coords[0], out var x) && 
-																	int.TryParse(coords[1], out var y) && 
-																	int.TryParse(coords[2], out var z)) {
-																	room.Value.Location = new Coordinate3(x, y, z);
-																}
-															}
-														}
-														World.Rooms.Add(room.Key, room.Value);
+										if (!File.Exists(mapFile)) continue;
+										string mapJson = File.ReadAllText(mapFile);
+										Dictionary<string, Room> rooms = serializer.Deserialize<Dictionary<string, Room>>(mapJson);
+										if (rooms == null) continue;
+										foreach (KeyValuePair<string, Room> room in rooms) {
+											if (World.Rooms.ContainsKey(room.Key)) continue;
+											// Attempt to reconstruct Location from key if it's missing or zeroed
+											if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
+												string[] coords = room.Key.Split(' ');
+												if (coords.Length == 3) {
+													if (int.TryParse(coords[0], out int x) && 
+													    int.TryParse(coords[1], out int y) && 
+													    int.TryParse(coords[2], out int z)) {
+														room.Value.Location = new Coordinate3(x, y, z);
 													}
 												}
 											}
+											World.Rooms.Add(room.Key, room.Value);
 										}
 									}
 								}
 							} else {
 								World.Rooms = serializer.Deserialize<Dictionary<string, Room>>(json) ?? new Dictionary<string, Room>();
-								foreach (var room in World.Rooms) {
-									if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
-										string[] coords = room.Key.Split(' ');
-										if (coords.Length == 3) {
-											if (int.TryParse(coords[0], out var x) && 
-												int.TryParse(coords[1], out var y) && 
-												int.TryParse(coords[2], out var z)) {
-												room.Value.Location = new Coordinate3(x, y, z);
-											}
-										}
+								foreach (KeyValuePair<string, Room> room in World.Rooms) {
+									if (room.Value.Location != null && (room.Value.Location.X != 0 ||
+									                                    room.Value.Location.Y != 0 ||
+									                                    room.Value.Location.Z != 0)) continue;
+									string[] coords = room.Key.Split(' ');
+									if (coords.Length != 3) continue;
+									
+									if (int.TryParse(coords[0], out int x) && 
+									    int.TryParse(coords[1], out int y) && 
+									    int.TryParse(coords[2], out int z)) {
+										room.Value.Location = new Coordinate3(x, y, z);
 									}
 								}
 							}
 
-							foreach (var room in World.Rooms.Values) {
-								if (room.EntitiesHere == null) room.EntitiesHere = new List<Guid>();
+							foreach (Room room in World.Rooms.Values.Where(room => room.EntitiesHere == null)) {
+								room.EntitiesHere = new List<Guid>();
 							}
 							Console.WriteLine($"Loaded {World.Rooms.Count} rooms.");
 							break;
 						case DataPaths.Spawn:
 							NameSpawnPairs = serializer.Deserialize<Dictionary<string, SpawnData>>(json) ?? new Dictionary<string, SpawnData>();
-							foreach (var entry in NameSpawnPairs) {
-								if (entry.Value.ID == Guid.Empty) entry.Value.ID = Guid.NewGuid(); // Template IDs shouldn't really matter but good to have
+							foreach (KeyValuePair<string, SpawnData> entry in NameSpawnPairs.Where(entry => entry.Value.Id == Guid.Empty)) {
+								entry.Value.Id = Guid.NewGuid(); // Template IDs shouldn't really matter but good to have
 							}
 							break;
 					}
@@ -320,8 +307,6 @@ namespace GameCore {
 			}
 
 			Console.WriteLine($"Loaded {bytes / 1000f}kb of data into memory.");
-
-
 		}
 
 		public static void SaveSpawnTemplates() {
@@ -330,7 +315,7 @@ namespace GameCore {
 				JavaScriptSerializer serializer = new JavaScriptSerializer();
 				string json = serializer.Serialize(NameSpawnPairs);
 				File.WriteAllText(DataPaths.Spawn, json);
-				Console.WriteLine(string.Format("Saving {0}: {1}kb", DataPaths.Spawn, json.Length / 1000f));
+				Console.WriteLine($"Saving {DataPaths.Spawn}: {json.Length / 1000f}kb");
 			}
 		}
 		#endregion

@@ -4,9 +4,10 @@ using GameCore.Util;
 
 namespace ServerCore {
 	public class Program {
-		static void Main(string[] args) {
+		public static void Main(string[] args) {
 			if (args.Length > 0 && args[0] == "--test") {
 				new MudServer.CombatTests().RunTests();
+				new MudServer.SpawnerTests().RunTests();
 				return;
 			}
 			try {

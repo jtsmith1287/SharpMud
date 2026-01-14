@@ -4,7 +4,7 @@ using ServerCore.Util;
 
 namespace GameCore.Util {
 public static class AdminActions {
-    public static Dictionary<string, Action<PlayerEntity, string[]>> ActionCalls =
+    public static readonly Dictionary<string, Action<PlayerEntity, string[]>> ActionCalls =
         new Dictionary<string, Action<PlayerEntity, string[]>> {
             { "build", BuildRoom },
             { "spawn", CreateSpawner },

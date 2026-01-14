@@ -11,17 +11,20 @@ using ServerCore.Util;
 
 namespace ServerCore {
 public class Connection : IDisposable {
-    static object BigLock = new object();
-    internal Socket socket;
-    public StreamReader Reader;
-    public StreamWriter Writer;
-    static ArrayList connections = new ArrayList();
-    public PlayerEntity Player;
+    private static readonly object BigLock = new object();
+    private static readonly ArrayList Connections = new ArrayList();
+    
+    public readonly StreamReader Reader;
+    
+    private readonly Socket _socket;
+    private readonly StreamWriter _writer;
+    
+    private PlayerEntity _player;
 
     public Connection(Socket socket) {
-        this.socket = socket;
+        this._socket = socket;
         Reader = new StreamReader(new NetworkStream(socket, false));
-        Writer = new StreamWriter(new NetworkStream(socket, true));
+        _writer = new StreamWriter(new NetworkStream(socket, true));
         new Thread(ClientLoop).Start();
     }
 
@@ -29,15 +32,15 @@ public class Connection : IDisposable {
         try {
             OnConnect();
 
-            if (Player == null) {
+            if (_player == null) {
                 return;
             }
 
-            while (socket.Connected) {
+            while (_socket.Connected) {
                 lock (BigLock) {
-                    foreach (Connection conn in connections) {
-                        if (conn.Writer != null) {
-                            conn.Writer.Flush();
+                    foreach (Connection conn in Connections) {
+                        if (conn._writer != null) {
+                            conn._writer.Flush();
                         }
                     }
                 }
@@ -48,8 +51,8 @@ public class Connection : IDisposable {
                 }
 
                 lock (BigLock) {
-                    if (Player != null) {
-                        ArgumentHandler.HandleLine(line.Trim(), Player);
+                    if (_player != null) {
+                        ArgumentHandler.HandleLine(line.Trim(), _player);
                     }
                 }
             }
@@ -62,9 +65,9 @@ public class Connection : IDisposable {
 
     public void Send(string msg) {
         try {
-            if (Writer != null) {
-                Writer.WriteLine(msg);
-                Writer.Flush();
+            if (_writer != null) {
+                _writer.WriteLine(msg);
+                _writer.Flush();
             }
         } catch (Exception) { }
     }
@@ -98,23 +101,23 @@ public class Connection : IDisposable {
                 }
 
                 if (providedPwd == truePwd) {
-                    if (Data.UsernameIDPairs.TryGetValue(username, out var id)) {
-                        if (Data.IDDataPairs.TryGetValue(id, out var data)) {
-                            Player = new PlayerEntity(this, data);
+                    if (Data.UsernameIdPairs.TryGetValue(username, out var id)) {
+                        if (Data.IdDataPairs.TryGetValue(id, out var data)) {
+                            _player = new PlayerEntity(this, data);
                             break;
                         } else {
                             Send("Error: User data not found. Please contact an admin.");
-                            this.socket.Close();
+                            this._socket.Close();
                             return;
                         }
                     } else {
                         Send("Error: User ID not found. Please contact an admin.");
-                        this.socket.Close();
+                        this._socket.Close();
                         return;
                     }
                 } else {
                     Send("Incorrect password. Sorry.");
-                    this.socket.Close();
+                    this._socket.Close();
                     return;
                 }
                 // Create a new user account because we didn't find one.
@@ -135,10 +138,10 @@ public class Connection : IDisposable {
 
                     if (providedPwd == pwdVerify) {
                         Send("Got it! We're entering you into the system now.");
-                        Player = new PlayerEntity(this, new Data(username, Guid.NewGuid()));
+                        _player = new PlayerEntity(this, new Data(username, Guid.NewGuid()));
 
                         Data.UsernamePwdPairs.Add(username, providedPwd);
-                        Data.UsernameIDPairs.Add(username, Player.ID);
+                        Data.UsernameIdPairs.Add(username, _player.ID);
 
                         Send("Alright, " + username + ". You're good to go!");
 
@@ -155,7 +158,7 @@ public class Connection : IDisposable {
         }
 
         lock (BigLock) {
-            connections.Add(this);
+            Connections.Add(this);
         }
 
         Console.WriteLine("Starting save thread for new data");
@@ -170,16 +173,16 @@ public class Connection : IDisposable {
 
     internal void OnDisconnect() {
         lock (BigLock) {
-            connections.Remove(this);
+            Connections.Remove(this);
         }
 
-        if (socket.Connected) {
-            socket.Close();
+        if (_socket.Connected) {
+            _socket.Close();
         }
 
-        if (Player != null) {
-            Player.Close();
-            Console.WriteLine(Player.ID + " has disconnected");
+        if (_player != null) {
+            _player.Close();
+            Console.WriteLine(_player.ID + " has disconnected");
         } else {
             Console.WriteLine("An unauthenticated connection has disconnected");
         }
@@ -188,8 +191,8 @@ public class Connection : IDisposable {
     }
 
     public void Dispose() {
-        if (Player != null) {
-            Console.Write("Disposing of " + Player.Name + "'s resources...");
+        if (_player != null) {
+            Console.Write("Disposing of " + _player.Name + "'s resources...");
         } else {
             Console.Write("Disposing of unauthenticated connection's resources...");
         }
@@ -199,12 +202,12 @@ public class Connection : IDisposable {
         }
 
         try {
-            if (Writer != null) {
-                Writer.Dispose();
+            if (_writer != null) {
+                _writer.Dispose();
             }
         } catch (IOException) {
-            if (Player != null) {
-                Console.WriteLine(Player.Name + " might not have been fully disposed of.");
+            if (_player != null) {
+                Console.WriteLine(_player.Name + " might not have been fully disposed of.");
             }
         }
 

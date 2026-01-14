@@ -40,11 +40,11 @@ namespace GameCore {
 		public PlayerEntity(Connection conn, Data data) {
 
 			Conn = conn;
-			ID = data.ID;
+			ID = data.Id;
 			Name = data.Name;
 			Stats = data;
 			Stats.OnZeroHealth += Die;
-			Stats.thisBaseMobile = this;
+			Stats.ThisBaseMobile = this;
 			Stats.OnZeroHealth += Die;
 			Players.Add(ID, this);
 

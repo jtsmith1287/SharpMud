@@ -88,6 +88,7 @@
     <Compile Include="src\Server.cs" />
     <Compile Include="src\SpawnData.cs" />
     <Compile Include="src\Spawner.cs" />
+    <Compile Include="src\SpawnerTests.cs" />
     <Compile Include="src\util\Color.cs" />
     <Compile Include="src\util\MobMaker.cs" />
     <Compile Include="src\util\MobMaker.Designer.cs">

@@ -3,7 +3,7 @@
   <asmv1:assemblyIdentity name="MudServer.exe" version="1.0.0.1" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="x86" type="win32" />
   <application />
   <entryPoint>
-    <assemblyIdentity name="MudServer" version="1.0.9510.16411" language="neutral" processorArchitecture="x86" />
+    <assemblyIdentity name="MudServer" version="1.0.9510.17531" language="neutral" processorArchitecture="x86" />
     <commandLine file="MudServer.exe" parameters="" />
   </entryPoint>
   <trustInfo>
@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="59904">
-      <assemblyIdentity name="MudServer" version="1.0.9510.16411" language="neutral" processorArchitecture="x86" />
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="61440">
+      <assemblyIdentity name="MudServer" version="1.0.9510.17531" language="neutral" processorArchitecture="x86" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>OLPH5CC1YHUQNUXiiKJ8cww39mP2SqzdUX/43uRajGA=</dsig:DigestValue>
+        <dsig:DigestValue>EmCOS1SFq7SdA4H2JLo8CU+bRLhIxl/WewNvx2nxcOU=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -62,7 +62,7 @@
       <dsig:DigestValue>Nw6NQCBOUU4L1Rs5KKCYg691t+sl2pBUgiICS+0cewE=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="gen_world.py" size="12343">
+  <file name="src\util\gen_world.py" size="12343">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
@@ -71,7 +71,7 @@
       <dsig:DigestValue>gdqmLnXM/bMqGDbWQszPpPs+eBolsM8H1YlQQz4kZkM=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="validate_world.py" size="11089">
+  <file name="src\util\validate_world.py" size="11089">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />

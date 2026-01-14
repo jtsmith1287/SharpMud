@@ -9,14 +9,14 @@ namespace GameCore {
 		public Spawner SpawnerParent;
 		public bool RoomEmpty = true;
 		// an average rate the mob will wander. Greater is less often.
-		int WanderFrequency = 300;
+		readonly int _wanderFrequency = 300;
 
 		public Mobile(SpawnData data, Spawner spawner) {
 
 			Name = data.Name + Rnd.Next(1, 1000).ToString();
 			Stats = (SpawnData)data.ShallowCopy();
 			Stats.Health = Stats.MaxHealth;
-			Stats.thisBaseMobile = this;
+			Stats.ThisBaseMobile = this;
 			SpawnerParent = spawner;
 			GenerateID();
 		}
@@ -71,7 +71,7 @@ namespace GameCore {
 			StrikeTarget(target);
 		}
 
-		bool TryFollow(BaseMobile target) {
+		private bool TryFollow(BaseMobile target) {
 			Room targetsRoom = World.GetRoom(target.Stats.Location);
 			Room thisRoom = World.GetRoom(this.Stats.Location);
 			if (thisRoom != null && targetsRoom != null) {
@@ -96,20 +96,20 @@ namespace GameCore {
 			RoundTimer.Stop();
 		}
 
-		void NonCombatAction() {
+		private void NonCombatAction() {
 
 			SpawnData stats = (SpawnData)Stats;
 
 			if (stats.Behaviour == Disposition.Hostile)
 				SeekTarget();
 
-			if (Rnd.Next(1, WanderFrequency) == 1) {
+			if (Rnd.Next(1, _wanderFrequency) == 1) {
 				Wander();
 			}
 
 		}
 
-		void SeekTarget() {
+		public void SeekTarget() {
 			Room room = World.GetRoom(Stats.Location);
 			if (room == null) return;
 
@@ -117,7 +117,7 @@ namespace GameCore {
 			Mobile mob;
 			SpawnData thisData = (SpawnData)Stats;
 			foreach (Guid id in room.EntitiesHere) {
-				if (id == Stats.ID) { continue; }
+				if (id == Stats.Id) { continue; }
 				if (PlayerEntity.Players.TryGetValue(id, out player)) {
 					if (player.Hidden || player.IsDead) { continue; }
 					Target = player;
@@ -141,7 +141,7 @@ namespace GameCore {
 			}
 		}
 
-		void Wander() {
+		private void Wander() {
 			Room room = World.GetRoom(Stats.Location);
 			if (room != null) {
 				lock (room.ConnectedRooms) {

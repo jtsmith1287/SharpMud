@@ -40,13 +40,13 @@ namespace GameCore {
 		public Guid GenerateID() {
 
 			ID = Guid.NewGuid();
-			Stats.ID = ID;
+			Stats.Id = ID;
 			return ID;
 		}
 
 		public void TriggerOnDeath(Data data) {
 
-			if (data.ID == Stats.ID) {
+			if (data.Id == Stats.Id) {
 				OnDeathEvent(this);
 			}
 		}
@@ -56,7 +56,7 @@ namespace GameCore {
 			Room oldRoom = World.GetRoom(Stats.Location);
 			Room newRoom = World.GetRoom(location);
 
-			var thisPlayer = PlayerEntity.GetPlayerByID(Stats.ID);
+			var thisPlayer = PlayerEntity.GetPlayerByID(Stats.Id);
 			if (thisPlayer != null && thisPlayer.State == PlayerState.Resting) {
 				thisPlayer.State = PlayerState.Active;
 				thisPlayer.SendToClient("You stop resting as you move.", Color.Cyan);
@@ -195,13 +195,13 @@ namespace GameCore {
 			if (IsDead) { return; }
 			int distance = (Stats.Location - killed.Stats.Location).Max();
 			// If targetting something far away and it dies, ignore it.
-			if (distance > 3 && Target.Stats.ID == killed.Stats.ID) {
+			if (distance > 3 && Target.Stats.Id == killed.Stats.Id) {
 				InCombat = false;
 				Target = null;
 				return;
 			}
 			// Only untarget and break combat if we're targetting what died and grant bonus experience.
-			if (Target.Stats.ID == killed.Stats.ID) {
+			if (Target.Stats.Id == killed.Stats.Id) {
 				SendToClient(
 					"You killed " + killed.Name + "! You've gained 5 bonus experience.", Color.Cyan);
 				Stats.Exp += 5;

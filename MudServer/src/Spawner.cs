@@ -8,25 +8,25 @@ namespace GameCore.Util {
 	public class Spawner {
 
 		public Guid ID;
-		public SpawnData[] m_SpawnData;
+		public SpawnData[] SpawnData;
 		[ScriptIgnore]
-		public List<Mobile> m_Spawns = new List<Mobile>();
+		public List<Mobile> Spawns = new List<Mobile>();
 		[ScriptIgnore]
-		public List<Mobile> m_DeadSpawn = new List<Mobile>();
+		public List<Mobile> DeadSpawn = new List<Mobile>();
 		public int MaxNumberOfSpawn = 1;
-		public bool m_Spawning = false;
-		public Coordinate3 m_Location;
+		public bool Spawning = false;
+		public Coordinate3 Location;
 		[ScriptIgnore]
-		public Random m_Rand;
+		public Random Rand;
 		[ScriptIgnore]
-		public DateTime m_SpawnTime;
+		public DateTime SpawnTime;
 
 		public Spawner() {
-			m_Spawning = true;
-			m_Spawns = new List<Mobile>();
-			m_DeadSpawn = new List<Mobile>();
-			m_Rand = new Random();
-			m_SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+			Spawning = true;
+			Spawns = new List<Mobile>();
+			DeadSpawn = new List<Mobile>();
+			Rand = new Random();
+			SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 
 			World.Spawners.Add(this);
 			World.StartAIThread();
@@ -34,47 +34,47 @@ namespace GameCore.Util {
 
 		public Spawner(Room room, List<SpawnData> spawnList) : this() {
 
-			m_SpawnData = spawnList.ToArray();
+			SpawnData = spawnList.ToArray();
 			room.SpawnersHere.Add(this);
-			m_Location = room.Location;
+			Location = room.Location;
 			ID = Guid.NewGuid();
 		}
 
 		public void Update() {
 
-			if (!m_Spawning) return;
+			if (!Spawning || SpawnData == null || SpawnData.Length == 0) return;
 
-			if (m_Spawns.Count < MaxNumberOfSpawn) {
-				if (m_SpawnTime < DateTime.Now) {
-					Mobile newMob = new Mobile(m_SpawnData[m_Rand.Next(0, m_SpawnData.Length)], this);
-					m_Spawns.Add(newMob);
+			if (Spawns.Count < MaxNumberOfSpawn) {
+				if (SpawnTime < DateTime.Now) {
+					Mobile newMob = new Mobile(SpawnData[Rand.Next(0, SpawnData.Length)], this);
+					Spawns.Add(newMob);
 					newMob.Stats.OnZeroHealth += QueueDestroyMob;
-					newMob.Move(m_Location);
+					newMob.Move(Location);
 					World.Mobiles.Add(newMob.ID, newMob);
 
-					m_SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
+					SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 				}
 			}
 			int currentTick = World.CombatTick;
-			foreach (Mobile mob in m_Spawns.ToArray()) {
+			foreach (Mobile mob in Spawns.ToArray()) {
 				if (!mob.IsDead)
 					mob.ExecuteLogic(currentTick);
 			}
 
-			if (m_DeadSpawn.Count > 0) {
-				lock (m_DeadSpawn) {
-					for (int i = 0; i < m_DeadSpawn.Count; i++) {
-						DestroyMob(m_DeadSpawn[i]);
+			if (DeadSpawn.Count > 0) {
+				lock (DeadSpawn) {
+					for (int i = 0; i < DeadSpawn.Count; i++) {
+						DestroyMob(DeadSpawn[i]);
 					}
-					m_DeadSpawn.Clear();
+					DeadSpawn.Clear();
 				}
 			}
 		}
 
 		private void DestroyMob(Mobile mob) {
 
-			lock (m_Spawns) {
-				m_Spawns.Remove(mob);
+			lock (Spawns) {
+				Spawns.Remove(mob);
 			}
 			Room room = World.GetRoom(mob.Stats.Location);
 			if (room != null) {
@@ -91,12 +91,12 @@ namespace GameCore.Util {
 
 		private void QueueDestroyMob(Data data) {
 
-			foreach (Mobile spawn in m_Spawns) {
-				if (spawn.ID == data.ID) {
+			foreach (Mobile spawn in Spawns) {
+				if (spawn.ID == data.Id) {
 					spawn.IsDead = true;
 					spawn.Target = null;
 					spawn.InCombat = false;
-					m_DeadSpawn.Add(spawn);
+					DeadSpawn.Add(spawn);
 					break;
 				}
 			}
