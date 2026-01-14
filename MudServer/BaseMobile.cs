@@ -240,12 +240,12 @@ namespace GameCore {
 				barCount = (int)(barWidth * (float)Target.Stats.Health / Target.Stats.MaxHealth);
 				bars = new String('#', barCount);
 				spaces = new String(' ', 20 - barCount);
-				enemyHealth = string.Format("{0}: {1}<-[{2}{3}]->{4}",
+				enemyHealth = string.Format("{0}: {1} [{2}{3}] {4}",
 					Target.Name,
 					Target.Stats.Health,
 					bars,
 					spaces,
-					Stats.MaxHealth);
+					Target.Stats.MaxHealth);
 				if ((float)Target.Stats.Health / Target.Stats.MaxHealth < 0.33f)
 					enemyHealthColor = Color.Red;
 			}
@@ -253,7 +253,7 @@ namespace GameCore {
 			barCount = (int)(barWidth * (float)Stats.Health / Stats.MaxHealth);
 			bars = new String('#', barCount);
 			spaces = new String(' ', 20 - barCount);
-			string healthBar = string.Format("{0}<-[{1}{2}]->{3}",
+			string healthBar = string.Format("{0} [{1}{2}] {3}",
 				Stats.Health,
 				bars,
 				spaces,
