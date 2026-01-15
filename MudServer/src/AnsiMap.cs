@@ -5,7 +5,7 @@ using GameCore.Util;
 namespace GameCore {
 	public static class AnsiMap {
 
-		public static string Display(Coordinate3 location, int radius = 4) {
+		public static string Display(Coordinate3 location, int radius = 6) {
 			if (location == null) return string.Empty;
 
 			StringBuilder sb = new StringBuilder();
@@ -50,13 +50,13 @@ namespace GameCore {
 							Coordinate3 eastPos = new Coordinate3(x + 1, y, location.Z);
 							Room eastRoom = World.GetRoom(eastPos);
 							if (eastRoom != null && HasConnection(room, eastRoom)) {
-								roomRow.Append(Color.Yellow + "-" + Color.Reset);
+								roomRow.Append(Color.Yellow + "--" + Color.Reset);
 							} else {
-								roomRow.Append(" ");
+								roomRow.Append("  ");
 							}
 						}
 					} else {
-						roomRow.Append("  ");
+						roomRow.Append("   ");
 					}
 
 					// South connection
@@ -64,9 +64,9 @@ namespace GameCore {
 						Coordinate3 southPos = new Coordinate3(x, y - 1, location.Z);
 						Room southRoom = World.GetRoom(southPos);
 						if (room != null && southRoom != null && HasConnection(room, southRoom)) {
-							connRow.Append(Color.Yellow + "|" + Color.Reset + " ");
+							connRow.Append(Color.Yellow + "|" + Color.Reset + (x < maxX ? "  " : ""));
 						} else {
-							connRow.Append("  ");
+							connRow.Append("   ".Substring(0, x < maxX ? 3 : 1));
 						}
 					}
 				}

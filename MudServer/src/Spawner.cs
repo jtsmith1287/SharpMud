@@ -27,9 +27,6 @@ namespace GameCore.Util {
 			DeadSpawn = new List<Mobile>();
 			Rand = new Random();
 			SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
-
-			World.Spawners.Add(this);
-			World.StartAIThread();
 		}
 
 		public Spawner(Room room, List<SpawnData> spawnList) : this() {
@@ -38,6 +35,9 @@ namespace GameCore.Util {
 			room.SpawnersHere.Add(this);
 			Location = room.Location;
 			ID = Guid.NewGuid();
+
+			World.Spawners.Add(this);
+			World.StartAiThread();
 		}
 
 		public void Update() {

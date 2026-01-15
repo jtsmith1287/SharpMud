@@ -26,6 +26,7 @@ namespace GameCore {
 		public Coordinate3 Location;
 		public string Name;
 		public string Description;
+		public string MapName;
 		public Dictionary<string, Coordinate3> ConnectedRooms = new Dictionary<string, Coordinate3>();
 		public Dictionary<string, Coordinate3> InvisibleConnections = new Dictionary<string, Coordinate3>();
 		public bool IsEntryRoom = false;

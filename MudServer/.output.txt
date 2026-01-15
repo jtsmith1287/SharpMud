@@ -1,1 +1,203 @@
-﻿{"0 0 0": {"Location": {"X": 0, "Y": 0, "Z": 0}, "Name": "Village Square", "Description": "The heart of the village is a bustling open space paved with worn cobblestones. A stone fountain stands at the center, its water sparkling under the sunlight. Paths lead out in all cardinal directions towards various parts of the settlement.", "ConnectedRooms": {"north": {"X": 0, "Y": 1, "Z": 0}, "south": {"X": 0, "Y": -1, "Z": 0}, "east": {"X": 1, "Y": 0, "Z": 0}, "west": {"X": -1, "Y": 0, "Z": 0}, "up": {"X": 0, "Y": 0, "Z": 1}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000001"}, "0 1 0": {"Location": {"X": 0, "Y": 1, "Z": 0}, "Name": "North Gate", "Description": "A sturdy wooden gate marks the northern exit of the village, flanked by low stone walls. Guards occasionally pass through here, keeping a watchful eye on the horizon. Beyond the gate, a narrow path disappears into the thick green forest.", "ConnectedRooms": {"south": {"X": 0, "Y": 0, "Z": 0}, "north": {"X": 0, "Y": 2, "Z": 0}, "east": {"X": 1, "Y": 1, "Z": 0}, "west": {"X": -1, "Y": 1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000002"}, "0 2 0": {"Location": {"X": 0, "Y": 2, "Z": 0}, "Name": "Forest Path", "Description": "The air grows cooler as the village sounds fade behind you, replaced by the rustle of leaves and bird songs. Tall oaks arch over the dirt path, casting long shadows across the ground. It is a peaceful but lonely stretch of road leading away from civilization.", "ConnectedRooms": {"south": {"X": 0, "Y": 1, "Z": 0}, "north": {"X": 0, "Y": 3, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000003"}, "0 3 0": {"Location": {"X": 0, "Y": 3, "Z": 0}, "Name": "Deep Forest", "Description": "The trees here are much larger and closer together, blocking out most of the sunlight and creating a permanent twilight. The path is nearly overgrown with tangled roots and thick briars. Every snap of a twig seems unnaturally loud in the oppressive silence of the deep woods.", "ConnectedRooms": {"south": {"X": 0, "Y": 2, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000011"}, "0 -1 0": {"Location": {"X": 0, "Y": -1, "Z": 0}, "Name": "South Gate", "Description": "The southern entrance to the village is wide and well-traveled by merchants and farmers. Dust kicks up from the dry road, and the smell of hay lingers in the air. A small guard shack stands to the side, though it currently looks empty.", "ConnectedRooms": {"north": {"X": 0, "Y": 0, "Z": 0}, "south": {"X": 0, "Y": -2, "Z": 0}, "east": {"X": 1, "Y": -1, "Z": 0}, "west": {"X": -1, "Y": -1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000004"}, "0 -2 0": {"Location": {"X": 0, "Y": -2, "Z": 0}, "Name": "Dusty Road", "Description": "This long stretch of road leads south toward the distant hills and neighboring farmlands. The ground is parched and cracked, showing the signs of a dry season. Carts have left deep ruts in the earth, making for a bumpy journey for any traveler.", "ConnectedRooms": {"north": {"X": 0, "Y": -1, "Z": 0}, "south": {"X": 0, "Y": -3, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000005"}, "0 -3 0": {"Location": {"X": 0, "Y": -3, "Z": 0}, "Name": "Farmland", "Description": "Neat rows of crops stretch out toward the horizon, swaying gently in the breeze. A small farmhouse and a weathered barn can be seen in the distance, surrounded by low fences. The soil is dark and rich, a testament to the hard work of the local farmers who tend these fields.", "ConnectedRooms": {"north": {"X": 0, "Y": -2, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000016"}, "1 0 0": {"Location": {"X": 1, "Y": 0, "Z": 0}, "Name": "East Street", "Description": "East Street is lined with small cottages and colorful flower boxes beneath their windows. The smell of freshly baked bread wafts from a nearby window, mixing with the scent of woodsmoke. This part of town feels quiet and residential compared to the square.", "ConnectedRooms": {"west": {"X": 0, "Y": 0, "Z": 0}, "east": {"X": 2, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000006"}, "2 0 0": {"Location": {"X": 2, "Y": 0, "Z": 0}, "Name": "The Tipsy Tankard Inn", "Description": "Warm golden light spills from the windows of the village inn, and the sound of laughter can be heard from within. A heavy oak door leads inside, where travelers find rest and a hot meal. A wooden sign above the door depicts a foaming mug of ale.", "ConnectedRooms": {"west": {"X": 1, "Y": 0, "Z": 0}, "down": {"X": 2, "Y": 0, "Z": -1}, "north": {"X": 2, "Y": 1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000007"}, "2 0 -1": {"Location": {"X": 2, "Y": 0, "Z": -1}, "Name": "Inn Cellar", "Description": "The air here is cool and damp, smelling of earth and fermented yeast. Rows of large wooden barrels are stacked against the stone walls, filled with the inn's finest ale. Cobwebs hang from the low wooden rafters, and a faint skittering sound can be heard from the dark corners.", "ConnectedRooms": {"up": {"X": 2, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000017"}, "2 1 0": {"Location": {"X": 2, "Y": 1, "Z": 0}, "Name": "Bakery", "Description": "The delightful aroma of freshly baked bread and sweet pastries is overwhelming in this cozy shop. Flour dusts every surface, and a large stone oven in the back glows with the heat of a fresh batch. Baskets of crusty loaves and trays of colorful tarts are displayed temptingly on the wooden counters.", "ConnectedRooms": {"south": {"X": 2, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000018"}, "-1 0 0": {"Location": {"X": -1, "Y": 0, "Z": 0}, "Name": "West Street", "Description": "The western road is flanked by several workshops and small storefronts. The rhythmic sound of hammering echoes from one of the buildings, signifying a busy day for the local craftsmen. A few chickens roam the edges of the street, pecking at the ground for food.", "ConnectedRooms": {"east": {"X": 0, "Y": 0, "Z": 0}, "west": {"X": -2, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000008"}, "-2 0 0": {"Location": {"X": -2, "Y": 0, "Z": 0}, "Name": "The Iron Anvil Smithy", "Description": "Heat radiates from the open doors of the blacksmith's forge, and the air is thick with the smell of coal smoke. Tools and horseshoes hang from hooks along the walls, gleaming in the firelight. A large stone anvil sits in the center of the workshop, waiting for the smith's next strike.", "ConnectedRooms": {"east": {"X": -1, "Y": 0, "Z": 0}, "south": {"X": -2, "Y": -1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000009"}, "-2 -1 0": {"Location": {"X": -2, "Y": -1, "Z": 0}, "Name": "Fletcher's Shop", "Description": "Bunches of seasoned wood and bundles of feathers are scattered across the workbenches in this narrow workshop. The sound of carving knives and the smell of cedar shavings fill the room. Finished bows and quivers of arrows hang from the walls, crafted with precision and care.", "ConnectedRooms": {"north": {"X": -2, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000019"}, "1 1 0": {"Location": {"X": 1, "Y": 1, "Z": 0}, "Name": "The Gilded Coin General Store", "Description": "Shelves packed with various goods line the walls of this cramped but organized shop. The smell of dried herbs and salted meat fills the air. A polished wooden counter sits near the entrance, where the shopkeeper handles transactions with locals and travelers alike.", "ConnectedRooms": {"west": {"X": 0, "Y": 1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000012"}, "-1 1 0": {"Location": {"X": -1, "Y": 1, "Z": 0}, "Name": "Village Library", "Description": "Tall bookshelves reach toward the ceiling, overflowing with dusty tomes and ancient scrolls. The room is quiet, illuminated by flickering candles that cast dancing shadows on the worn rugs. A large oak table in the center is covered with open maps and half-finished manuscripts.", "ConnectedRooms": {"east": {"X": 0, "Y": 1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000013"}, "1 -1 0": {"Location": {"X": 1, "Y": -1, "Z": 0}, "Name": "Temple of Light", "Description": "Sunlight streams through colorful stained-glass windows, painting vibrant patterns on the polished marble floor. A serene atmosphere pervades the hall, accompanied by the faint scent of incense. An altar of white stone stands at the far end, glowing with a soft, comforting radiance.", "ConnectedRooms": {"west": {"X": 0, "Y": -1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000014"}, "-1 -1 0": {"Location": {"X": -1, "Y": -1, "Z": 0}, "Name": "Guard House", "Description": "This austere room serves as the headquarters for the village's small watch. Racks of spears and shields are mounted on the stone walls, and a large map of the surrounding area is pinned to a wooden board. A few simple benches and a heavy desk suggest that the guards spend their shifts here in constant readiness.", "ConnectedRooms": {"east": {"X": 0, "Y": -1, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000015"}, "0 0 1": {"Location": {"X": 0, "Y": 0, "Z": 1}, "Name": "Village Watchtower", "Description": "High above the square, this wooden platform provides an excellent view of the surrounding countryside. From here, you can see the rooftops of the village and the winding roads that lead into the distance. A large bronze bell hangs from a beam, used to signal emergencies to the people below.", "ConnectedRooms": {"down": {"X": 0, "Y": 0, "Z": 0}}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000010"}, "2147483647 2147483647 2147483647": {"Location": {"X": 2147483647, "Y": 2147483647, "Z": 2147483647}, "Name": "Purgatory", "Description": "A vast, featureless void that seems to exist outside of time and space. There is no sound here, and no visible horizon in any direction. It is a place for those who have lost their way in the world, waiting for a path to reappear.", "ConnectedRooms": {}, "SpawnersHere": [], "ID": "00000000-0000-0000-0000-000000000000"}}
+﻿
+> bin\Debug\maps\swamp.json:1:{"-2 3
+0":{"Location":{"X":-2,"Y":3,"Z":0},"Name":"Swamp Entrance","Description":"The
+solid ground of the forest begins to give way to soft, waterlogged soil. Reeds
+and cattails grow thick along the edges of dark, stagnant pools that reflect
+the grey sky. A pungent smell of rot and decay hangs heavy in the humid air.","
+MapName":"swamp.json","ConnectedRooms":{"east":{"X":-1,"Y":3,"Z":0},"west":{"X"
+:-3,"Y":3,"Z":0},"south":{"X":-2,"Y":2,"Z":0}},"InvisibleConnections":{},"IsEnt
+ryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000001"},"-
+3 3 0":{"Location":{"X":-3,"Y":3,"Z":0},"Name":"Murky Path","Description":"A
+narrow trail of slightly firmer ground winds between deep patches of mud.
+Bubbles occasionally rise to the surface of the black water, bursting with a
+faint, sickening hiss. The twisted roots of willow trees reach out like
+skeletal fingers.","MapName":"swamp.json","ConnectedRooms":{"east":{"X":-2,"Y":
+3,"Z":0},"north":{"X":-3,"Y":4,"Z":0},"south":{"X":-3,"Y":2,"Z":0},"west":{"X":
+-4,"Y":3,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[
+],"ID":"00000000-0000-0000-0100-000000000002"},"-3 4
+0":{"Location":{"X":-3,"Y":4,"Z":0},"Name":"Sinking
+Ground","Description":"Every step here feels treacherous as your boots sink
+inches into the muck. The silence is broken only by the distant croak of a
+bullfrog and the constant hum of insects. Tangles of grey Spanish moss hang
+from the branches above, swaying slightly.","MapName":"swamp.json","ConnectedRo
+oms":{"south":{"X":-3,"Y":3,"Z":0},"north":{"X":-3,"Y":5,"Z":0}},"InvisibleConn
+ections":{},"IsEntryRoom":false,"SpawnersHere":[{"ID":"00000000-0000-0000-0101-
+000000000001","SpawnData":null,"MaxNumberOfSpawn":3,"Spawning":true,"Location":
+{"X":-3,"Y":4,"Z":0}}],"ID":"00000000-0000-0000-0100-000000000003"},"-3 5
+0":{"Location":{"X":-3,"Y":5,"Z":0},"Name":"The Whispering
+Reeds","Description":"The wind whistling through the tall reeds creates an
+eerie sound like hushed voices. The water here is clearer but deep, hiding
+what might lie beneath the surface. Small ripples suggest movement just out of
+sight.","MapName":"swamp.json","ConnectedRooms":{"south":{"X":-3,"Y":4,"Z":0},"
+west":{"X":-4,"Y":5,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"Spaw
+nersHere":[],"ID":"00000000-0000-0000-0100-000000000004"},"-4 5
+0":{"Location":{"X":-4,"Y":5,"Z":0},"Name":"Bug-Infested
+Hollow","Description":"A cloud of gnats and flies swarms around your head,
+drawn to any movement. The ground is a patchwork of mossy hillocks and
+deceptive puddles. Fallen logs, slick with green slime, provide a precarious
+way forward.","MapName":"swamp.json","ConnectedRooms":{"east":{"X":-3,"Y":5,"Z"
+:0},"west":{"X":-5,"Y":5,"Z":0},"south":{"X":-4,"Y":4,"Z":0}},"InvisibleConnect
+ions":{},"IsEntryRoom":false,"SpawnersHere":[{"ID":"00000000-0000-0000-0101-000
+000000002","SpawnData":null,"MaxNumberOfSpawn":2,"Spawning":true,"Location":{"X
+":-4,"Y":5,"Z":0}}],"ID":"00000000-0000-0000-0100-000000000005"},"-5 5
+0":{"Location":{"X":-5,"Y":5,"Z":0},"Name":"Foggy Marsh","Description":"A
+thick, white mist rolls across the marsh, limiting visibility to just a few
+feet. Ghostly shapes of dead trees loom out of the fog and then vanish as you
+pass. The air is cold and damp, clinging to your skin.","MapName":"swamp.json",
+"ConnectedRooms":{"east":{"X":-4,"Y":5,"Z":0},"south":{"X":-5,"Y":4,"Z":0}},"In
+visibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID":"00000000-000
+0-0000-0100-000000000006"},"-5 4
+0":{"Location":{"X":-5,"Y":4,"Z":0},"Name":"Algae-Covered
+Pool","Description":"A large, still pool is completely covered in a thick
+layer of bright green algae. It looks solid enough to walk on, but the
+occasional bubble reveals the treacherous depths below. The heat here is
+oppressive and stifling.","MapName":"swamp.json","ConnectedRooms":{"north":{"X"
+:-5,"Y":5,"Z":0},"south":{"X":-5,"Y":3,"Z":0}},"InvisibleConnections":{},"IsEnt
+ryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000007"},"-
+5 3 0":{"Location":{"X":-5,"Y":3,"Z":0},"Name":"Muddy Bend","Description":"The
+path turns sharply here, hemmed in by dense thickets of thorn-covered bushes.
+The mud is thick and black, pulling at your boots with every step. A lone
+crane stands in the shallows, watching you with unblinking eyes.","MapName":"sw
+amp.json","ConnectedRooms":{"north":{"X":-5,"Y":4,"Z":0},"west":{"X":-6,"Y":3,"
+Z":0},"south":{"X":-5,"Y":2,"Z":0},"east":{"X":-4,"Y":3,"Z":0}},"InvisibleConne
+ctions":{},"IsEntryRoom":false,"SpawnersHere":[{"ID":"00000000-0000-0000-0101-0
+00000000003","SpawnData":null,"MaxNumberOfSpawn":2,"Spawning":true,"Location":{
+"X":-5,"Y":3,"Z":0}}],"ID":"00000000-0000-0000-0100-000000000008"},"-6 3
+0":{"Location":{"X":-6,"Y":3,"Z":0},"Name":"Ancient Cypress","Description":"A
+massive cypress tree rises from the swamp, its wide trunk and knobby knees
+taking up most of the space. Its branches are draped in long curtains of moss
+that brush against your face. The ground around the tree is surprisingly dry.",
+"MapName":"swamp.json","ConnectedRooms":{"east":{"X":-5,"Y":3,"Z":0},"south":{"
+X":-6,"Y":2,"Z":0},"west":{"X":-7,"Y":3,"Z":0}},"InvisibleConnections":{},"IsEn
+tryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000009"},"
+-5 2 0":{"Location":{"X":-5,"Y":2,"Z":0},"Name":"Decaying
+Boardwalk","Description":"The remains of an old wooden boardwalk stretch out
+across a particularly deep section of the swamp. Many of the planks are
+missing or rotted through, making crossing a dangerous task. Dark water swirls
+beneath the gaps.","MapName":"swamp.json","ConnectedRooms":{"north":{"X":-5,"Y"
+:3,"Z":0},"south":{"X":-5,"Y":1,"Z":0}},"InvisibleConnections":{},"IsEntryRoom"
+:false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000010"},"-5 1
+0":{"Location":{"X":-5,"Y":1,"Z":0},"Name":"Swamp Clearing","Description":"A
+rare open space where the trees have fallen, allowing a bit of light to reach
+the murky water. Swarms of tiny dragonflies dart back and forth, their wings
+glinting in the pale light. The ground is a mix of sand and silt.","MapName":"s
+wamp.json","ConnectedRooms":{"north":{"X":-5,"Y":2,"Z":0},"east":{"X":-4,"Y":1,
+"Z":0},"west":{"X":-6,"Y":1,"Z":0},"south":{"X":-5,"Y":0,"Z":0}},"InvisibleConn
+ections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100
+-000000000011"},"-6 1 0":{"Location":{"X":-6,"Y":1,"Z":0},"Name":"The Croaking
+Cove","Description":"The noise of thousands of frogs is deafening in this
+small inlet. The water is choked with lily pads and blooming swamp flowers
+that give off a sweet, cloying scent. The mud here is stained a deep, bruised p
+urple.","MapName":"swamp.json","ConnectedRooms":{"east":{"X":-5,"Y":1,"Z":0},"n
+orth":{"X":-6,"Y":2,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"Spaw
+nersHere":[{"ID":"00000000-0000-0000-0101-000000000004","SpawnData":null,"MaxNu
+mberOfSpawn":4,"Spawning":true,"Location":{"X":-6,"Y":1,"Z":0}}],"ID":"00000000
+-0000-0000-0100-000000000012"},"-4 1
+0":{"Location":{"X":-4,"Y":1,"Z":0},"Name":"Silted Path","Description":"The
+path follows a slow-moving stream, its banks overflowing with grey silt. The
+water is dark and opaque, hiding whatever may be swimming within. A few dead
+fish have washed up on the shore, attracting hungry scavengers.","MapName":"swa
+mp.json","ConnectedRooms":{"west":{"X":-5,"Y":1,"Z":0},"east":{"X":-3,"Y":1,"Z"
+:0},"north":{"X":-4,"Y":2,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false
+,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000013"},"-3 1
+0":{"Location":{"X":-3,"Y":1,"Z":0},"Name":"Willow\u0027s
+Lament","Description":"Several large weeping willows dominate this area, their
+long branches dipping into the water. The air is cool and still, creating a
+sense of melancholy. Small, white flowers bloom in the shadows of the trees.","
+MapName":"swamp.json","ConnectedRooms":{"west":{"X":-4,"Y":1,"Z":0},"north":{"X
+":-3,"Y":2,"Z":0},"south":{"X":-3,"Y":0,"Z":0}},"InvisibleConnections":{},"IsEn
+tryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000014"},"
+-3 2 0":{"Location":{"X":-3,"Y":2,"Z":0},"Name":"Tangled
+Roots","Description":"The ground is a maze of thick, gnarled roots that
+crisscross the path. It is easy to lose your footing if you aren\u0027t
+careful. The smell of damp moss and old wood is strong here.","MapName":"swamp.
+json","ConnectedRooms":{"south":{"X":-3,"Y":1,"Z":0},"north":{"X":-3,"Y":3,"Z":
+0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[{"ID":"000000
+00-0000-0000-0101-000000000005","SpawnData":null,"MaxNumberOfSpawn":2,"Spawning
+":true,"Location":{"X":-3,"Y":2,"Z":0}}],"ID":"00000000-0000-0000-0100-00000000
+0015"},"-2 2 0":{"Location":{"X":-2,"Y":2,"Z":0},"Name":"Stagnant
+Creek","Description":"A slow-moving, narrow creek cuts through the swamp here.
+The water is dark and looks oily, with strange colorful swirls on the surface.
+Thick bushes line the banks, their branches interlocking over the water.","MapN
+ame":"swamp.json","ConnectedRooms":{"north":{"X":-2,"Y":3,"Z":0},"south":{"X":-
+2,"Y":1,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[]
+,"ID":"00000000-0000-0000-0100-000000000016"},"-2 1
+0":{"Location":{"X":-2,"Y":1,"Z":0},"Name":"Sunken Ruins","Description":"The
+remains of a stone structure emerge from the mud, covered in moss and
+creepers. It is hard to tell what it once was, but the carved stones suggest a
+forgotten history. A sense of ancient loss permeates the air.","MapName":"swamp
+.json","ConnectedRooms":{"north":{"X":-2,"Y":2,"Z":0}},"InvisibleConnections":{
+"east":{"X":-1,"Y":1,"Z":1}},"IsEntryRoom":true,"SpawnersHere":[],"ID":"0000000
+0-0000-0000-0100-000000000017"},"-4 3
+0":{"Location":{"X":-4,"Y":3,"Z":0},"Name":"Sunken Log","Description":"A
+massive, fallen log partially blocks the path, its wood soft and crumbly with
+decay. Fungi of various colors grow along its length, some glowing with a
+faint, sickly light. The water around the log is deep and dark.","MapName":"swa
+mp.json","ConnectedRooms":{"east":{"X":-3,"Y":3,"Z":0},"west":{"X":-5,"Y":3,"Z"
+:0},"north":{"X":-4,"Y":4,"Z":0},"south":{"X":-4,"Y":2,"Z":0}},"InvisibleConnec
+tions":{},"IsEntryRoom":false,"SpawnersHere":[],"ID":"00000000-0000-0000-0100-0
+00000000021"},"-3 0 0":{"Location":{"X":-3,"Y":0,"Z":0},"Name":"Overgrown
+Thicket","Description":"The vegetation here is so dense it\u0027s hard to tell
+where the path goes. Vines hang from the trees like heavy ropes, and the air
+is thick with the scent of damp earth. It is dark and claustrophobic.","MapName
+":"swamp.json","ConnectedRooms":{"north":{"X":-3,"Y":1,"Z":0},"south":{"X":-3,"
+Y":-1,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"
+ID":"00000000-0000-0000-0100-000000000022"},"-3 -1
+0":{"Location":{"X":-3,"Y":-1,"Z":0},"Name":"Deep Mud Hole","Description":"A
+large part of the path has been washed away, leaving a gaping hole filled with
+thick, black mud. It looks like it could swallow a man whole if he wasn\u0027t
+careful. Strange gurgling sounds rise from the depths.","MapName":"swamp.json",
+"ConnectedRooms":{"north":{"X":-3,"Y":0,"Z":0},"west":{"X":-4,"Y":-1,"Z":0}},"I
+nvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[{"ID":"00000000-000
+0-0000-0101-000000000007","SpawnData":null,"MaxNumberOfSpawn":3,"Spawning":true
+,"Location":{"X":-3,"Y":-1,"Z":0}}],"ID":"00000000-0000-0000-0100-000000000023"
+},"-4 -1 0":{"Location":{"X":-4,"Y":-1,"Z":0},"Name":"Mist-Covered
+Isle","Description":"A small island of relatively dry land rises from the
+swamp, shrouded in a thin veil of mist. A few stunted trees grow here, their
+branches twisted into strange shapes. It feels isolated and lonely.","MapName":
+"swamp.json","ConnectedRooms":{"east":{"X":-3,"Y":-1,"Z":0},"west":{"X":-5,"Y":
+-1,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID"
+:"00000000-0000-0000-0100-000000000024"},"-5 -1
+0":{"Location":{"X":-5,"Y":-1,"Z":0},"Name":"Quaking Bog","Description":"The
+ground here feels like walking on a giant sponge, bouncing and swaying with
+every step. Patches of bright green moss hide deep pools of water that can
+easily trap the unwary. The air is cold and carries a hint of sulfur.","MapName
+":"swamp.json","ConnectedRooms":{"east":{"X":-4,"Y":-1,"Z":0},"north":{"X":-5,"
+Y":0,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"I
+D":"00000000-0000-0000-0100-000000000025"},"-5 0
+0":{"Location":{"X":-5,"Y":0,"Z":0},"Name":"Silent Waters","Description":"A
+large expanse of perfectly still water that reflects the surrounding trees
+like a dark mirror. Not a single ripple disturbs the surface, and the silence
+is eerie. It feels as if the swamp itself is watching you.","MapName":"swamp.js
+on","ConnectedRooms":{"south":{"X":-5,"Y":-1,"Z":0},"north":{"X":-5,"Y":1,"Z":0
+}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID":"000000
+00-0000-0000-0100-000000000026"},"-6 2
+0":{"Location":{"X":-6,"Y":2,"Z":0},"Name":"The Weeping Wall","Description":"A
+low cliff of dark stone rises from the swamp, water constantly trickling down
+its face like tears. The moss here is thick and lush, thriving in the constant
+moisture. A small cave entrance is visible at the base of the cliff.","MapName"
+:"swamp.json","ConnectedRooms":{"north":{"X":-6,"Y":3,"Z":0},"south":{"X":-6,"Y
+":1,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID
+":"00000000-0000-0000-0100-000000000027"},"-7 3
+0":{"Location":{"X":-7,"Y":3,"Z":0},"Name":"Forgotten Path","Description":"A
+nearly invisible trail that seems to lead deeper into the heart of the swamp.
+The vegetation is thick and overgrown, making it hard to follow. The air is
+heavy and still, with no sound of life.","MapName":"swamp.json","ConnectedRooms
+":{"east":{"X":-6,"Y":3,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"
+SpawnersHere":[],"ID":"00000000-0000-0000-0100-000000000028"},"-4 4
+0":{"Location":{"X":-4,"Y":4,"Z":0},"Name":"Spider\u0027s
+Web","Description":"Huge spider webs are stretched between the trees, some of
+them large enough to catch a bird. The air is filled with the sound of
+skittering feet and the smell of old silk. It is a place of predator and prey."
+,"MapName":"swamp.json","ConnectedRooms":{"south":{"X":-4,"Y":3,"Z":0},"north":
+{"X":-4,"Y":5,"Z":0}},"InvisibleConnections":{},"IsEntryRoom":false,"SpawnersHe
+re":[{"ID":"00000000-0000-0000-0101-000000000008","SpawnData":null,"MaxNumberOf
+Spawn":3,"Spawning":true,"Location":{"X":-4,"Y":4,"Z":0}}],"ID":"00000000-0000-
+0000-0100-000000000029"},"-4 2
+0":{"Location":{"X":-4,"Y":2,"Z":0},"Name":"Damp Hollow","Description":"A
+small depression in the ground that has collected a significant amount of
+water. Reeds grow thick and tall around the edges, obscuring the view. The
+ground is soft and slippery, making it hard to stand.","MapName":"swamp.json","
+ConnectedRooms":{"north":{"X":-4,"Y":3,"Z":0},"south":{"X":-4,"Y":1,"Z":0}},"In
+visibleConnections":{},"IsEntryRoom":false,"SpawnersHere":[],"ID":"00000000-000
+0-0000-0100-000000000030"}}

@@ -27,6 +27,8 @@ namespace GameCore {
 			}
 		}
 
+		public bool GodMode { get; set; }
+
 		public bool Admin = true;
 		public PlayerState State;
 

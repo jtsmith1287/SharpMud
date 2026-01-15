@@ -19,12 +19,12 @@ namespace ServerCore {
 				Console.WriteLine(e.GetType().ToString());
 				Console.WriteLine(e.StackTrace);
 			} finally {
+				Data.SaveAllMaps();
 				Data.SaveData(
 					DataPaths.IdData,
-					DataPaths.Spawn,
+					DataPaths.Creatures,
 					DataPaths.UserId,
-					DataPaths.UserPwd,
-					DataPaths.World);
+					DataPaths.UserPwd);
 				Console.ReadLine();
 			}
 		}

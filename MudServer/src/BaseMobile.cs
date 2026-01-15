@@ -154,7 +154,7 @@ namespace GameCore {
 
 			int dodgeVal = Rnd.Next(1, 101);
 			if (dodgeVal >= 108 - Math.Sqrt((double)target.Stats.Dex * 7)) {
-				BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, Target.ID);
+				BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, target.ID);
 				target.SendToClient($"You dodged {Name}'s attack!", Color.RedD);
 				SendToClient($"{target.Name} dodged your attack!", Color.RedD);
 			} else if (false) {

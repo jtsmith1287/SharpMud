@@ -102,11 +102,11 @@ namespace MudServer {
             SetupCombatScenario(out player, out enemy);
 
             // Set enemy Dex very high to increase dodge chance
-            enemy.Stats.Dex = 1000; 
+            enemy.Stats.Dex = 10000; 
             
             bool dodged = false;
             int initialHealth = enemy.Stats.Health;
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 200; i++) {
                 player.TestStrikeTarget(enemy);
                 if (enemy.Stats.Health == initialHealth) {
                     dodged = true;

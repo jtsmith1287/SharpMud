@@ -40,7 +40,19 @@ class Server {
 
         Console.WriteLine("Server booted on " + _ipAddress + ". Listening for connections on port " + PortNumber);
 
-        Thread thread = new Thread(() => Application.Run(new MobMaker()));
+     			Thread thread = new Thread(() => Application.Run(new ContentCreator()));
+				ContentCreator.OnMapSaved += (s, e) => {
+					// Reload maps
+					Data.LoadData(DataPaths.World);
+					// Check players
+					foreach (var player in PlayerEntity.Players.Values) {
+						string coordKey = string.Format("{0} {1} {2}", player.Stats.Location.X, player.Stats.Location.Y, player.Stats.Location.Z);
+						if (!World.Rooms.ContainsKey(coordKey)) {
+							player.Stats.Location = new Coordinate3(0, 0, 0);
+							player.SendToClient("The room you were in has been deleted. Moving you to the starting room.", Color.Yellow);
+						}
+					}
+				};
         thread.Start();
         Console.WriteLine("Opening Mob Maker on new thread.");
 
@@ -69,19 +81,17 @@ class Server {
         Console.WriteLine("Saving data...");
         Data.SaveData(
             DataPaths.IdData,
-            DataPaths.Spawn,
+            DataPaths.Creatures,
             DataPaths.UserId,
-            DataPaths.UserPwd,
-            DataPaths.World
+            DataPaths.UserPwd
         );
         Console.Write("Press ENTER to close the console.");
         Console.ReadLine();
     }
 
     void BuildWorld() {
-        // Rooms are now loaded from world.json.
-        // If world.json is empty or missing, you might want to re-enable these
-        // or ensure world.json always has at least the Starting Room and Purgatory.
+        // Rooms are now loaded from maps.json (and fallback to world.json if maps.json is missing).
+        // Building the world from code is disabled to prefer data-driven world loading.
         /*
         new Room(Coordinate3.Zero, "Starting Room");
         new Room(Coordinate3.Purgatory, "Purgatory");

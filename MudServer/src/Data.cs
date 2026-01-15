@@ -148,6 +148,61 @@ namespace GameCore {
 		#endregion
 		#region Data Saving/Loading
 
+		public static void SaveRoom(Room room) {
+
+			if (room == null || string.IsNullOrEmpty(room.MapName)) {
+				return;
+			}
+
+			SaveMap(room.MapName);
+		}
+
+		public static void SaveMap(string mapName) {
+
+			if (string.IsNullOrEmpty(mapName)) return;
+
+			lock (SaveLock) {
+				JavaScriptSerializer serializer = new JavaScriptSerializer();
+				string mapDir = Path.GetDirectoryName(DataPaths.MapList);
+				if (!string.IsNullOrEmpty(mapDir) && !Directory.Exists(mapDir)) {
+					Directory.CreateDirectory(mapDir);
+				}
+				string mapFile = Path.Combine(mapDir, mapName);
+
+				Dictionary<string, Room> mapRooms = new Dictionary<string, Room>();
+				foreach (var kvp in World.Rooms) {
+					if (kvp.Value.MapName == mapName) {
+						mapRooms.Add(kvp.Key, kvp.Value);
+					}
+				}
+
+				if (mapRooms.Count == 0 && File.Exists(mapFile)) {
+					// Map might have been emptied, but usually we don't want to delete the file here
+					// unless we explicitly want to allow deleting maps.
+					return;
+				}
+
+				string updatedJson = serializer.Serialize(mapRooms);
+				File.WriteAllText(mapFile, updatedJson);
+				Console.WriteLine($"Saved map {mapName} ({mapRooms.Count} rooms)");
+			}
+		}
+
+		public static void SaveAllMaps() {
+			HashSet<string> mapNames = new HashSet<string>();
+			lock (World.Rooms) {
+				foreach (var room in World.Rooms.Values) {
+					if (!string.IsNullOrEmpty(room.MapName)) {
+						mapNames.Add(room.MapName);
+					}
+				}
+			}
+
+			foreach (var mapName in mapNames) {
+				SaveMap(mapName);
+			}
+		}
+
 		public static void SaveData(params string[] paths) {
 
 			lock (SaveLock) {
@@ -175,11 +230,19 @@ namespace GameCore {
 							json = serializer.Serialize(UsernamePwdPairs);
 							break;
 						case DataPaths.World:
-							json = serializer.Serialize(World.Rooms);
+							// We no longer save to world.json.
+							// Rooms are now saved into individual map files via the Content Creator tool.
 							break;
-						case DataPaths.Spawn:
+						case DataPaths.Creatures:
 							json = serializer.Serialize(Data.NameSpawnPairs);
 							break;
+					}
+
+					if (string.IsNullOrEmpty(json)) {
+						if (path == DataPaths.World) {
+							Console.WriteLine($"Skipping empty/no-op save for {path}");
+							continue;
+						}
 					}
 
 					StreamWriter writer;
@@ -195,10 +258,12 @@ namespace GameCore {
 
 			Data.LoadData(
 				DataPaths.IdData,
-				DataPaths.Spawn,
+				DataPaths.Creatures,
 				DataPaths.UserId,
-				DataPaths.UserPwd,
-				DataPaths.World);
+				DataPaths.UserPwd);
+			
+			// Load the world last as it depends on MapList/Individual maps or world.json fallback
+			Data.LoadData(DataPaths.World);
 		}
 
 		public static void LoadData(params string[] paths) {
@@ -208,17 +273,17 @@ namespace GameCore {
 
 			foreach (string path in paths) {
 				try {
-					if (!File.Exists(path)) {
+					string json = "";
+					if (File.Exists(path)) {
+						StreamReader reader;
+						using (reader = new StreamReader(path)) {
+							json = reader.ReadToEnd();
+						}
+
+						bytes += json.Length;
+					} else if (path != DataPaths.World) {
 						continue;
 					}
-
-					string json;
-					StreamReader reader;
-					using (reader = new StreamReader(path)) {
-						json = reader.ReadToEnd();
-					}
-
-					bytes += json.Length;
 
 					switch (path) {
 						case DataPaths.IdData:
@@ -241,6 +306,9 @@ namespace GameCore {
 							UsernamePwdPairs = serializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
 							break;
 						case DataPaths.World:
+							// Clear existing rooms for reload
+							World.Rooms.Clear();
+							World.Spawners.Clear();
 							// Handle multiple map files
 							if (File.Exists(DataPaths.MapList)) {
 								string mapListJson = File.ReadAllText(DataPaths.MapList);
@@ -254,7 +322,7 @@ namespace GameCore {
 										Dictionary<string, Room> rooms = serializer.Deserialize<Dictionary<string, Room>>(mapJson);
 										if (rooms == null) continue;
 										foreach (KeyValuePair<string, Room> room in rooms) {
-											if (World.Rooms.ContainsKey(room.Key)) continue;
+											room.Value.MapName = mapFileName;
 											// Attempt to reconstruct Location from key if it's missing or zeroed
 											if (room.Value.Location == null || (room.Value.Location.X == 0 && room.Value.Location.Y == 0 && room.Value.Location.Z == 0)) {
 												string[] coords = room.Key.Split(' ');
@@ -266,6 +334,18 @@ namespace GameCore {
 													}
 												}
 											}
+
+											// Assign room location to spawners AFTER room location is reconstructed
+											if (room.Value.SpawnersHere != null) {
+												foreach (var spawner in room.Value.SpawnersHere) {
+													spawner.Location = room.Value.Location;
+													if (!World.Spawners.Contains(spawner)) {
+														World.Spawners.Add(spawner);
+													}
+												}
+												World.StartAiThread();
+											}
+
 											World.Rooms.Add(room.Key, room.Value);
 										}
 									}
@@ -273,16 +353,28 @@ namespace GameCore {
 							} else {
 								World.Rooms = serializer.Deserialize<Dictionary<string, Room>>(json) ?? new Dictionary<string, Room>();
 								foreach (KeyValuePair<string, Room> room in World.Rooms) {
-									if (room.Value.Location != null && (room.Value.Location.X != 0 ||
-									                                    room.Value.Location.Y != 0 ||
-									                                    room.Value.Location.Z != 0)) continue;
-									string[] coords = room.Key.Split(' ');
-									if (coords.Length != 3) continue;
-									
-									if (int.TryParse(coords[0], out int x) && 
-									    int.TryParse(coords[1], out int y) && 
-									    int.TryParse(coords[2], out int z)) {
-										room.Value.Location = new Coordinate3(x, y, z);
+									if (room.Value.Location == null || (room.Value.Location.X == 0 &&
+									                                    room.Value.Location.Y == 0 &&
+									                                    room.Value.Location.Z == 0)) {
+										string[] coords = room.Key.Split(' ');
+										if (coords.Length == 3) {
+											if (int.TryParse(coords[0], out int x) && 
+											    int.TryParse(coords[1], out int y) && 
+											    int.TryParse(coords[2], out int z)) {
+												room.Value.Location = new Coordinate3(x, y, z);
+											}
+										}
+									}
+
+									// Assign room location to spawners
+									if (room.Value.SpawnersHere != null) {
+										foreach (var spawner in room.Value.SpawnersHere) {
+											spawner.Location = room.Value.Location;
+											if (!World.Spawners.Contains(spawner)) {
+												World.Spawners.Add(spawner);
+											}
+										}
+										World.StartAiThread();
 									}
 								}
 							}
@@ -292,7 +384,7 @@ namespace GameCore {
 							}
 							Console.WriteLine($"Loaded {World.Rooms.Count} rooms.");
 							break;
-						case DataPaths.Spawn:
+						case DataPaths.Creatures:
 							NameSpawnPairs = serializer.Deserialize<Dictionary<string, SpawnData>>(json) ?? new Dictionary<string, SpawnData>();
 							foreach (KeyValuePair<string, SpawnData> entry in NameSpawnPairs.Where(entry => entry.Value.Id == Guid.Empty)) {
 								entry.Value.Id = Guid.NewGuid(); // Template IDs shouldn't really matter but good to have
@@ -314,8 +406,8 @@ namespace GameCore {
 			lock (SaveLock) {
 				JavaScriptSerializer serializer = new JavaScriptSerializer();
 				string json = serializer.Serialize(NameSpawnPairs);
-				File.WriteAllText(DataPaths.Spawn, json);
-				Console.WriteLine($"Saving {DataPaths.Spawn}: {json.Length / 1000f}kb");
+				File.WriteAllText(DataPaths.Creatures, json);
+				Console.WriteLine($"Saving {DataPaths.Creatures}: {json.Length / 1000f}kb");
 			}
 		}
 		#endregion

@@ -22,36 +22,43 @@ namespace GameCore {
 		}
 
 		public void ExecuteLogic(int currentTick) {
-
 			if (InCombat) {
-				if (LastCombatTick < currentTick) {
-					int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick : LastCombatTick);
-					if (LastCombatTick == -1) ticksPassed = 1;
-
-					float speedModifier = 1.0f + (Stats.GetTickModifier() / 3000f);
-					CombatEnergy += ticksPassed * speedModifier;
-
-					while (CombatEnergy >= 1.0f) {
-						if (Target == null || Target.IsDead || Target.Stats == null || Target.Stats.Health <= 0) {
-							BreakCombat();
-							break;
-						}
-						Attack(Target);
-						if (!InCombat) {
-							CombatEnergy = 0;
-							break;
-						}
-						CombatEnergy -= 1.0f;
-					}
-					LastCombatTick = currentTick;
-				}
+				ExecuteCombatLogic(currentTick);
 			} else {
-				CombatEnergy = 0;
-				NonCombatAction();
+				ExecuteNonCombatLogic(currentTick);
 			}
 		}
 
-		public void Attack(BaseMobile target) {
+		private void ExecuteCombatLogic(int currentTick) {
+			if (LastCombatTick >= currentTick) return;
+				
+			int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick : LastCombatTick);
+			if (LastCombatTick == -1) ticksPassed = 1;
+
+			float speedModifier = 1.0f + (Stats.GetTickModifier() / 3000f);
+			CombatEnergy += ticksPassed * speedModifier;
+
+			while (CombatEnergy >= 1.0f) {
+				if (Target == null || Target.IsDead || Target.Stats == null || Target.Stats.Health <= 0) {
+					BreakCombat();
+					break;
+				}
+				Attack(Target);
+				if (!InCombat) {
+					CombatEnergy = 0;
+					break;
+				}
+				CombatEnergy -= 1.0f;
+			}
+			LastCombatTick = currentTick;
+		}
+
+		private void ExecuteNonCombatLogic(int currentTick) {
+			CombatEnergy = 0;
+			NonCombatAction();
+		}
+
+		private void Attack(BaseMobile target) {
 
 			if (target.IsDead) {
 				BreakCombat();
@@ -87,7 +94,7 @@ namespace GameCore {
 			return false;
 		}
 
-		public void BreakCombat() {
+		private void BreakCombat() {
 
 			Target = null;
 			InCombat = false;
@@ -109,36 +116,33 @@ namespace GameCore {
 
 		}
 
-		public void SeekTarget() {
+		private void SeekTarget() {
 			Room room = World.GetRoom(Stats.Location);
 			if (room == null) return;
 
-			PlayerEntity player;
-			Mobile mob;
 			SpawnData thisData = (SpawnData)Stats;
-			foreach (Guid id in room.EntitiesHere) {
-				if (id == Stats.Id) { continue; }
-				if (PlayerEntity.Players.TryGetValue(id, out player)) {
-					if (player.Hidden || player.IsDead) { continue; }
+			foreach (Guid id in room.EntitiesHere.Where(id => id != Stats.Id)) {
+				if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity player)) {
+					if (player.Hidden || player.IsDead || player.GodMode) { continue; }
 					Target = player;
 					player.SendToClient(Name + " sees you!", Color.Red);
 					player.InCombat = true;
 					break;
-				} else if (World.Mobiles.TryGetValue(id, out mob)) {
-					if (!mob.IsDead && !mob.Hidden) {
-						SpawnData data = (SpawnData)mob.Stats;
-						if (data.Faction == thisData.Faction) { continue; }
-						Target = mob;
-						break;
-					}
+				} else {
+					if (!World.Mobiles.TryGetValue(id, out Mobile mob)) continue;
+					if (mob.IsDead || mob.Hidden) continue;
+					SpawnData data = (SpawnData)mob.Stats;
+					if (data.Faction == thisData.Faction) { continue; }
+					Target = mob;
+					break;
 				}
 			}
 
-			if (Target != null) {
-				InCombat = true;
-				LastCombatTick = World.CombatTick;
-				CombatEnergy = 0;
-			}
+			if (Target == null) return;
+			
+			InCombat = true;
+			LastCombatTick = World.CombatTick;
+			CombatEnergy = 0;
 		}
 
 		private void Wander() {

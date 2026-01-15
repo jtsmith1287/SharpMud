@@ -7,7 +7,7 @@ namespace GameCore.Util {
 	public class SpawnData : Data {
 
 		public Disposition Behaviour { get; set; }
-		public Group Faction { get; set; }
+		public Taxonomy Faction { get; set; }
 		public bool Humanoid { get; set; }
 
 		public SpawnData() {

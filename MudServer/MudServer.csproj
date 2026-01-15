@@ -80,6 +80,7 @@
     <Compile Include="src\Coordinate3.cs" />
     <Compile Include="src\Data.cs" />
     <Compile Include="src\Enums.cs" />
+    <Compile Include="src\Taxonomy.cs" />
     <Compile Include="src\Main.cs" />
     <Compile Include="src\Mobile.cs" />
     <Compile Include="src\PlayerEntity.cs" />
@@ -90,9 +91,9 @@
     <Compile Include="src\Spawner.cs" />
     <Compile Include="src\SpawnerTests.cs" />
     <Compile Include="src\util\Color.cs" />
-    <Compile Include="src\util\MobMaker.cs" />
-    <Compile Include="src\util\MobMaker.Designer.cs">
-      <DependentUpon>MobMaker.cs</DependentUpon>
+    <Compile Include="src\util\ContentCreator.cs" />
+    <Compile Include="src\util\ContentCreator.Designer.cs">
+      <DependentUpon>ContentCreator.cs</DependentUpon>
     </Compile>
     <Compile Include="src\World.cs" />
   </ItemGroup>
@@ -124,12 +125,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
-    <Content Include="src\util\gen_world.py" />
     <Content Include="src\util\validate_world.py" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="src\util\MobMaker.resx">
-      <DependentUpon>MobMaker.cs</DependentUpon>
+    <EmbeddedResource Include="src\util\ContentCreator.resx">
+      <DependentUpon>ContentCreator.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
