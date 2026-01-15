@@ -42,7 +42,7 @@ namespace GameCore {
 				_mHealth = 0;
 				if (ThisBaseMobile != null) {
 					ThisBaseMobile.Target = null;
-					ThisBaseMobile.InCombat = false;
+					ThisBaseMobile.GameState = GameState.Dead;
 				}
 				OnZeroHealthEvent(this);
 				try {

@@ -12,7 +12,7 @@ namespace GameCore {
 		public static Dictionary<string, Guid> NameToPlayerPairs = new Dictionary<string, Guid>();
 		public static readonly List<Spawner> Spawners = new List<Spawner>();
 		public static readonly List<Thread> SpawnThreads = new List<Thread>();
-		public static int CombatTick { get; private set; }
+		public static int CombatTick { get; private set; } = int.MinValue;
 		
 		private static Thread _aiThread;
 		private static long _lastCombatTickTime;
@@ -79,7 +79,7 @@ namespace GameCore {
 					}
 
 					lock (Spawners) {
-						foreach (var spawner in Spawners.ToArray()) {
+						foreach (Spawner spawner in Spawners.ToArray()) {
 							spawner.Update();
 						}
 					}

@@ -10,8 +10,7 @@ namespace GameCore {
 		public Guid ID;
 		public string Name;
 		public Data Stats;
-		public bool InCombat = false;
-		public bool IsDead = false;
+		public GameState GameState = GameState.Idle;
 		public bool Hidden = false;
 		protected Random Rnd = new Random();
 		public BaseMobile Target;
@@ -57,8 +56,8 @@ namespace GameCore {
 			Room newRoom = World.GetRoom(location);
 
 			var thisPlayer = PlayerEntity.GetPlayerByID(Stats.Id);
-			if (thisPlayer != null && thisPlayer.State == PlayerState.Resting) {
-				thisPlayer.State = PlayerState.Active;
+			if (thisPlayer != null && thisPlayer.GameState == GameState.Resting) {
+				thisPlayer.AccountState = AccountState.Active;
 				thisPlayer.SendToClient("You stop resting as you move.", Color.Cyan);
 			}
 
@@ -159,7 +158,7 @@ namespace GameCore {
 				SendToClient($"{target.Name} dodged your attack!", Color.RedD);
 			} else if (false) {
 				// other possibilities for no damage TBD
-			} else if (target.Stats.Health > 0 && !target.IsDead) {
+			} else if (target.Stats.Health > 0 && target.GameState != GameState.Dead) {
 				int dmg = Rnd.Next((int)(Stats.Str / 4f), (int)(Stats.Str / 3f));
 				if (Hidden) {
 					Hidden = false;
@@ -167,9 +166,9 @@ namespace GameCore {
 					dmg *= 2;
 				}
 				target.OnDeath += OnDeathEventReceiver;
-				if (!target.InCombat || target.Target == null || target.Target.IsDead || (target.Target.Stats != null && target.Target.Stats.Health <= 0)) {
+				if (target.GameState != GameState.Combat || target.Target == null || target.Target.GameState == GameState.Dead || (target.Target.Stats != null && target.Target.Stats.Health <= 0)) {
 					target.Target = this;
-					target.InCombat = true;
+					target.GameState = GameState.Combat;
 					target.LastCombatTick = World.CombatTick;
 					target.CombatEnergy = 0;
 					target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
@@ -184,7 +183,7 @@ namespace GameCore {
 				target.Stats.Health -= dmg;
 			} else {
 				Target = null;
-				InCombat = false;
+				GameState = GameState.Idle;
 				SendToClient("* Combat disengaged *", Color.White);
 			}
 		}
@@ -192,11 +191,11 @@ namespace GameCore {
 		void OnDeathEventReceiver(BaseMobile killed) {
 
 			// If this mobile is dead, it can't get experience now can it?
-			if (IsDead) { return; }
+			if (GameState == GameState.Dead) { return; }
 			int distance = (Stats.Location - killed.Stats.Location).Max();
 			// If targetting something far away and it dies, ignore it.
 			if (distance > 3 && Target.Stats.Id == killed.Stats.Id) {
-				InCombat = false;
+				GameState = GameState.Idle;
 				Target = null;
 				return;
 			}
@@ -205,7 +204,7 @@ namespace GameCore {
 				SendToClient(
 					"You killed " + killed.Name + "! You've gained 5 bonus experience.", Color.Cyan);
 				Stats.Exp += 5;
-				InCombat = false;
+				GameState = GameState.Idle;
 				Target = null;
 			}
 			int exp = killed.Stats.GrantExperience();

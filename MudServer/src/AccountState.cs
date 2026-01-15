@@ -1,12 +1,11 @@
 using System;
 
 namespace GameCore.Util {
-	public enum PlayerState {
+	public enum AccountState {
 		Inactive,
 		Active,
 		LoggingIn,
 		LoggingOut,
-		Resting,
 	}
-}
+	}
 

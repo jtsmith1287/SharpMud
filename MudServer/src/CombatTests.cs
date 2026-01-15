@@ -153,10 +153,11 @@ namespace MudServer {
 
             for(int i=0; i<10; i++) {
                 player.TestStrikeTarget(enemy);
-                if (enemy.Stats.Health <= 0) break;
+                if (enemy.GameState == GameState.Dead) break;
             }
             
             Assert(enemy.Stats.Health <= 0, "Enemy health should be 0 or less");
+            Assert(enemy.GameState == GameState.Dead, "Enemy should be marked as dead");
         }
 
         // Wrapper to access protected StrikeTarget

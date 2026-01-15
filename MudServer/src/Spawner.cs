@@ -57,17 +57,18 @@ namespace GameCore.Util {
 			}
 			int currentTick = World.CombatTick;
 			foreach (Mobile mob in Spawns.ToArray()) {
-				if (!mob.IsDead)
+				if (mob.GameState != GameState.Dead)
 					mob.ExecuteLogic(currentTick);
 			}
 
-			if (DeadSpawn.Count > 0) {
-				lock (DeadSpawn) {
-					for (int i = 0; i < DeadSpawn.Count; i++) {
-						DestroyMob(DeadSpawn[i]);
-					}
-					DeadSpawn.Clear();
+			if (DeadSpawn.Count <= 0) return;
+			
+			lock (DeadSpawn) {
+				foreach (Mobile t in DeadSpawn) {
+					DestroyMob(t);
 				}
+
+				DeadSpawn.Clear();
 			}
 		}
 
@@ -93,9 +94,8 @@ namespace GameCore.Util {
 
 			foreach (Mobile spawn in Spawns) {
 				if (spawn.ID == data.Id) {
-					spawn.IsDead = true;
+					spawn.GameState = GameState.Dead;
 					spawn.Target = null;
-					spawn.InCombat = false;
 					DeadSpawn.Add(spawn);
 					break;
 				}

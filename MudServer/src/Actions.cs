@@ -33,7 +33,7 @@ public static class Actions {
     }
 
     public static void Rest(PlayerEntity player, string[] args) {
-        if (player.InCombat) {
+        if (player.GameState == GameState.Combat) {
             player.SendToClient("You cannot rest while in combat!", Color.Red);
             return;
         }
@@ -43,7 +43,7 @@ public static class Actions {
             return;
         }
 
-        player.State = PlayerState.Resting;
+        player.GameState = GameState.Resting;
         player.SendToClient("You sit down and begin to rest...", Color.Cyan);
         player.BroadcastLocal(player.Name + " sits down and begins to rest.", Color.Yellow);
     }
@@ -67,19 +67,19 @@ public static class Actions {
             if (World.Mobiles.TryGetValue(id, out targetMob)) {
                 if (ArgumentHandler.AutoComplete(name, targetMob.Name) || ArgumentHandler.AutoComplete(name, targetMob.Stats.Name)) {
                     player.Target = targetMob;
-                    player.InCombat = true;
+                    player.GameState = GameState.Combat;
                     break;
                 }
             } else if (PlayerEntity.Players.TryGetValue(id, out targetPlayer)) {
                 if (ArgumentHandler.AutoComplete(name, targetPlayer.Name)) {
                     player.Target = targetPlayer;
-                    player.InCombat = true;
+                    player.GameState = GameState.Combat;
                     break;
                 }
             }
         }
 
-        if (player.InCombat) {
+        if (player.GameState == GameState.Combat) {
             player.LastCombatTick = World.CombatTick;
             player.CombatEnergy = 0;
             player.SendToClient(
@@ -199,7 +199,7 @@ public static class Actions {
     }
 
     public static void Sneak(PlayerEntity player, string[] args) {
-        if (player.InCombat) {
+        if (player.GameState == GameState.Combat) {
             player.SendToClient("\n\tYou can't sneak! You're being stared at!\n");
             return;
         }

@@ -75,6 +75,7 @@
     <Compile Include="src\AnsiMap.cs" />
     <Compile Include="src\ArgumentHandler.cs" />
     <Compile Include="src\BaseMobile.cs" />
+    <Compile Include="src\GameState.cs" />
     <Compile Include="src\CombatTests.cs" />
     <Compile Include="src\Connection.cs" />
     <Compile Include="src\Coordinate3.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="src\Main.cs" />
     <Compile Include="src\Mobile.cs" />
     <Compile Include="src\PlayerEntity.cs" />
-    <Compile Include="src\PlayerState.cs" />
+    <Compile Include="src\AccountState.cs" />
     <Compile Include="src\Room.cs" />
     <Compile Include="src\Server.cs" />
     <Compile Include="src\SpawnData.cs" />

@@ -22,7 +22,7 @@ namespace GameCore {
 		}
 
 		public void ExecuteLogic(int currentTick) {
-			if (InCombat) {
+			if (GameState == GameState.Combat) {
 				ExecuteCombatLogic(currentTick);
 			} else {
 				ExecuteNonCombatLogic(currentTick);
@@ -39,12 +39,12 @@ namespace GameCore {
 			CombatEnergy += ticksPassed * speedModifier;
 
 			while (CombatEnergy >= 1.0f) {
-				if (Target == null || Target.IsDead || Target.Stats == null || Target.Stats.Health <= 0) {
+				if (Target == null || Target.GameState == GameState.Dead || Target.Stats == null || Target.Stats.Health <= 0) {
 					BreakCombat();
 					break;
 				}
 				Attack(Target);
-				if (!InCombat) {
+				if (GameState != GameState.Combat) {
 					CombatEnergy = 0;
 					break;
 				}
@@ -60,7 +60,7 @@ namespace GameCore {
 
 		private void Attack(BaseMobile target) {
 
-			if (target.IsDead) {
+			if (target.GameState == GameState.Dead) {
 				BreakCombat();
 				return;
 			}
@@ -95,9 +95,8 @@ namespace GameCore {
 		}
 
 		private void BreakCombat() {
-
 			Target = null;
-			InCombat = false;
+			GameState = GameState.Idle;
 			CombatEnergy = 0;
 			RoundTimer.Reset();
 			RoundTimer.Stop();
@@ -123,14 +122,14 @@ namespace GameCore {
 			SpawnData thisData = (SpawnData)Stats;
 			foreach (Guid id in room.EntitiesHere.Where(id => id != Stats.Id)) {
 				if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity player)) {
-					if (player.Hidden || player.IsDead || player.GodMode) { continue; }
+					if (player.Hidden || player.GameState == GameState.Dead || player.GodMode) { continue; }
 					Target = player;
 					player.SendToClient(Name + " sees you!", Color.Red);
-					player.InCombat = true;
+					player.GameState = GameState.Combat;
 					break;
 				} else {
 					if (!World.Mobiles.TryGetValue(id, out Mobile mob)) continue;
-					if (mob.IsDead || mob.Hidden) continue;
+					if (mob.GameState == GameState.Dead || mob.Hidden) continue;
 					SpawnData data = (SpawnData)mob.Stats;
 					if (data.Faction == thisData.Faction) { continue; }
 					Target = mob;
@@ -140,7 +139,7 @@ namespace GameCore {
 
 			if (Target == null) return;
 			
-			InCombat = true;
+			GameState = GameState.Combat;
 			LastCombatTick = World.CombatTick;
 			CombatEnergy = 0;
 		}
