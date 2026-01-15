@@ -13,12 +13,12 @@ namespace ServerCore {
 public class Connection : IDisposable {
     private static readonly object BigLock = new object();
     private static readonly ArrayList Connections = new ArrayList();
-    
+
     public readonly StreamReader Reader;
-    
+
     private readonly Socket _socket;
     private readonly StreamWriter _writer;
-    
+
     private PlayerEntity _player;
 
     public Connection(Socket socket) {

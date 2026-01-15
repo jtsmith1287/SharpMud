@@ -70,33 +70,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Actions.cs" />
-    <Compile Include="src\AdminActions.cs" />
-    <Compile Include="src\AnsiMap.cs" />
-    <Compile Include="src\ArgumentHandler.cs" />
-    <Compile Include="src\BaseMobile.cs" />
-    <Compile Include="src\GameState.cs" />
-    <Compile Include="src\CombatTests.cs" />
-    <Compile Include="src\Connection.cs" />
-    <Compile Include="src\Coordinate3.cs" />
-    <Compile Include="src\Data.cs" />
-    <Compile Include="src\Enums.cs" />
-    <Compile Include="src\Taxonomy.cs" />
-    <Compile Include="src\Main.cs" />
-    <Compile Include="src\Mobile.cs" />
-    <Compile Include="src\PlayerEntity.cs" />
-    <Compile Include="src\AccountState.cs" />
-    <Compile Include="src\Room.cs" />
-    <Compile Include="src\Server.cs" />
-    <Compile Include="src\SpawnData.cs" />
-    <Compile Include="src\Spawner.cs" />
-    <Compile Include="src\SpawnerTests.cs" />
+    <Compile Include="src\actions\Actions.cs" />
+    <Compile Include="src\actions\AdminActions.cs" />
+    <Compile Include="src\actions\ArgumentHandler.cs" />
+    <Compile Include="src\entity\BaseMobile.cs" />
+    <Compile Include="src\entity\CombatTests.cs" />
+    <Compile Include="src\entity\Data.cs" />
+    <Compile Include="src\entity\Mobile.cs" />
+    <Compile Include="src\entity\PlayerEntity.cs" />
+    <Compile Include="src\entity\SpawnData.cs" />
+    <Compile Include="src\entity\Spawner.cs" />
+    <Compile Include="src\entity\SpawnerTests.cs" />
+    <Compile Include="src\enums\AccountState.cs" />
+    <Compile Include="src\enums\DataPaths.cs" />
+    <Compile Include="src\enums\Disposition.cs" />
+    <Compile Include="src\enums\GameState.cs" />
+    <Compile Include="src\enums\Taxonomy.cs" />
+    <Compile Include="src\server\Connection.cs" />
+    <Compile Include="src\server\Main.cs" />
+    <Compile Include="src\server\Server.cs" />
     <Compile Include="src\util\Color.cs" />
     <Compile Include="src\util\ContentCreator.cs" />
     <Compile Include="src\util\ContentCreator.Designer.cs">
       <DependentUpon>ContentCreator.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\World.cs" />
+    <Compile Include="src\world\AnsiMap.cs" />
+    <Compile Include="src\world\Coordinate3.cs" />
+    <Compile Include="src\world\Room.cs" />
+    <Compile Include="src\world\World.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">

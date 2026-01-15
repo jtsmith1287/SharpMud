@@ -134,7 +134,7 @@ public static class AdminActions {
                     select kvp.Value).FirstOrDefault();
 
             if (spawn == null) continue;
-            
+
             spawnList.Add(spawn);
             spawnCount += 1;
             player.SendToClient(spawn.Name + " created!");

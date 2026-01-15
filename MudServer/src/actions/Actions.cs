@@ -29,6 +29,7 @@ public static class Actions {
         if (args.Length > 1) {
             int.TryParse(args[1], out radius);
         }
+
         player.SendToClient(AnsiMap.Display(player.Location, radius));
     }
 
@@ -65,7 +66,8 @@ public static class Actions {
         Mobile targetMob;
         foreach (Guid id in room.EntitiesHere) {
             if (World.Mobiles.TryGetValue(id, out targetMob)) {
-                if (ArgumentHandler.AutoComplete(name, targetMob.Name) || ArgumentHandler.AutoComplete(name, targetMob.Stats.Name)) {
+                if (ArgumentHandler.AutoComplete(name, targetMob.Name) ||
+                    ArgumentHandler.AutoComplete(name, targetMob.Stats.Name)) {
                     player.Target = targetMob;
                     player.GameState = GameState.Combat;
                     break;
@@ -119,7 +121,10 @@ public static class Actions {
                     }
                 }
 
-                if (target != null && (ArgumentHandler.AutoComplete(targetName, target.Name) || (target is Mobile && ArgumentHandler.AutoComplete(targetName, target.Stats.Name)))) {
+                if (target != null && (ArgumentHandler.AutoComplete(targetName, target.Name) ||
+                                       (target is Mobile && ArgumentHandler.AutoComplete(
+                                           targetName, target.Stats.Name
+                                       )))) {
                     ViewStats(player, target);
                     return;
                 }
@@ -174,7 +179,7 @@ public static class Actions {
         Room room = World.GetRoom(player.Location);
         if (room != null) {
             Coordinate3 locationOfNewRoom;
-            if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom) || 
+            if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom) ||
                 room.InvisibleConnections.TryGetValue(args[0], out locationOfNewRoom)) {
                 player.Move(locationOfNewRoom);
             } else {
@@ -229,10 +234,16 @@ public static class Actions {
         message += string.Format(" Level: {0}\n", entity.Stats.Level);
         message += string.Format(" TNL: {0}\n", entity.Stats.ExpToNextLevel - entity.Stats.Exp);
         message += "------------------------------------------\n";
-        message += string.Format(" {0,-15} | {1,4} / {2,-4} \n", "Health:", entity.Stats.Health, entity.Stats.MaxHealth);
+        message += string.Format(
+            " {0,-15} | {1,4} / {2,-4} \n", "Health:", entity.Stats.Health, entity.Stats.MaxHealth
+        );
         message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Strength:", entity.Stats.Str, entity.Stats.BonusStr);
-        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Dexterity:", entity.Stats.Dex, entity.Stats.BonusDex);
-        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Intelligence:", entity.Stats.Int, entity.Stats.BonusInt);
+        message += string.Format(
+            " {0,-15} | {1,-4} + {2,-4} \n", "Dexterity:", entity.Stats.Dex, entity.Stats.BonusDex
+        );
+        message += string.Format(
+            " {0,-15} | {1,-4} + {2,-4} \n", "Intelligence:", entity.Stats.Int, entity.Stats.BonusInt
+        );
         message += "==========================================\n";
         viewer.SendToClient(message);
     }
