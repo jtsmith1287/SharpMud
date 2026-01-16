@@ -70,35 +70,36 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\actions\Actions.cs" />
-    <Compile Include="src\actions\AdminActions.cs" />
-    <Compile Include="src\actions\ArgumentHandler.cs" />
-    <Compile Include="src\entity\BaseMobile.cs" />
-    <Compile Include="src\entity\CombatTests.cs" />
-    <Compile Include="src\entity\Mobile.cs" />
-    <Compile Include="src\entity\PlayerEntity.cs" />
-    <Compile Include="src\entity\SpawnData.cs" />
-    <Compile Include="src\entity\Spawner.cs" />
-    <Compile Include="src\entity\SpawnerTests.cs" />
-    <Compile Include="src\entity\Stats.cs" />
-    <Compile Include="src\enums\AccountState.cs" />
-    <Compile Include="src\enums\DataPaths.cs" />
-    <Compile Include="src\enums\Disposition.cs" />
-    <Compile Include="src\enums\GameState.cs" />
-    <Compile Include="src\enums\Taxonomy.cs" />
-    <Compile Include="src\server\Connection.cs" />
-    <Compile Include="src\server\DataManager.cs" />
-    <Compile Include="src\server\Main.cs" />
-    <Compile Include="src\server\Server.cs" />
-    <Compile Include="src\util\Color.cs" />
-    <Compile Include="src\util\ContentCreator.cs" />
-    <Compile Include="src\util\ContentCreator.Designer.cs">
+    <Compile Include="Src\Actions\Actions.cs" />
+    <Compile Include="Src\Actions\AdminActions.cs" />
+    <Compile Include="Src\Actions\ArgumentHandler.cs" />
+    <Compile Include="Src\Entity\BaseMobile.cs" />
+    <Compile Include="Src\Entity\CombatTests.cs" />
+    <Compile Include="Src\Entity\Mobile.cs" />
+    <Compile Include="Src\Entity\PlayerEntity.cs" />
+    <Compile Include="Src\Entity\SpawnData.cs" />
+    <Compile Include="Src\Entity\Spawner.cs" />
+    <Compile Include="Src\Entity\SpawnerTests.cs" />
+    <Compile Include="Src\Entity\Stats.cs" />
+    <Compile Include="Src\Enums\AccountState.cs" />
+    <Compile Include="Src\Enums\DataPaths.cs" />
+    <Compile Include="Src\Enums\Disposition.cs" />
+    <Compile Include="Src\Enums\GameState.cs" />
+    <Compile Include="Src\Enums\Taxonomy.cs" />
+    <Compile Include="Src\Interfaces\IDamageable.cs" />
+    <Compile Include="Src\Server\Connection.cs" />
+    <Compile Include="Src\Server\DataManager.cs" />
+    <Compile Include="Src\Server\Main.cs" />
+    <Compile Include="Src\Server\Server.cs" />
+    <Compile Include="Src\Util\Color.cs" />
+    <Compile Include="Src\Util\ContentCreator.cs" />
+    <Compile Include="Src\Util\ContentCreator.Designer.cs">
       <DependentUpon>ContentCreator.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\world\AnsiMap.cs" />
-    <Compile Include="src\world\Coordinate3.cs" />
-    <Compile Include="src\world\Room.cs" />
-    <Compile Include="src\world\World.cs" />
+    <Compile Include="Src\World\AnsiMap.cs" />
+    <Compile Include="Src\World\Coordinate3.cs" />
+    <Compile Include="Src\World\Room.cs" />
+    <Compile Include="Src\World\World.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">
@@ -128,10 +129,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
-    <Content Include="src\util\validate_world.py" />
+    <Content Include="Src\Util\validate_world.py" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="src\util\ContentCreator.resx">
+    <EmbeddedResource Include="Src\Util\ContentCreator.resx">
       <DependentUpon>ContentCreator.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
