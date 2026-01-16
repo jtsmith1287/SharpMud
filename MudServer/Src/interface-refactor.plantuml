@@ -1,6 +1,13 @@
 ﻿@startuml
 
 '========================
+' World Management
+'========================
+class World {
+    + {static} GetEntity(id : Guid) : Entity
+}
+
+'========================
 ' Base Entity
 '========================
 abstract class Entity {
@@ -16,6 +23,7 @@ abstract class Entity {
 '========================
 interface IActor {
     + Stats : Stats
+    + GameState : GameState
 }
 
 interface IDamageable {
@@ -41,8 +49,8 @@ abstract class BaseMobile extends Entity implements IActor, IDamageable, IBroadc
     + BroadcastLocal(message : string, color : string) : void
 }
 
-class PlayerEntity extends BaseMobile
-class Mobile extends BaseMobile
+class PlayerCharacter extends BaseMobile
+class NonPlayerCharacter extends BaseMobile
 
 '========================
 ' Rooms
@@ -79,7 +87,7 @@ class ItemDef {
     + OnUse : List<IItemAction>
 }
 
-class ItemInstance extends Entity implements IUsable, ITakeable {
+class Item extends Entity implements IUsable, ITakeable {
     + Def : ItemDef
     + OnUseActions : List<IItemAction>
     + Use(actor : IActor) : void
@@ -98,7 +106,7 @@ interface ITakeable {
 }
 
 interface IItemAction {
-    + Execute(actor : IActor, item : ItemInstance) : void
+    + Execute(actor : IActor, item : Item) : void
 }
 
 '========================
@@ -106,34 +114,34 @@ interface IItemAction {
 '========================
 class RevealItemAction implements IItemAction {
     + TargetId : string
-    + Execute(actor : IActor, item : ItemInstance) : void
+    + Execute(actor : IActor, item : Item) : void
 }
 
 class SpawnCreatureAction implements IItemAction {
     + CreatureId : string
-    + Execute(actor : IActor, item : ItemInstance) : void
+    + Execute(actor : IActor, item : Item) : void
 }
 
 class AddToInventoryAction implements IItemAction {
-    + Execute(actor : IActor, item : ItemInstance) : void
+    + Execute(actor : IActor, item : Item) : void
 }
 
 class EquipItemAction implements IItemAction {
-    + Execute(actor : IActor, item : ItemInstance) : void
+    + Execute(actor : IActor, item : Item) : void
 }
 
 '========================
 ' Relationships
 '========================
 Room "1" *-- "*" Exit : contains
-ItemInstance "1" --> "1" ItemDef : definition
-ItemInstance "1" *-- "*" IItemAction : instance actions
+Item "1" --> "1" ItemDef : definition
+Item "1" *-- "*" IItemAction : instance actions
 BaseMobile --> Stats : uses
 
 '========================
 ' Example Scenario Annotations
 '========================
-note top of ItemInstance
+note top of Item
   Example: "Old Drawer"
   - Id = <Guid> (Unique instance)
   - Def.Id = "old_drawer" (Slug)
@@ -154,7 +162,7 @@ note top of ItemDef
   - OnUse = [ AddToInventoryAction ]
 end note
 
-note top of ItemInstance #DDFFDD
+note top of Item #DDFFDD
   Example: "Rapier"
   - Id = <Guid> (Unique instance)
   - Def.Id = "steel_rapier"
@@ -166,7 +174,7 @@ end note
 note top of SpawnCreatureAction #FFDDDD
   Example: "Cursed Chest"
   - Actor uses chest
-  - Execute spawns a "Skeleton" Mobile at current Room.Location
+  - Execute spawns a "Skeleton" NonPlayerCharacter at current Room.Location
 end note
 
 @enduml
