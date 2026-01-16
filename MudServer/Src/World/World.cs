@@ -46,7 +46,7 @@ public static class World {
     /// <returns>The room by ID.</returns>
     /// <param name="id">Identifier.</param>
     public static Room GetRoomById(Guid id) {
-        return (from entry in Rooms where entry.Value.ID == id select entry.Value).FirstOrDefault();
+        return (from entry in Rooms where entry.Value.Id == id select entry.Value).FirstOrDefault();
     }
 
     internal static void StopAllSpawnThreads() {

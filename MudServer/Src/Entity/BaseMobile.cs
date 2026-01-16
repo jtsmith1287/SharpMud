@@ -6,15 +6,14 @@ using GameCore.Util;
 
 namespace GameCore {
 public class BaseMobile {
-    public Guid ID;
+    public Guid Id;
     public string Name;
     public Stats Stats;
     public GameState GameState = GameState.Idle;
     public bool Hidden = false;
-    protected Random Rnd = new Random();
+    protected readonly Random Rnd = new Random();
     public BaseMobile Target;
     public int LastCombatTick = -1;
-    protected Stopwatch RoundTimer = new Stopwatch();
 
     /// <summary>
     /// Do not add to this event directly. Use OnDeath.
@@ -37,9 +36,9 @@ public class BaseMobile {
     /// </summary>
     /// <returns>The generated Guid.</returns>
     public Guid GenerateID() {
-        ID = Guid.NewGuid();
-        Stats.Id = ID;
-        return ID;
+        Id = Guid.NewGuid();
+        Stats.Id = Id;
+        return Id;
     }
 
     public void TriggerOnDeath(Stats data) {
@@ -70,10 +69,10 @@ public class BaseMobile {
             lock (newRoom.EntitiesHere) {
                 try {
                     // In case we're already here, we don't want to add a duplicate of ourselves.
-                    newRoom.EntitiesHere.Remove(ID);
+                    newRoom.EntitiesHere.Remove(Id);
                 } catch (InvalidOperationException) { }
 
-                newRoom.EntitiesHere.Add(ID);
+                newRoom.EntitiesHere.Add(Id);
             }
 
             if (thisPlayer != null)
@@ -83,7 +82,7 @@ public class BaseMobile {
 
         if (oldRoom != null) {
             lock (oldRoom.EntitiesHere) {
-                oldRoom.EntitiesHere.Remove(ID);
+                oldRoom.EntitiesHere.Remove(Id);
             }
 
             if (!Hidden) {
@@ -118,8 +117,8 @@ public class BaseMobile {
         }
 
         lock (newRoom.EntitiesHere) {
-            if (!newRoom.EntitiesHere.Contains(ID)) {
-                newRoom.EntitiesHere.Add(ID);
+            if (!newRoom.EntitiesHere.Contains(Id)) {
+                newRoom.EntitiesHere.Add(Id);
             }
         }
 
@@ -131,7 +130,7 @@ public class BaseMobile {
 
     public virtual void SendToClient(string msg, string colorSequence = "") {
         PlayerEntity player;
-        if (PlayerEntity.Players.TryGetValue(ID, out player)) {
+        if (PlayerEntity.Players.TryGetValue(Id, out player)) {
             player.SendToClient(msg, colorSequence);
         }
     }
@@ -147,7 +146,7 @@ public class BaseMobile {
 
             for (int i = 0; i < entities.Length; i++) {
                 if (PlayerEntity.Players.TryGetValue(entities[i], out player)) {
-                    if (player.ID == ID || Contains<Guid>(ignore, player.ID)) {
+                    if (player.Id == Id || Contains<Guid>(ignore, player.Id)) {
                         continue;
                     }
 
@@ -169,7 +168,7 @@ public class BaseMobile {
     protected void StrikeTarget(BaseMobile target) {
         int dodgeVal = Rnd.Next(1, 101);
         if (dodgeVal >= 108 - Math.Sqrt((double)target.Stats.Dex * 7)) {
-            BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, target.ID);
+            BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, target.Id);
             target.SendToClient($"You dodged {Name}'s attack!", Color.RedD);
             SendToClient($"{target.Name} dodged your attack!", Color.RedD);
         } else if (false) {
@@ -192,7 +191,7 @@ public class BaseMobile {
                 target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
             }
 
-            BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.ID);
+            BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.Id);
             target.SendToClient(
                 Color.Red + $"{Name} struck {Color.Yellow + "*" + Color.White + "You " + Color.Red}for {dmg} damage!"
             );
@@ -219,7 +218,7 @@ public class BaseMobile {
 
         // Precise room presence check
         lock (room.EntitiesHere) {
-            return room.EntitiesHere.Contains(Target.ID);
+            return room.EntitiesHere.Contains(Target.Id);
         }
     }
 

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
 using GameCore.Util;
+using MudServer.Entity;
+using MudServer.World;
 
 namespace GameCore {
-public class Room {
-    public static Dictionary<string, string> DirectionNames = new Dictionary<string, string>() {
+public class Room : Entity {
+    public static readonly Dictionary<string, string> DirectionNames = new Dictionary<string, string>() {
         { "n", "north" },
         { "s", "south" },
         { "e", "east" },
@@ -13,7 +15,7 @@ public class Room {
         { "u", "up" },
         { "d", "down" },
     };
-    public static Dictionary<string, Coordinate3> DirectionMap = new Dictionary<string, Coordinate3>() {
+    public static readonly Dictionary<string, Coordinate3> DirectionMap = new Dictionary<string, Coordinate3>() {
         { "n", new Coordinate3(0, 1, 0) },
         { "s", new Coordinate3(0, -1, 0) },
         { "e", new Coordinate3(1, 0, 0) },
@@ -23,16 +25,14 @@ public class Room {
     };
 
     public Coordinate3 Location;
-    public string Name;
-    public string Description;
     public string MapName;
     public Dictionary<string, Coordinate3> ConnectedRooms = new Dictionary<string, Coordinate3>();
+    public Dictionary<string, Exit> Exits = new Dictionary<string, Exit>();
     public Dictionary<string, Coordinate3> InvisibleConnections = new Dictionary<string, Coordinate3>();
     public bool IsEntryRoom = false;
     [ScriptIgnore]
     public List<Guid> EntitiesHere = new List<Guid>();
     public List<Spawner> SpawnersHere = new List<Spawner>();
-    public Guid ID;
 
     public Room() {
         EntitiesHere = new List<Guid>();
@@ -42,7 +42,7 @@ public class Room {
     public Room(Coordinate3 location, string name) : this() {
         Location = location;
         Name = name;
-        ID = Guid.NewGuid();
+        Id = Guid.NewGuid();
         World.AddRoom(this);
     }
 

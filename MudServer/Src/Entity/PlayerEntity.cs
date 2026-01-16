@@ -38,12 +38,12 @@ public class PlayerEntity : BaseMobile {
 
     public PlayerEntity(Connection conn, Stats data) {
         Conn = conn;
-        ID = data.Id;
+        Id = data.Id;
         Name = data.Name;
         Stats = data;
         Stats.ThisBaseMobile = this;
         Stats.OnZeroHealth += Die;
-        Players.Add(ID, this);
+        Players.Add(Id, this);
 
 
         // The player hasn't been initialized yet.
@@ -171,13 +171,13 @@ public class PlayerEntity : BaseMobile {
 
     public void Close() {
         lock (Players) {
-            Players.Remove(ID);
+            Players.Remove(Id);
         }
 
         Room room = World.GetRoom(Stats.Location);
         if (room != null) {
             lock (room.EntitiesHere) {
-                room.EntitiesHere.Remove(ID);
+                room.EntitiesHere.Remove(Id);
             }
         }
 

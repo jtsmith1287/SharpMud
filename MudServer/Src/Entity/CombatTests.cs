@@ -52,7 +52,7 @@ public class CombatTests {
         player.Name = playerData.Name;
         player.GenerateID();
         player.Target = new TestMobile(new Stats("Dummy", Guid.NewGuid())); // Avoid null Target.ID in StrikeTarget
-        room.EntitiesHere.Add(player.ID);
+        room.EntitiesHere.Add(player.Id);
 
         SpawnData enemyData = new SpawnData("TestEnemy");
         enemyData.Str = 10;
@@ -63,8 +63,8 @@ public class CombatTests {
 
         enemy = new Mobile(enemyData, null);
         enemy.GenerateID();
-        World.Mobiles[enemy.ID] = enemy;
-        room.EntitiesHere.Add(enemy.ID);
+        World.Mobiles[enemy.Id] = enemy;
+        room.EntitiesHere.Add(enemy.Id);
     }
 
     public void TestDamageAndHealth() {
@@ -187,7 +187,7 @@ public class CombatTests {
 
         // Remove player from the room's EntitiesHere list, but keep location same
         Room room = World.GetRoom(enemy.Stats.Location);
-        room.EntitiesHere.Remove(player.ID);
+        room.EntitiesHere.Remove(player.Id);
 
         // Run logic
         enemy.ExecuteLogic(World.CombatTick);

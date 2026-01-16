@@ -679,28 +679,28 @@ namespace ServerCore {
 			btnConfirm.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(100, 100, 100);
 
 			btnConfirm.Click += (s, ev) => {
-				if (listOptions.SelectedItem is NewRoomOption selected) {
-					Room newRoom = new Room(selected.Coordinate, "New Room");
-					newRoom.Description = "A newly created room.";
-					newRoom.MapName = ComboMapFiles.SelectedItem.ToString();
+				if (!(listOptions.SelectedItem is NewRoomOption selected)) return;
+				
+				Room newRoom = new Room(selected.Coordinate, "New Room");
+				newRoom.Description = "A newly created room.";
+				newRoom.MapName = ComboMapFiles.SelectedItem.ToString();
 					
-					// Add to current map
-					string key = selected.Coordinate.X + " " + selected.Coordinate.Y + " " + selected.Coordinate.Z;
-					_currentMapRooms[key] = newRoom;
+				// Add to current map
+				string key = selected.Coordinate.X + " " + selected.Coordinate.Y + " " + selected.Coordinate.Z;
+				_currentMapRooms[key] = newRoom;
 					
-					// Add mutual exits
-					_selectedRoom.ConnectedRooms[selected.Direction] = newRoom.Location;
-					newRoom.ConnectedRooms[GetReverseDirection(selected.Direction)] = _selectedRoom.Location;
+				// Add mutual exits
+				_selectedRoom.ConnectedRooms[selected.Direction] = newRoom.Location;
+				newRoom.ConnectedRooms[GetReverseDirection(selected.Direction)] = _selectedRoom.Location;
 
-					// Add to World too so GetRoom works
-					World.AddRoom(newRoom);
+				// Add to World too so GetRoom works
+				World.AddRoom(newRoom);
 
-					// Refresh room list
-					RefreshRoomList();
+				// Refresh room list
+				RefreshRoomList();
 					
-					addDialog.DialogResult = DialogResult.OK;
-					addDialog.Close();
-				}
+				addDialog.DialogResult = DialogResult.OK;
+				addDialog.Close();
 			};
 
 			addDialog.Controls.Add(listOptions);

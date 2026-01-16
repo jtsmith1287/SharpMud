@@ -108,7 +108,7 @@ public static class Actions {
             foreach (Guid id in room.EntitiesHere) {
                 BaseMobile target = null;
 
-                if (id == player.ID) {
+                if (id == player.Id) {
                     target = player;
                 } else {
                     if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity targetPlayer)) {
@@ -145,7 +145,7 @@ public static class Actions {
         string visiblePlayers = "";
         string visibleMobs = "";
 
-        foreach (Guid id in room.EntitiesHere.Where(id => id != player.ID)) {
+        foreach (Guid id in room.EntitiesHere.Where(id => id != player.Id)) {
             if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity playerInRoom)) {
                 if (!playerInRoom.Hidden) {
                     visiblePlayers += $"{playerInRoom.Name}, ";

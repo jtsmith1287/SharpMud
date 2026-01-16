@@ -101,8 +101,6 @@ public class Mobile : BaseMobile {
     private void BreakCombat() {
         Target = null;
         GameState = GameState.Idle;
-        RoundTimer.Reset();
-        RoundTimer.Stop();
     }
 
     private void NonCombatAction() {

@@ -141,7 +141,7 @@ public class Connection : IDisposable {
                         _player = new PlayerEntity(this, new Stats(username, Guid.NewGuid()));
 
                         DataManager.UsernamePwdPairs.Add(username, providedPwd);
-                        DataManager.UsernameIdPairs.Add(username, _player.ID);
+                        DataManager.UsernameIdPairs.Add(username, _player.Id);
 
                         Send("Alright, " + username + ". You're good to go!");
 
@@ -182,7 +182,7 @@ public class Connection : IDisposable {
 
         if (_player != null) {
             _player.Close();
-            Console.WriteLine(_player.ID + " has disconnected");
+            Console.WriteLine(_player.Id + " has disconnected");
         } else {
             Console.WriteLine("An unauthenticated connection has disconnected");
         }

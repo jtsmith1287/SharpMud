@@ -75,7 +75,10 @@
     <Compile Include="Src\Actions\ArgumentHandler.cs" />
     <Compile Include="Src\Entity\BaseMobile.cs" />
     <Compile Include="Src\Entity\CombatTests.cs" />
+    <Compile Include="Src\Entity\Entity.cs" />
+    <Compile Include="Src\Entity\EntityFactory.cs" />
     <Compile Include="Src\Entity\Mobile.cs" />
+    <Compile Include="Src\Entity\PlayerCharacter.cs" />
     <Compile Include="Src\Entity\PlayerEntity.cs" />
     <Compile Include="Src\Entity\SpawnData.cs" />
     <Compile Include="Src\Entity\Spawner.cs" />
@@ -98,6 +101,7 @@
     </Compile>
     <Compile Include="Src\World\AnsiMap.cs" />
     <Compile Include="Src\World\Coordinate3.cs" />
+    <Compile Include="Src\World\Exit.cs" />
     <Compile Include="Src\World\Room.cs" />
     <Compile Include="Src\World\World.cs" />
   </ItemGroup>
