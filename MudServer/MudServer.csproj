@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include="Src\interface-refactor.plantuml" />
     <Content Include="Src\Util\validate_world.py" />
   </ItemGroup>
   <ItemGroup>

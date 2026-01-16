@@ -1,0 +1,172 @@
+﻿@startuml
+
+'========================
+' Base Entity
+'========================
+abstract class Entity {
+    + Id : Guid
+    + Name : string
+    + Description : string
+    + Hidden : bool
+    + Secret : bool
+}
+
+'========================
+' Actor capabilities
+'========================
+interface IActor {
+    + Stats : Stats
+}
+
+interface IDamageable {
+    + Health : int
+    + ApplyDamage(amount : int) : void
+}
+
+interface IBroadcastable {
+    + SendToClient(message : string, color : string) : void
+    + BroadcastLocal(message : string, color : string) : void
+}
+
+'========================
+' Mobiles
+'========================
+abstract class BaseMobile extends Entity implements IActor, IDamageable, IBroadcastable {
+    + Stats : Stats
+    + Target : BaseMobile
+    + GameState : GameState
+    + Health : int
+    + ApplyDamage(amount : int) : void
+    + SendToClient(message : string, color : string) : void
+    + BroadcastLocal(message : string, color : string) : void
+}
+
+class PlayerEntity extends BaseMobile
+class Mobile extends BaseMobile
+
+'========================
+' Rooms
+'========================
+class Room extends Entity {
+    + Location : Coordinate3
+    + EntitiesHere : List<Guid>
+    + Exits : Dictionary<string, Exit>
+}
+
+'========================
+' Exits
+'========================
+class Exit {
+    + Path : Coordinate3[2]
+    + Locked : bool
+    + Open : bool
+    + Hidden : bool[2]
+    + Secret : bool[2]
+}
+
+'========================
+' Item system
+'========================
+class ItemDef {
+    + Id : string
+    + Name : string
+    + Description : string
+    + IsContainer : bool
+    + Takeable : bool
+    + Equippable : bool
+    + Hidden : bool
+    + Secret : bool
+    + OnUse : List<IItemAction>
+}
+
+class ItemInstance extends Entity implements IUsable, ITakeable {
+    + Def : ItemDef
+    + OnUseActions : List<IItemAction>
+    + Use(actor : IActor) : void
+    + Take(actor : IActor) : void
+}
+
+'========================
+' Item Behavior Interfaces
+'========================
+interface IUsable {
+    + Use(actor : IActor) : void
+}
+
+interface ITakeable {
+    + Take(actor : IActor) : void
+}
+
+interface IItemAction {
+    + Execute(actor : IActor, item : ItemInstance) : void
+}
+
+'========================
+' Example ItemActions
+'========================
+class RevealItemAction implements IItemAction {
+    + TargetId : string
+    + Execute(actor : IActor, item : ItemInstance) : void
+}
+
+class SpawnCreatureAction implements IItemAction {
+    + CreatureId : string
+    + Execute(actor : IActor, item : ItemInstance) : void
+}
+
+class AddToInventoryAction implements IItemAction {
+    + Execute(actor : IActor, item : ItemInstance) : void
+}
+
+class EquipItemAction implements IItemAction {
+    + Execute(actor : IActor, item : ItemInstance) : void
+}
+
+'========================
+' Relationships
+'========================
+Room "1" *-- "*" Exit : contains
+ItemInstance "1" --> "1" ItemDef : definition
+ItemInstance "1" *-- "*" IItemAction : instance actions
+BaseMobile --> Stats : uses
+
+'========================
+' Example Scenario Annotations
+'========================
+note top of ItemInstance
+  Example: "Old Drawer"
+  - Id = <Guid> (Unique instance)
+  - Def.Id = "old_drawer" (Slug)
+  - Def.IsContainer = true
+  - Def.Takeable = false
+  - Def.OnUse = [ RevealItemAction(TargetId='crumpled_note') ]
+  - Secret = true
+  - Hidden = false
+end note
+
+note top of ItemDef
+  Example: "Crumpled Note"
+  - Id = "crumpled_note" (Slug)
+  - Takeable = true
+  - IsContainer = false
+  - Hidden = true
+  - Secret = false
+  - OnUse = [ AddToInventoryAction ]
+end note
+
+note top of ItemInstance #DDFFDD
+  Example: "Rapier"
+  - Id = <Guid> (Unique instance)
+  - Def.Id = "steel_rapier"
+  - Def.Equippable = true
+  - Def.Takeable = true
+  - OnUse = [ EquipItemAction, AddToInventoryAction ]
+end note
+
+note top of SpawnCreatureAction #FFDDDD
+  Example: "Cursed Chest"
+  - Actor uses chest
+  - Execute spawns a "Skeleton" Mobile at current Room.Location
+end note
+
+@enduml
