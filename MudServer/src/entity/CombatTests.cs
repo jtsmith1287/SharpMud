@@ -16,6 +16,7 @@ public class CombatTests {
         TestDodging();
         TestSurpriseAttack();
         TestDeath();
+        TestDisengageWhenNotPresent();
 
         Console.WriteLine("\nTests Finished!");
         Console.WriteLine("Passed: {0}, Failed: {1}", _passed, _failed);
@@ -40,7 +41,7 @@ public class CombatTests {
         Coordinate3 loc = new Coordinate3(999, 999, 999);
         Room room = new Room(loc, "Test Room");
 
-        Data playerData = new Data("TestPlayer", Guid.NewGuid());
+        Stats playerData = new Stats("TestPlayer", Guid.NewGuid());
         playerData.Str = 20;
         playerData.Dex = 20;
         playerData.Health = 100;
@@ -50,7 +51,7 @@ public class CombatTests {
         player = new TestMobile(playerData);
         player.Name = playerData.Name;
         player.GenerateID();
-        player.Target = new TestMobile(new Data("Dummy", Guid.NewGuid())); // Avoid null Target.ID in StrikeTarget
+        player.Target = new TestMobile(new Stats("Dummy", Guid.NewGuid())); // Avoid null Target.ID in StrikeTarget
         room.EntitiesHere.Add(player.ID);
 
         SpawnData enemyData = new SpawnData("TestEnemy");
@@ -171,9 +172,33 @@ public class CombatTests {
         Assert(enemy.GameState == GameState.Dead, "Enemy should be marked as dead");
     }
 
+    public void TestDisengageWhenNotPresent() {
+        TestMobile player;
+        Mobile enemy;
+        SetupCombatScenario(out player, out enemy);
+
+        // Put enemy in combat with player
+        enemy.Target = player;
+        enemy.GameState = GameState.Combat;
+        enemy.LastCombatTick = World.CombatTick - 1;
+
+        // Verify it's in combat
+        Assert(enemy.GameState == GameState.Combat, "Enemy should be in combat");
+
+        // Remove player from the room's EntitiesHere list, but keep location same
+        Room room = World.GetRoom(enemy.Stats.Location);
+        room.EntitiesHere.Remove(player.ID);
+
+        // Run logic
+        enemy.ExecuteLogic(World.CombatTick);
+
+        // Verify disengage
+        Assert(enemy.GameState == GameState.Idle, "Enemy should disengage when target is not in the room's entity list");
+    }
+
     // Wrapper to access protected StrikeTarget
     private class TestMobile : BaseMobile {
-        public TestMobile(Data stats) {
+        public TestMobile(Stats stats) {
             this.Stats = stats;
         }
 

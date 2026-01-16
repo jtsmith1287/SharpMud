@@ -18,6 +18,7 @@ public class Connection : IDisposable {
 
     private readonly Socket _socket;
     private readonly StreamWriter _writer;
+    private readonly object _writeLock = new object();
 
     private PlayerEntity _player;
 
@@ -37,14 +38,6 @@ public class Connection : IDisposable {
             }
 
             while (_socket.Connected) {
-                lock (BigLock) {
-                    foreach (Connection conn in Connections) {
-                        if (conn._writer != null) {
-                            conn._writer.Flush();
-                        }
-                    }
-                }
-
                 string line = Reader.ReadLine();
                 if (line == null) {
                     break;
@@ -58,6 +51,7 @@ public class Connection : IDisposable {
             }
         } catch (Exception e) {
             Console.WriteLine("Error in ClientLoop: " + e.Message);
+            Console.WriteLine(e.StackTrace);
         } finally {
             OnDisconnect();
         }
@@ -65,9 +59,11 @@ public class Connection : IDisposable {
 
     public void Send(string msg) {
         try {
-            if (_writer != null) {
-                _writer.WriteLine(msg);
-                _writer.Flush();
+            lock (_writeLock) {
+                if (_writer != null) {
+                    _writer.WriteLine(msg);
+                    _writer.Flush();
+                }
             }
         } catch (Exception) { }
     }
@@ -92,7 +88,7 @@ public class Connection : IDisposable {
                 continue;
             }
 
-            if (Data.UsernamePwdPairs.TryGetValue(username, out truePwd)) {
+            if (DataManager.UsernamePwdPairs.TryGetValue(username, out truePwd)) {
                 Send("Password:\n");
                 // Wait for user to input password
                 providedPwd = Reader.ReadLine();
@@ -101,19 +97,23 @@ public class Connection : IDisposable {
                 }
 
                 if (providedPwd == truePwd) {
-                    if (Data.UsernameIdPairs.TryGetValue(username, out var id)) {
-                        if (Data.IdDataPairs.TryGetValue(id, out var data)) {
+                    if (DataManager.UsernameIdPairs.TryGetValue(username, out var id)) {
+                        if (DataManager.IdDataPairs.TryGetValue(id, out var data)) {
                             _player = new PlayerEntity(this, data);
                             break;
                         } else {
-                            Send("Error: User data not found. Please contact an admin.");
-                            this._socket.Close();
-                            return;
+                            Send("Warning: User data not found. Recreating basic stats.");
+                            data = new Stats(username, id);
+                            _player = new PlayerEntity(this, data);
+                            break;
                         }
                     } else {
-                        Send("Error: User ID not found. Please contact an admin.");
-                        this._socket.Close();
-                        return;
+                        Send("Warning: User ID not found. Recreating account link.");
+                        var newId = Guid.NewGuid();
+                        DataManager.UsernameIdPairs.Add(username, newId);
+                        var data = new Stats(username, newId);
+                        _player = new PlayerEntity(this, data);
+                        break;
                     }
                 } else {
                     Send("Incorrect password. Sorry.");
@@ -138,10 +138,10 @@ public class Connection : IDisposable {
 
                     if (providedPwd == pwdVerify) {
                         Send("Got it! We're entering you into the system now.");
-                        _player = new PlayerEntity(this, new Data(username, Guid.NewGuid()));
+                        _player = new PlayerEntity(this, new Stats(username, Guid.NewGuid()));
 
-                        Data.UsernamePwdPairs.Add(username, providedPwd);
-                        Data.UsernameIdPairs.Add(username, _player.ID);
+                        DataManager.UsernamePwdPairs.Add(username, providedPwd);
+                        DataManager.UsernameIdPairs.Add(username, _player.ID);
 
                         Send("Alright, " + username + ". You're good to go!");
 
@@ -165,7 +165,7 @@ public class Connection : IDisposable {
         new Thread(
             () => {
                 lock (BigLock) {
-                    Data.SaveData(DataPaths.UserId, DataPaths.UserPwd, DataPaths.IdData);
+                    DataManager.SaveData(DataPaths.UserId, DataPaths.UserPwd, DataPaths.IdData);
                 }
             }
         ).Start();
@@ -201,13 +201,15 @@ public class Connection : IDisposable {
             Reader.Dispose();
         }
 
-        try {
-            if (_writer != null) {
-                _writer.Dispose();
-            }
-        } catch (IOException) {
-            if (_player != null) {
-                Console.WriteLine(_player.Name + " might not have been fully disposed of.");
+        lock (_writeLock) {
+            try {
+                if (_writer != null) {
+                    _writer.Dispose();
+                }
+            } catch (IOException) {
+                if (_player != null) {
+                    Console.WriteLine(_player.Name + " might not have been fully disposed of.");
+                }
             }
         }
 

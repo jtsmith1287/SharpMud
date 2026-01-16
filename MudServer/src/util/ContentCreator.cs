@@ -752,7 +752,7 @@ namespace ServerCore {
 				TextName.Focus();
 				return;
 			} else {
-				if (Data.NameSpawnPairs.ContainsKey(TextName.Text)) {
+				if (DataManager.NameSpawnPairs.ContainsKey(TextName.Text)) {
 					DialogResult result = MessageBox.Show("This entry exists. Overwite?.",
 					"Warning!",
 					MessageBoxButtons.YesNo,
@@ -761,7 +761,7 @@ namespace ServerCore {
 
 					switch (result) {
 						case DialogResult.Yes:
-							ActiveTemplate = Data.NameSpawnPairs[TextName.Text];
+							ActiveTemplate = DataManager.NameSpawnPairs[TextName.Text];
 							break;
 						case DialogResult.No:
 							return;
@@ -775,12 +775,12 @@ namespace ServerCore {
 			SetFormValuesToTemplate();
 
 			try {
-				Data.NameSpawnPairs.Add(ActiveTemplate.Name, ActiveTemplate);
+				DataManager.NameSpawnPairs.Add(ActiveTemplate.Name, ActiveTemplate);
 			} catch (ArgumentException) {
-				Data.NameSpawnPairs[TextName.Text] = ActiveTemplate;
+				DataManager.NameSpawnPairs[TextName.Text] = ActiveTemplate;
 			}
 
-			Data.SaveSpawnTemplates();
+			DataManager.SaveSpawnTemplates();
 			RefreshMobList();
 			ActiveTemplate = null;
 
@@ -817,14 +817,14 @@ namespace ServerCore {
 		void RefreshMobList() {
 
 			ComboMobList.Items.Clear();
-			foreach (var entry in Data.NameSpawnPairs) {
+			foreach (var entry in DataManager.NameSpawnPairs) {
 				ComboMobList.Items.Add(entry.Key);
 			}
 		}
 
 		private void ComboMobList_SelectionChangeCommitted(object sender, EventArgs e) {
 
-			ActiveTemplate = Data.NameSpawnPairs[(string)ComboMobList.SelectedItem];
+			ActiveTemplate = DataManager.NameSpawnPairs[(string)ComboMobList.SelectedItem];
 			SetTemplateValuesToForm();
 
 		}

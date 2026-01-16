@@ -36,6 +36,7 @@ public class Room {
 
     public Room() {
         EntitiesHere = new List<Guid>();
+        SpawnersHere = new List<Spawner>();
     }
 
     public Room(Coordinate3 location, string name) : this() {

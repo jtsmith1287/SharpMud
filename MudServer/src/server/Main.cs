@@ -19,8 +19,8 @@ namespace ServerCore {
 				Console.WriteLine(e.GetType().ToString());
 				Console.WriteLine(e.StackTrace);
 			} finally {
-				Data.SaveAllMaps();
-				Data.SaveData(
+				DataManager.SaveAllMaps();
+				DataManager.SaveData(
 					DataPaths.IdData,
 					DataPaths.Creatures,
 					DataPaths.UserId,

@@ -18,7 +18,7 @@ class Server {
     internal void Run() {
         Console.CancelKeyPress += CleanServerShutdown;
 
-        Data.LoadData();
+        DataManager.LoadData();
         BuildWorld();
 
         Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -43,7 +43,7 @@ class Server {
      			Thread thread = new Thread(() => Application.Run(new ContentCreator()));
 				ContentCreator.OnMapSaved += (s, e) => {
 					// Reload maps
-					Data.LoadData(DataPaths.World);
+					DataManager.LoadData(DataPaths.World);
 					// Check players
 					foreach (var player in PlayerEntity.Players.Values) {
 						string coordKey = string.Format("{0} {1} {2}", player.Stats.Location.X, player.Stats.Location.Y, player.Stats.Location.Z);
@@ -79,7 +79,7 @@ class Server {
         Console.WriteLine("Aborting threads...");
         World.StopAllSpawnThreads();
         Console.WriteLine("Saving data...");
-        Data.SaveData(
+        DataManager.SaveData(
             DataPaths.IdData,
             DataPaths.Creatures,
             DataPaths.UserId,

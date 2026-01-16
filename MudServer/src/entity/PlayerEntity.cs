@@ -29,7 +29,6 @@ public class PlayerEntity : BaseMobile {
     public bool GodMode { get; set; }
     public bool Admin = true;
     public AccountState AccountState;
-    public GameState GameState;
 
     public static PlayerEntity GetPlayerByID(Guid id) {
         PlayerEntity player;
@@ -37,12 +36,11 @@ public class PlayerEntity : BaseMobile {
         return player;
     }
 
-    public PlayerEntity(Connection conn, Data data) {
+    public PlayerEntity(Connection conn, Stats data) {
         Conn = conn;
         ID = data.Id;
         Name = data.Name;
         Stats = data;
-        Stats.OnZeroHealth += Die;
         Stats.ThisBaseMobile = this;
         Stats.OnZeroHealth += Die;
         Players.Add(ID, this);
@@ -112,36 +110,43 @@ public class PlayerEntity : BaseMobile {
         }
 
         switch (GameState) {
-            case GameState.Combat when Target != null: {
+            case GameState.Combat: {
+                if (!IsTargetPresent()) {
+                    if (GameState == GameState.Combat) {
+                        GameState = GameState.Idle;
+                        Target = null;
+                        SendToClient("*Target lost. Combat disengaged!*", Color.White);
+                    }
+                    break;
+                }
+
                 if (LastCombatTick < currentTick) {
-                    int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick : LastCombatTick);
-                    if (LastCombatTick == -1) ticksPassed = 1; // Handle first tick
+                    int attacksPerTick = Stats.GetNumberOfAttacks();
+                    int ticksPassed = currentTick - (LastCombatTick == -1 ? currentTick - 1 : LastCombatTick);
 
-                    float speedModifier = 1.0f + (Stats.GetTickModifier() / 3000f);
-                    CombatEnergy += ticksPassed * speedModifier;
-
-                    while (CombatEnergy >= 1.0f) {
-                        if (Target?.Stats == null || Target.GameState == GameState.Dead || Target.Stats.Health <= 0 ||
-                            Target.Stats.Location != Stats.Location) {
-                            GameState = GameState.Idle;
-                            Target = null;
-                            CombatEnergy = 0;
-                            SendToClient("*Target lost. Combat disengaged!*", Color.White);
-                            break;
-                        } else {
-                            StrikeTarget(Target);
-                            CombatEnergy -= 1.0f;
+                    for (int t = 0; t < ticksPassed; t++) {
+                        for (int i = 0; i < attacksPerTick; i++) {
+                            if (!IsTargetPresent()) {
+                                if (GameState == GameState.Combat) {
+                                    GameState = GameState.Idle;
+                                    Target = null;
+                                    SendToClient("*Target lost. Combat disengaged!*", Color.White);
+                                }
+                                goto EndCombat;
+                            } else {
+                                StrikeTarget(Target);
+                            }
                         }
                     }
 
                     DisplayVitals();
+                EndCombat:
                     LastCombatTick = currentTick;
                 }
 
                 break;
             }
             default: {
-                CombatEnergy = 0;
                 if (HealTick.ElapsedMilliseconds <= TickDuration) return;
             
                 if (GameState == GameState.Resting) {
@@ -156,8 +161,6 @@ public class PlayerEntity : BaseMobile {
                         SendToClient("You are fully rested and stand up.", Color.Cyan);
                         GameState = GameState.Idle;
                     }
-                } else {
-                    Stats.Health += Rnd.Next((int)(Stats.Int / 4f), (int)(Stats.Int / 3f));
                 }
 
                 HealTick.Restart();
@@ -169,6 +172,13 @@ public class PlayerEntity : BaseMobile {
     public void Close() {
         lock (Players) {
             Players.Remove(ID);
+        }
+
+        Room room = World.GetRoom(Stats.Location);
+        if (room != null) {
+            lock (room.EntitiesHere) {
+                room.EntitiesHere.Remove(ID);
+            }
         }
 
         Target = null;
@@ -195,7 +205,7 @@ public class PlayerEntity : BaseMobile {
         }
     }
 
-    private void Die(Data data) {
+    private void Die(Stats data) {
         GameState = GameState.Dead;
         Target = null;
         SendToClient("You have been slain!");

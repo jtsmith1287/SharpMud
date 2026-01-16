@@ -8,13 +8,12 @@ namespace GameCore {
 public class BaseMobile {
     public Guid ID;
     public string Name;
-    public Data Stats;
+    public Stats Stats;
     public GameState GameState = GameState.Idle;
     public bool Hidden = false;
     protected Random Rnd = new Random();
     public BaseMobile Target;
     public int LastCombatTick = -1;
-    public float CombatEnergy = 0;
     protected Stopwatch RoundTimer = new Stopwatch();
 
     /// <summary>
@@ -43,7 +42,7 @@ public class BaseMobile {
         return ID;
     }
 
-    public void TriggerOnDeath(Data data) {
+    public void TriggerOnDeath(Stats data) {
         if (data.Id == Stats.Id) {
             OnDeathEvent(this);
         }
@@ -53,6 +52,13 @@ public class BaseMobile {
         Room oldRoom = World.GetRoom(Stats.Location);
         Room newRoom = World.GetRoom(location);
 
+        if (newRoom == null) {
+            // If we can't move to the new room, just stay where we are.
+            // We might want to notify the mobile/player.
+            SendToClient("You can't go that way.", Color.Red);
+            return;
+        }
+
         var thisPlayer = PlayerEntity.GetPlayerByID(Stats.Id);
         if (thisPlayer != null && thisPlayer.GameState == GameState.Resting) {
             thisPlayer.AccountState = AccountState.Active;
@@ -60,16 +66,14 @@ public class BaseMobile {
         }
 
         if (Stats.Location == location) {
-            if (newRoom != null) {
-                BroadcastLocal(Name + " has arrived.", Color.Yellow);
-                lock (newRoom.EntitiesHere) {
-                    try {
-                        // In case we're already here, we don't want to add a duplicate of ourselves.
-                        newRoom.EntitiesHere.Remove(ID);
-                    } catch (InvalidOperationException) { }
+            BroadcastLocal(Name + " has arrived.", Color.Yellow);
+            lock (newRoom.EntitiesHere) {
+                try {
+                    // In case we're already here, we don't want to add a duplicate of ourselves.
+                    newRoom.EntitiesHere.Remove(ID);
+                } catch (InvalidOperationException) { }
 
-                    newRoom.EntitiesHere.Add(ID);
-                }
+                newRoom.EntitiesHere.Add(ID);
             }
 
             if (thisPlayer != null)
@@ -78,7 +82,10 @@ public class BaseMobile {
         }
 
         if (oldRoom != null) {
-            oldRoom.EntitiesHere.Remove(ID);
+            lock (oldRoom.EntitiesHere) {
+                oldRoom.EntitiesHere.Remove(ID);
+            }
+
             if (!Hidden) {
                 BroadcastLocal(
                     Name + " has left to the " + oldRoom.GetDirection(newRoom.Location),
@@ -87,35 +94,38 @@ public class BaseMobile {
             }
         }
 
-        if (newRoom != null) {
-            Stats.Location = newRoom.Location;
-            if (oldRoom != null) {
-                if (!Hidden) {
-                    BroadcastLocal(
-                        Name + " has arrived from the " +
-                        newRoom.GetDirection(oldRoom.Location), Color.Yellow
-                    );
-                    SendToClient(
-                        "You move to the " + oldRoom.GetDirection(newRoom.Location),
-                        Color.White
-                    );
-                } else {
-                    SendToClient(
-                        "You sneak to the " + oldRoom.GetDirection(newRoom.Location),
-                        Color.Magenta
-                    );
-                }
+        Stats.Location = newRoom.Location;
+        if (oldRoom != null) {
+            if (!Hidden) {
+                BroadcastLocal(
+                    Name + " has arrived from the " +
+                    newRoom.GetDirection(oldRoom.Location), Color.Yellow
+                );
+                SendToClient(
+                    "You move to the " + oldRoom.GetDirection(newRoom.Location),
+                    Color.White
+                );
             } else {
-                if (!Hidden) {
-                    BroadcastLocal(Name + " has arrived.", Color.Yellow);
-                }
+                SendToClient(
+                    "You sneak to the " + oldRoom.GetDirection(newRoom.Location),
+                    Color.Magenta
+                );
             }
+        } else {
+            if (!Hidden) {
+                BroadcastLocal(Name + " has arrived.", Color.Yellow);
+            }
+        }
 
-            newRoom.EntitiesHere.Add(ID);
-            if (thisPlayer != null) {
-                Actions.ActionCalls["look"](thisPlayer, new string[1]);
-                Actions.ShowMap(thisPlayer, new string[1]);
+        lock (newRoom.EntitiesHere) {
+            if (!newRoom.EntitiesHere.Contains(ID)) {
+                newRoom.EntitiesHere.Add(ID);
             }
+        }
+
+        if (thisPlayer != null) {
+            Actions.ActionCalls["look"](thisPlayer, new string[1]);
+            Actions.ShowMap(thisPlayer, new string[1]);
         }
     }
 
@@ -179,26 +189,37 @@ public class BaseMobile {
                 target.Target = this;
                 target.GameState = GameState.Combat;
                 target.LastCombatTick = World.CombatTick;
-                target.CombatEnergy = 0;
                 target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
             }
 
             BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.ID);
             target.SendToClient(
-                Color.Yellow + "*" +
-                Color.White + "You " + Color.Red +
-                $"were struck by {Name} for {dmg} damage!"
+                Color.Red + $"{Name} struck {Color.Yellow + "*" + Color.White + "You " + Color.Red}for {dmg} damage!"
             );
             SendToClient(
                 Color.White + "You " + Color.Red +
                 $"struck {target.Name} for {dmg} damage!", Color.Red
             );
-            target.DisplayVitals();
             target.Stats.Health -= dmg;
         } else {
             Target = null;
             GameState = GameState.Idle;
             SendToClient("* Combat disengaged *", Color.White);
+        }
+    }
+
+    public bool IsTargetPresent() {
+        if (Target == null || Target.Stats == null || Target.GameState == GameState.Dead ||
+            Target.Stats.Health <= 0) return false;
+        Room room = World.GetRoom(Stats.Location);
+        if (room == null) return false;
+
+        // Basic location check
+        if (Target.Stats.Location != Stats.Location) return false;
+
+        // Precise room presence check
+        lock (room.EntitiesHere) {
+            return room.EntitiesHere.Contains(Target.ID);
         }
     }
 
@@ -249,39 +270,22 @@ public class BaseMobile {
             vitalsColor = Color.Red;
         if (Target != null) {
             barCount = (int)(barWidth * (float)Target.Stats.Health / Target.Stats.MaxHealth);
-            bars = new String('#', barCount);
-            spaces = new String(' ', 20 - barCount);
-            enemyHealth = string.Format(
-                "{0}: {1} [{2}{3}] {4}",
-                Target.Name,
-                Target.Stats.Health,
-                bars,
-                spaces,
-                Target.Stats.MaxHealth
-            );
             if ((float)Target.Stats.Health / Target.Stats.MaxHealth < 0.33f)
                 enemyHealthColor = Color.Red;
+            bars = enemyHealthColor + new string('#', barCount);
+            spaces = new string(' ', 20 - barCount);
+            enemyHealth
+                = $"{Color.Red}{Target.Name}: {Target.Stats.Health} {Color.White}[{bars}{spaces} {Color.White}] {enemyHealthColor}{Target.Stats.MaxHealth}";
         }
 
         barCount = (int)(barWidth * (float)Stats.Health / Stats.MaxHealth);
-        bars = new String('#', barCount);
-        spaces = new String(' ', 20 - barCount);
-        string healthBar = string.Format(
-            "{0} [{1}{2}] {3}",
-            Stats.Health,
-            bars,
-            spaces,
-            Stats.MaxHealth
-        );
+        bars = vitalsColor + new string('#', barCount);
+        spaces = new string(' ', 20 - barCount);
+        string healthBar
+            = $"{vitalsColor}{Stats.Health} {Color.White}[{bars}{spaces}{Color.White}] {vitalsColor}{Stats.MaxHealth}";
 
         SendToClient(
-            string.Format(
-                "-- HP: {0} -- {1}{2}{3}",
-                healthBar,
-                enemyHealthColor,
-                enemyHealth,
-                levelUpIndicator
-            ), vitalsColor
+            $"\n{Color.White}-- HP: {healthBar} -- {enemyHealthColor}{enemyHealth}{levelUpIndicator}\n", vitalsColor
         );
     }
 }

@@ -30,8 +30,13 @@ namespace GameCore.Util {
 		}
 
 		public Spawner(Room room, List<SpawnData> spawnList) : this() {
+			if (room == null) return;
 
 			SpawnData = spawnList.ToArray();
+
+			if (room.SpawnersHere == null)
+				room.SpawnersHere = new List<Spawner>();
+
 			room.SpawnersHere.Add(this);
 			Location = room.Location;
 			ID = Guid.NewGuid();
@@ -90,7 +95,7 @@ namespace GameCore.Util {
 			mob.Stats.Location = null;
 		}
 
-		private void QueueDestroyMob(Data data) {
+		private void QueueDestroyMob(Stats data) {
 
 			foreach (Mobile spawn in Spawns) {
 				if (spawn.ID == data.Id) {

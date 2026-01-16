@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ServerCore;
 using ServerCore.Util;
 
 namespace GameCore.Util {
@@ -20,7 +21,7 @@ public static class AdminActions {
     }
 
     private static void SaveAll(PlayerEntity player, string[] arg2) {
-        Data.SaveData(
+        DataManager.SaveData(
             DataPaths.IdData,
             DataPaths.Creatures,
             DataPaths.UserId,
@@ -31,7 +32,7 @@ public static class AdminActions {
         HashSet<string> savedMaps = new HashSet<string>();
         foreach (var room in World.Rooms.Values) {
             if (!string.IsNullOrEmpty(room.MapName) && !savedMaps.Contains(room.MapName)) {
-                Data.SaveMap(room.MapName);
+                DataManager.SaveMap(room.MapName);
                 savedMaps.Add(room.MapName);
             }
         }
@@ -83,8 +84,8 @@ public static class AdminActions {
                     newRoom.ConnectedRooms.Add(newRoom.GetDirection(playerRoom.Location), playerRoom.Location);
                 }
 
-                Data.SaveRoom(playerRoom);
-                Data.SaveRoom(newRoom);
+                DataManager.SaveRoom(playerRoom);
+                DataManager.SaveRoom(newRoom);
 
                 player.SendToClient(
                     string.Format(
@@ -108,8 +109,8 @@ public static class AdminActions {
                 newRoom.ConnectedRooms.Add(newRoom.GetDirection(playerRoom.Location), playerRoom.Location);
             }
 
-            Data.SaveRoom(playerRoom);
-            Data.SaveRoom(newRoom);
+            DataManager.SaveRoom(playerRoom);
+            DataManager.SaveRoom(newRoom);
 
             player.SendToClient(
                 string.Format(
@@ -121,6 +122,12 @@ public static class AdminActions {
 
     public static void CreateSpawner(PlayerEntity player, string[] args) {
         Room room = World.GetRoom(player.Location);
+
+        if (room == null) {
+            player.SendToClient("You are in the void. Cannot create a spawner here.", Color.Red);
+            return;
+        }
+
         //TODO: The spawn data should be generated based on the args
         // Create the creatures that will be spawning here.
 
@@ -129,7 +136,7 @@ public static class AdminActions {
         for (int i = 1; i < args.Length; i++) {
             player.SendToClient("Trying to find some " + args[i] + " DNA ...");
             SpawnData spawn
-                = (from kvp in Data.NameSpawnPairs
+                = (from kvp in DataManager.NameSpawnPairs
                     where kvp.Key.Equals(args[i], StringComparison.OrdinalIgnoreCase)
                     select kvp.Value).FirstOrDefault();
 
@@ -142,7 +149,7 @@ public static class AdminActions {
 
         if (spawnCount > 0) {
             new Spawner(room, spawnList);
-            Data.SaveRoom(room);
+            DataManager.SaveRoom(room);
             player.SendToClient("Spawner created.");
         } else {
             player.SendToClient("Nope. Nothin'.");

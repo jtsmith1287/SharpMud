@@ -11,7 +11,7 @@ public static class World {
     public static Dictionary<string, Guid> NameToPlayerPairs = new Dictionary<string, Guid>();
     public static readonly List<Spawner> Spawners = new List<Spawner>();
     public static readonly List<Thread> SpawnThreads = new List<Thread>();
-    public static int CombatTick { get; private set; } = int.MinValue;
+    public static int CombatTick { get; private set; } = 0;
 
     private static Thread _aiThread;
     private static long _lastCombatTickTime;

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using GameCore.Util;
 using ServerCore.Util;
 
@@ -83,7 +85,6 @@ public static class Actions {
 
         if (player.GameState == GameState.Combat) {
             player.LastCombatTick = World.CombatTick;
-            player.CombatEnergy = 0;
             player.SendToClient(
                 string.Format(
                     "* Combat engaged with {0}! *", player.Target.Name
@@ -103,76 +104,74 @@ public static class Actions {
 
         if (args.Length > 1) {
             string targetName = args[1];
-            PlayerEntity targetPlayer;
-            Mobile targetMob;
 
             foreach (Guid id in room.EntitiesHere) {
                 BaseMobile target = null;
 
                 if (id == player.ID) {
                     target = player;
-                } else if (PlayerEntity.Players.TryGetValue(id, out targetPlayer)) {
-                    if (!targetPlayer.Hidden) {
-                        target = targetPlayer;
-                    }
-                } else if (World.Mobiles.TryGetValue(id, out targetMob)) {
-                    if (!targetMob.Hidden) {
-                        target = targetMob;
+                } else {
+                    if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity targetPlayer)) {
+                        if (!targetPlayer.Hidden) {
+                            target = targetPlayer;
+                        }
+                    } else {
+                        if (World.Mobiles.TryGetValue(id, out Mobile targetMob)) {
+                            if (!targetMob.Hidden) {
+                                target = targetMob;
+                            }
+                        }
                     }
                 }
 
-                if (target != null && (ArgumentHandler.AutoComplete(targetName, target.Name) ||
-                                       (target is Mobile && ArgumentHandler.AutoComplete(
+                if (target == null || (!ArgumentHandler.AutoComplete(targetName, target.Name) &&
+                                       (!(target is Mobile) || !ArgumentHandler.AutoComplete(
                                            targetName, target.Stats.Name
-                                       )))) {
-                    ViewStats(player, target);
-                    return;
-                }
+                                       )))) continue;
+                ViewStats(player, target);
+                return;
             }
             // If we got here, we didn't find the entity. 
             // The requirement says "stub the entity search results to return the default look behavior"
         }
 
-        string rawString = "\n " +
-                           Color.Green + "{0}\n" +
-                           Color.GreenD + "=============================\n{1}" +
-                           Color.Cyan + "\nPlayers: {2}" +
-                           Color.Magenta + "\nAlso here: {3}" +
-                           Color.White + "\nExits: {4}\n" +
-                           Color.Reset;
+        const string rawString = "\n " +
+                                 Color.Green + "{0}\n" +
+                                 Color.GreenD + "=============================\n{1}" +
+                                 Color.Cyan + "\nPlayers: {2}" +
+                                 Color.Magenta + "\nAlso here: {3}" +
+                                 Color.White + "\nExits: {4}\n" +
+                                 Color.Reset;
         string visiblePlayers = "";
         string visibleMobs = "";
-        string exits = "";
 
-        foreach (Guid id in room.EntitiesHere) {
-            if (id == player.ID) {
-                continue;
-            }
-
-            if (PlayerEntity.Players.TryGetValue(id, out var playerInRoom)) {
+        foreach (Guid id in room.EntitiesHere.Where(id => id != player.ID)) {
+            if (PlayerEntity.Players.TryGetValue(id, out PlayerEntity playerInRoom)) {
                 if (!playerInRoom.Hidden) {
                     visiblePlayers += $"{playerInRoom.Name}, ";
                 }
-            } else if (World.Mobiles.TryGetValue(id, out var mobInRoom)) {
+            } else if (World.Mobiles.TryGetValue(id, out Mobile mobInRoom)) {
                 if (!mobInRoom.Hidden) {
                     visibleMobs += $"{mobInRoom.Name}, ";
                 }
             }
         }
 
-        foreach (var entry in room.ConnectedRooms) {
-            exits += $"{entry.Key}, ";
-        }
+        string exits = room.ConnectedRooms.Aggregate("", (current, entry) => current + $"{entry.Key}, ");
 
-        string mesage = string.Format(
+        string message = string.Format(
             rawString,
             room.Name,
             room.Description,
-            visiblePlayers,
-            visibleMobs,
+            visiblePlayers.Trim() != string.Empty ? visiblePlayers : "",
+            visibleMobs.Trim() != string.Empty ? visibleMobs : "",
             exits
         );
-        player.SendToClient(mesage, Color.GreenD);
+        player.SendToClient(message, Color.GreenD);
+    }
+
+    private static void LookAtEntity() {
+        
     }
 
     public static void MoveRooms(PlayerEntity player, string[] args) {
@@ -196,10 +195,7 @@ public static class Actions {
 
     public static void ShowExp(PlayerEntity player, string[] args) {
         player.SendToClient(
-            string.Format(
-                "Experience: {0}/{1}",
-                player.Stats.Exp, player.Stats.ExpToNextLevel
-            )
+            $"Experience: {player.Stats.Exp}/{player.Stats.ExpToNextLevel}"
         );
     }
 
@@ -211,7 +207,7 @@ public static class Actions {
 
         //TODO: This should be chance
         player.Hidden = true;
-        player.SendToClient("You are sneaking...", Color.Magenta);
+        player.SendToClient("You think you're sneaking...", Color.Magenta);
     }
 
     public static void ViewAllPlayers(PlayerEntity player, string[] args) {
@@ -228,24 +224,32 @@ public static class Actions {
     }
 
     public static void ViewStats(PlayerEntity viewer, BaseMobile entity) {
-        string message = "\n";
-        message += "==========================================\n";
-        message += string.Format(" Name: {0}\n", entity.Stats.Name);
-        message += string.Format(" Level: {0}\n", entity.Stats.Level);
-        message += string.Format(" TNL: {0}\n", entity.Stats.ExpToNextLevel - entity.Stats.Exp);
-        message += "------------------------------------------\n";
-        message += string.Format(
-            " {0,-15} | {1,4} / {2,-4} \n", "Health:", entity.Stats.Health, entity.Stats.MaxHealth
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine();
+        sb.AppendLine("==========================================");
+        sb.AppendLine($" Name: {entity.Stats.Name}");
+        sb.AppendLine($" Level: {entity.Stats.Level}");
+        sb.AppendLine($" TNL: {entity.Stats.ExpToNextLevel - entity.Stats.Exp}");
+        sb.AppendLine("------------------------------------------");
+
+        AppendStat(sb, "Health", entity.Stats.Health, entity.Stats.MaxHealth);
+        sb.AppendLine("------------------------------------------");
+        AppendStat(sb, "Strength", entity.Stats.Str, entity.Stats.BonusStr);
+        AppendStat(sb, "Dexterity", entity.Stats.Dex, entity.Stats.BonusDex);
+        AppendStat(sb, "Intelligence", entity.Stats.Int, entity.Stats.BonusInt);
+        AppendStat(sb, "Constitution", entity.Stats.Con, entity.Stats.BonusCon);
+        AppendStat(sb, "Speed", entity.Stats.Speed, entity.Stats.BonusSpeed);
+
+        sb.AppendLine("==========================================");
+
+        viewer.SendToClient(sb.ToString());
+    }
+
+    private static void AppendStat(StringBuilder sb, string label, int baseValue, int bonusValue, string suffix = "") {
+        sb.AppendLine(
+            $" {label + ":",-15} | {baseValue,-4} + {bonusValue,-4}{suffix}"
         );
-        message += string.Format(" {0,-15} | {1,-4} + {2,-4} \n", "Strength:", entity.Stats.Str, entity.Stats.BonusStr);
-        message += string.Format(
-            " {0,-15} | {1,-4} + {2,-4} \n", "Dexterity:", entity.Stats.Dex, entity.Stats.BonusDex
-        );
-        message += string.Format(
-            " {0,-15} | {1,-4} + {2,-4} \n", "Intelligence:", entity.Stats.Int, entity.Stats.BonusInt
-        );
-        message += "==========================================\n";
-        viewer.SendToClient(message);
     }
 }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameCore;
 using GameCore.Util;
+using ServerCore;
 
 namespace MudServer {
     public class SpawnerTests {
@@ -15,6 +16,9 @@ namespace MudServer {
             TestUpdateWithEmptySpawnData();
             TestSaveAllMapsOnShutdown();
             TestCleanupNullSpawnersOnLoad();
+            TestIdDataSerialization();
+            TestCreateSpawnerInRoomWithNullSpawnersList();
+            TestCreateSpawnerWithNullRoom();
 
             Console.WriteLine("\nSpawner Tests Finished!");
             Console.WriteLine("Passed: {0}, Failed: {1}", _passed, _failed);
@@ -69,7 +73,7 @@ namespace MudServer {
                 testRoom.Description = "Original Description " + DateTime.Now.Ticks;
 
                 // Call SaveAllMaps (which is what happens on shutdown)
-                Data.SaveAllMaps();
+                DataManager.SaveAllMaps();
 
                 // Verify the file exists and has the correct description
                 string mapDir = System.IO.Path.GetDirectoryName(DataPaths.MapList);
@@ -85,7 +89,7 @@ namespace MudServer {
                 string newDesc = "Modified Description " + DateTime.Now.Ticks;
                 testRoom.Description = newDesc;
                 
-                Data.SaveAllMaps();
+                DataManager.SaveAllMaps();
 
                 string json = System.IO.File.ReadAllText(mapFile);
                 if (json.Contains(newDesc)) {
@@ -117,8 +121,8 @@ namespace MudServer {
                 SpawnData validData = new SpawnData("Rat");
                 validData.Health = 10;
                 validData.MaxHealth = 10;
-                if (!Data.NameSpawnPairs.ContainsKey("Rat")) {
-                    Data.NameSpawnPairs.Add("Rat", validData);
+                if (!DataManager.NameSpawnPairs.ContainsKey("Rat")) {
+                    DataManager.NameSpawnPairs.Add("Rat", validData);
                 }
 
                 Spawner validSpawner = new Spawner(testRoom, new List<SpawnData> { validData });
@@ -134,7 +138,7 @@ namespace MudServer {
                 testRoom.SpawnersHere.Add(emptySpawner);
 
                 // Save it
-                Data.SaveMap(testMapName);
+                DataManager.SaveMap(testMapName);
 
                 // Add to maps.json list if it's not there, so LoadData(DataPaths.World) finds it
                 string mapListPath = DataPaths.MapList;
@@ -156,7 +160,7 @@ namespace MudServer {
                 World.Spawners.Clear();
 
                 // Load it back
-                Data.LoadData(DataPaths.World); 
+                DataManager.LoadData(DataPaths.World); 
 
                 // Verify
                 string stringCoord = "888 888 888";
@@ -184,6 +188,65 @@ namespace MudServer {
 
             } catch (Exception e) {
                 Assert(false, "TestCleanupNullSpawnersOnLoad threw " + e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace);
+            }
+        }
+        public void TestIdDataSerialization() {
+            try {
+                // Clear existing data
+                DataManager.IdDataPairs.Clear();
+
+                // Add some test data
+                Guid id1 = Guid.NewGuid();
+                Stats stats1 = new Stats("TestPlayer1", id1);
+
+                Guid id2 = Guid.NewGuid();
+                Stats stats2 = new Stats("TestPlayer2", id2);
+
+                // Try to save
+                DataManager.SaveData(DataPaths.IdData);
+                Assert(true, "DataManager.SaveData(DataPaths.IdData) should not throw");
+
+                // Clear memory
+                DataManager.IdDataPairs.Clear();
+
+                // Try to load
+                DataManager.LoadData(DataPaths.IdData);
+                Assert(DataManager.IdDataPairs.Count == 2, "Should load 2 player data entries");
+                Assert(DataManager.IdDataPairs.ContainsKey(id1), "Should contain id1");
+                Assert(DataManager.IdDataPairs[id1].Name == "TestPlayer1", "id1 name should match");
+
+            } catch (Exception e) {
+                Assert(false, "TestIdDataSerialization failed: " + e.Message + "\n" + e.StackTrace);
+            }
+        }
+
+        public void TestCreateSpawnerInRoomWithNullSpawnersList() {
+            try {
+                Room room = new Room(new Coordinate3(777, 777, 777), "Null Spawners List Room");
+                room.SpawnersHere = null; // Simulate deserialization issue where it might be null
+
+                List<SpawnData> spawnList = new List<SpawnData> { new SpawnData("Test") };
+                new Spawner(room, spawnList);
+
+                Assert(room.SpawnersHere != null, "Spawner constructor should initialize SpawnersHere if it is null");
+                Assert(room.SpawnersHere.Count == 1, "Spawner should be added to SpawnersHere list");
+            } catch (NullReferenceException) {
+                Assert(false, "Spawner constructor threw NullReferenceException when room.SpawnersHere was null");
+            } catch (Exception e) {
+                Assert(false, "TestCreateSpawnerInRoomWithNullSpawnersList threw " + e.GetType().Name + ": " + e.Message);
+            } finally {
+                World.Rooms.Remove("777 777 777");
+            }
+        }
+
+        public void TestCreateSpawnerWithNullRoom() {
+            try {
+                List<SpawnData> spawnList = new List<SpawnData> { new SpawnData("Test") };
+                Spawner spawner = new Spawner(null, spawnList);
+                Assert(true, "Spawner constructor should not throw when room is null");
+                Assert(!World.Spawners.Contains(spawner), "Spawner should not be added to World.Spawners if room is null");
+            } catch (Exception e) {
+                Assert(false, "TestCreateSpawnerWithNullRoom threw " + e.GetType().Name + ": " + e.Message);
             }
         }
     }
