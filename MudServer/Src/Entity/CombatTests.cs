@@ -17,6 +17,7 @@ public class CombatTests {
         TestDodging();
         TestSurpriseAttack();
         TestDeath();
+        TestExperienceGain();
         TestDisengageWhenNotPresent();
 
         Console.WriteLine("\nTests Finished!");
@@ -171,6 +172,28 @@ public class CombatTests {
 
         Assert(enemy.Stats.Health <= 0, "Enemy health should be 0 or less");
         Assert(enemy.GameState == GameState.Dead, "Enemy should be marked as dead");
+    }
+
+    public void TestExperienceGain() {
+        TestMobile player;
+        NonPlayerCharacter enemy;
+        SetupCombatScenario(out player, out enemy);
+
+        player.Target = enemy;
+        player.GameState = GameState.Combat;
+
+        enemy.Stats.Health = 1;
+        player.Stats.Str = 40;
+        enemy.Stats.Dex = 1; // Ensure hit
+
+        int initialExp = player.Stats.Exp;
+
+        player.TestStrikeTarget(enemy);
+
+        Assert(enemy.GameState == GameState.Dead, "Enemy should be dead");
+        Assert(player.Stats.Exp > initialExp, "Player should have gained experience. Exp: " + player.Stats.Exp);
+        Assert(player.GameState == GameState.Idle, "Player should be idle after killing target");
+        Assert(player.Target == null, "Player target should be null after killing target");
     }
 
     public void TestDisengageWhenNotPresent() {

@@ -202,6 +202,7 @@ namespace MudServer.Entity {
 
         private void Die(Stats data) {
             GameState = GameState.Dead;
+            TriggerOnDeath(data);
             Target = null;
             SendToClient("You have been slain!");
             Move(Coordinate3.Purgatory);

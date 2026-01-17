@@ -56,7 +56,7 @@ class Server {
 					}
 				};
         thread.Start();
-        Console.WriteLine("Opening Mob Maker on new thread.");
+        Console.WriteLine("Opening Spawn Editor on new thread.");
 
         while (true) {
             Socket conn = server.Accept();

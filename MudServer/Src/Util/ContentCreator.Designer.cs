@@ -47,8 +47,10 @@
 			this.StartingLevel = new System.Windows.Forms.Label();
 			this.NumericStartingLevel = new System.Windows.Forms.NumericUpDown();
 			this.TabControlMain = new System.Windows.Forms.TabControl();
-			this.TabPageMobMaker = new System.Windows.Forms.TabPage();
+			this.TabPageSpawnEditor = new System.Windows.Forms.TabPage();
 			this.TabPageRoomEditor = new System.Windows.Forms.TabPage();
+			this.PanelSpawners = new System.Windows.Forms.FlowLayoutPanel();
+			this.ButtonAddSpawner = new System.Windows.Forms.Button();
 			this.ComboMapFiles = new System.Windows.Forms.ComboBox();
 			this.ListRooms = new System.Windows.Forms.ListView();
 			this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -339,7 +341,7 @@
 			// 
 			// TabControlMain
 			// 
-			this.TabControlMain.Controls.Add(this.TabPageMobMaker);
+			this.TabControlMain.Controls.Add(this.TabPageSpawnEditor);
 			this.TabControlMain.Controls.Add(this.TabPageRoomEditor);
 			this.TabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.TabControlMain.Location = new System.Drawing.Point(0, 0);
@@ -348,36 +350,36 @@
 			this.TabControlMain.Size = new System.Drawing.Size(1000, 800);
 			this.TabControlMain.TabIndex = 21;
 			// 
-			// TabPageMobMaker
+			// TabPageSpawnEditor
 			// 
-			this.TabPageMobMaker.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-			this.TabPageMobMaker.Controls.Add(this.StartingLevel);
-			this.TabPageMobMaker.Controls.Add(this.NumericStartingLevel);
-			this.TabPageMobMaker.Controls.Add(this.label7);
-			this.TabPageMobMaker.Controls.Add(this.label6);
-			this.TabPageMobMaker.Controls.Add(this.label2);
-			this.TabPageMobMaker.Controls.Add(this.CheckBoxHumanoid);
-			this.TabPageMobMaker.Controls.Add(this.ComboFaction);
-			this.TabPageMobMaker.Controls.Add(this.ComboDisposition);
-			this.TabPageMobMaker.Controls.Add(this.label5);
-			this.TabPageMobMaker.Controls.Add(this.label4);
-			this.TabPageMobMaker.Controls.Add(this.label3);
-			this.TabPageMobMaker.Controls.Add(this.Health);
-			this.TabPageMobMaker.Controls.Add(this.NumericInt);
-			this.TabPageMobMaker.Controls.Add(this.NumericDex);
-			this.TabPageMobMaker.Controls.Add(this.NumericStr);
-			this.TabPageMobMaker.Controls.Add(this.NumericHealth);
-			this.TabPageMobMaker.Controls.Add(this.label1);
-			this.TabPageMobMaker.Controls.Add(this.ComboMobList);
-			this.TabPageMobMaker.Controls.Add(this.LabelName);
-			this.TabPageMobMaker.Controls.Add(this.ButtonSubmit);
-			this.TabPageMobMaker.Controls.Add(this.TextName);
-			this.TabPageMobMaker.Location = new System.Drawing.Point(4, 26);
-			this.TabPageMobMaker.Name = "TabPageMobMaker";
-			this.TabPageMobMaker.Padding = new System.Windows.Forms.Padding(3);
-			this.TabPageMobMaker.Size = new System.Drawing.Size(992, 770);
-			this.TabPageMobMaker.TabIndex = 0;
-			this.TabPageMobMaker.Text = "Mob Maker";
+			this.TabPageSpawnEditor.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+			this.TabPageSpawnEditor.Controls.Add(this.StartingLevel);
+			this.TabPageSpawnEditor.Controls.Add(this.NumericStartingLevel);
+			this.TabPageSpawnEditor.Controls.Add(this.label7);
+			this.TabPageSpawnEditor.Controls.Add(this.label6);
+			this.TabPageSpawnEditor.Controls.Add(this.label2);
+			this.TabPageSpawnEditor.Controls.Add(this.CheckBoxHumanoid);
+			this.TabPageSpawnEditor.Controls.Add(this.ComboFaction);
+			this.TabPageSpawnEditor.Controls.Add(this.ComboDisposition);
+			this.TabPageSpawnEditor.Controls.Add(this.label5);
+			this.TabPageSpawnEditor.Controls.Add(this.label4);
+			this.TabPageSpawnEditor.Controls.Add(this.label3);
+			this.TabPageSpawnEditor.Controls.Add(this.Health);
+			this.TabPageSpawnEditor.Controls.Add(this.NumericInt);
+			this.TabPageSpawnEditor.Controls.Add(this.NumericDex);
+			this.TabPageSpawnEditor.Controls.Add(this.NumericStr);
+			this.TabPageSpawnEditor.Controls.Add(this.NumericHealth);
+			this.TabPageSpawnEditor.Controls.Add(this.label1);
+			this.TabPageSpawnEditor.Controls.Add(this.ComboMobList);
+			this.TabPageSpawnEditor.Controls.Add(this.LabelName);
+			this.TabPageSpawnEditor.Controls.Add(this.ButtonSubmit);
+			this.TabPageSpawnEditor.Controls.Add(this.TextName);
+			this.TabPageSpawnEditor.Location = new System.Drawing.Point(4, 26);
+			this.TabPageSpawnEditor.Name = "TabPageSpawnEditor";
+			this.TabPageSpawnEditor.Padding = new System.Windows.Forms.Padding(3);
+			this.TabPageSpawnEditor.Size = new System.Drawing.Size(992, 770);
+			this.TabPageSpawnEditor.TabIndex = 0;
+			this.TabPageSpawnEditor.Text = "Spawn Editor";
 			// 
 			// TabPageRoomEditor
 			// 
@@ -393,7 +395,8 @@
 			this.TabPageRoomEditor.Controls.Add(this.ListRooms);
 			this.TabPageRoomEditor.Controls.Add(this.TextRoomName);
 			this.TabPageRoomEditor.Controls.Add(this.TextRoomDesc);
-			this.TabPageRoomEditor.Controls.Add(this.TextRoomSpawners);
+			this.TabPageRoomEditor.Controls.Add(this.PanelSpawners);
+			this.TabPageRoomEditor.Controls.Add(this.ButtonAddSpawner);
 			this.TabPageRoomEditor.Controls.Add(this.RichTextAnsiMap);
 			this.TabPageRoomEditor.Controls.Add(this.ButtonNorth);
 			this.TabPageRoomEditor.Controls.Add(this.ButtonSouth);
@@ -512,16 +515,28 @@
 			this.LabelRoomSpawners.Size = new System.Drawing.Size(61, 17);
 			this.LabelRoomSpawners.Text = "Spawners";
 			// 
-			// TextRoomSpawners
+			// PanelSpawners
 			// 
-			this.TextRoomSpawners.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-			this.TextRoomSpawners.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.TextRoomSpawners.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(241)))), ((int)(((byte)(241)))));
-			this.TextRoomSpawners.Location = new System.Drawing.Point(266, 213);
-			this.TextRoomSpawners.Multiline = true;
-			this.TextRoomSpawners.Name = "TextRoomSpawners";
-			this.TextRoomSpawners.Size = new System.Drawing.Size(350, 100);
-			this.TextRoomSpawners.TabIndex = 4;
+			this.PanelSpawners.AutoScroll = true;
+			this.PanelSpawners.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.PanelSpawners.Location = new System.Drawing.Point(266, 213);
+			this.PanelSpawners.Name = "PanelSpawners";
+			this.PanelSpawners.Size = new System.Drawing.Size(350, 100);
+			this.PanelSpawners.TabIndex = 4;
+			// 
+			// ButtonAddSpawner
+			// 
+			this.ButtonAddSpawner.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(63)))), ((int)(((byte)(63)))), ((int)(((byte)(70)))));
+			this.ButtonAddSpawner.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
+			this.ButtonAddSpawner.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.ButtonAddSpawner.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(241)))), ((int)(((byte)(241)))));
+			this.ButtonAddSpawner.Location = new System.Drawing.Point(340, 190);
+			this.ButtonAddSpawner.Name = "ButtonAddSpawner";
+			this.ButtonAddSpawner.Size = new System.Drawing.Size(100, 23);
+			this.ButtonAddSpawner.TabIndex = 13;
+			this.ButtonAddSpawner.Text = "Add Spawner";
+			this.ButtonAddSpawner.UseVisualStyleBackColor = false;
+			this.ButtonAddSpawner.Click += new System.EventHandler(this.ButtonAddSpawner_Click);
 			// 
 			// LabelRoomExits
 			// 
@@ -732,7 +747,9 @@
 		private System.Windows.Forms.NumericUpDown NumericStartingLevel;
 		private System.Windows.Forms.BindingSource spawnDataBindingSource;
 		private System.Windows.Forms.TabControl TabControlMain;
-		private System.Windows.Forms.TabPage TabPageMobMaker;
+		private System.Windows.Forms.TabPage TabPageSpawnEditor;
+		private System.Windows.Forms.FlowLayoutPanel PanelSpawners;
+		private System.Windows.Forms.Button ButtonAddSpawner;
 		private System.Windows.Forms.TabPage TabPageRoomEditor;
 		private System.Windows.Forms.ComboBox ComboMapFiles;
 		private System.Windows.Forms.ColumnHeader columnHeader1;

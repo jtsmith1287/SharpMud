@@ -151,7 +151,7 @@ namespace MudServer.Actions {
             }
 
             if (spawnCount > 0) {
-                new Spawner(room, spawnList);
+                new Spawner(room, spawnList.Select(s => s.Id).ToList());
                 DataManager.SaveRoom(room);
                 player.SendToClient("Spawner created.");
             } else {

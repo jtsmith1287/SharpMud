@@ -28,6 +28,7 @@ namespace MudServer.Util {
 			RefreshMobList();
 			PopulateDropDownLists();
 			LoadMapFiles();
+			TabPageSpawnEditor.Text = "Spawn Editor";
 		}
 
 		private void LoadMapFiles() {
@@ -217,7 +218,7 @@ namespace MudServer.Util {
 			TextRoomDesc.Text = _selectedRoom.Description;
 			
 			// Spawners as text for now
-			TextRoomSpawners.Text = _serializer.Serialize(_selectedRoom.SpawnersHere);
+			RefreshSpawnerList();
 			
 			RefreshExitList();
 			UpdateAnsiMap();
@@ -254,6 +255,105 @@ namespace MudServer.Util {
 
 			ButtonAddExit.Enabled = foundAdjacentRoomToConnect;
 			ButtonAddNewRoom.Enabled = foundEmptySpaceForNewRoom;
+		}
+
+		private void RefreshSpawnerList() {
+			PanelSpawners.Controls.Clear();
+			if (_selectedRoom == null) return;
+
+			foreach (var spawner in _selectedRoom.SpawnersHere) {
+				string mobNames = string.Join(", ", spawner.SpawnDataIds.Select(id => {
+					var data = DataManager.NameSpawnPairs.Values.FirstOrDefault(s => s.Id == id);
+					return data != null ? $"{data.Name} ({data.Level})" : "Unknown";
+				}));
+
+				Panel spawnerItem = new Panel {
+					Width = PanelSpawners.Width - 25,
+					Height = 35,
+					BackColor = System.Drawing.Color.Transparent
+				};
+
+				Label lblSpawner = new Label {
+					Text = mobNames,
+					Location = new Point(5, 8),
+					AutoSize = true,
+					ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+					Font = new Font("Segoe UI", 9)
+				};
+
+				Button btnDelete = new Button {
+					Text = "X",
+					Location = new Point(spawnerItem.Width - 30, 5),
+					Size = new Size(25, 25),
+					Tag = spawner,
+					BackColor = System.Drawing.Color.FromArgb(63, 63, 70),
+					ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+					FlatStyle = FlatStyle.Flat,
+					Font = new Font("Segoe UI", 8, FontStyle.Bold)
+				};
+				btnDelete.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(100, 100, 100);
+
+				btnDelete.Click += (s, e) => {
+					var sp = (Spawner)((Control)s).Tag;
+					_selectedRoom.SpawnersHere.Remove(sp);
+					MudServer.World.World.Spawners.Remove(sp);
+					RefreshSpawnerList();
+				};
+
+				spawnerItem.Controls.Add(lblSpawner);
+				spawnerItem.Controls.Add(btnDelete);
+				PanelSpawners.Controls.Add(spawnerItem);
+			}
+		}
+
+		private void ButtonAddSpawner_Click(object sender, EventArgs e) {
+			if (_selectedRoom == null) return;
+
+			Form addSpawnerForm = new Form {
+				Text = "Add Spawner",
+				Size = new Size(300, 400),
+				StartPosition = FormStartPosition.CenterParent,
+				BackColor = System.Drawing.Color.FromArgb(45, 45, 48),
+				ForeColor = System.Drawing.Color.FromArgb(241, 241, 241)
+			};
+
+			CheckedListBox checkedListBox = new CheckedListBox {
+				Dock = DockStyle.Top,
+				Height = 300,
+				BackColor = System.Drawing.Color.FromArgb(30, 30, 30),
+				ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+				BorderStyle = BorderStyle.FixedSingle
+			};
+
+			foreach (var spawnData in DataManager.NameSpawnPairs.Values) {
+				checkedListBox.Items.Add(spawnData);
+			}
+			// Use ToString() by setting DisplayMember to empty string or null, 
+			// since we overrode ToString in SpawnData
+			checkedListBox.DisplayMember = "";
+
+			Button btnOk = new Button {
+				Text = "OK",
+				DialogResult = DialogResult.OK,
+				Dock = DockStyle.Bottom,
+				BackColor = System.Drawing.Color.FromArgb(63, 63, 70),
+				FlatStyle = FlatStyle.Flat
+			};
+
+			addSpawnerForm.Controls.Add(checkedListBox);
+			addSpawnerForm.Controls.Add(btnOk);
+
+			if (addSpawnerForm.ShowDialog() == DialogResult.OK) {
+				List<Guid> selectedIds = new List<Guid>();
+				foreach (SpawnData item in checkedListBox.CheckedItems) {
+					selectedIds.Add(item.Id);
+				}
+
+				if (selectedIds.Count > 0) {
+					new Spawner(_selectedRoom, selectedIds);
+					RefreshSpawnerList();
+				}
+			}
 		}
 
 		private void RefreshExitList() {
@@ -781,6 +881,7 @@ namespace MudServer.Util {
 
 			DataManager.SaveSpawnTemplates();
 			RefreshMobList();
+			RefreshSpawnerList();
 			ActiveTemplate = null;
 
 		}

@@ -17,6 +17,7 @@ namespace MudServer.Entity {
             TestUpdateWithEmptySpawnData();
             TestSaveAllMapsOnShutdown();
             TestCleanupNullSpawnersOnLoad();
+            TestMigrationOfOldSpawnDataFormat();
             TestIdDataSerialization();
             TestCreateSpawnerInRoomWithNullSpawnersList();
             TestCreateSpawnerWithNullRoom();
@@ -42,9 +43,9 @@ namespace MudServer.Entity {
         public void TestUpdateWithNullSpawnData() {
             try {
                 Spawner spawner = new Spawner();
-                spawner.SpawnData = null;
+                spawner.SpawnDataIds = null;
                 spawner.Update();
-                Assert(true, "Spawner.Update() should not throw when SpawnData is null");
+                Assert(true, "Spawner.Update() should not throw when SpawnDataIds is null");
             } catch (Exception e) {
                 Assert(false, "Spawner.Update() threw " + e.GetType().Name + ": " + e.Message);
             }
@@ -53,9 +54,9 @@ namespace MudServer.Entity {
         public void TestUpdateWithEmptySpawnData() {
             try {
                 Spawner spawner = new Spawner();
-                spawner.SpawnData = new SpawnData[0];
+                spawner.SpawnDataIds = new List<Guid>();
                 spawner.Update();
-                Assert(true, "Spawner.Update() should not throw when SpawnData is empty");
+                Assert(true, "Spawner.Update() should not throw when SpawnDataIds is empty");
             } catch (Exception e) {
                 Assert(false, "Spawner.Update() threw " + e.GetType().Name + ": " + e.Message);
             }
@@ -126,16 +127,16 @@ namespace MudServer.Entity {
                     DataManager.NameSpawnPairs.Add("Rat", validData);
                 }
 
-                Spawner validSpawner = new Spawner(testRoom, new List<SpawnData> { validData });
+                Spawner validSpawner = new Spawner(testRoom, new List<Guid> { validData.Id });
 
                 // Add a null spawner (manual addition to list to bypass constructor logic if any)
                 Spawner nullSpawner = new Spawner();
-                nullSpawner.SpawnData = null;
+                nullSpawner.SpawnDataIds = null;
                 testRoom.SpawnersHere.Add(nullSpawner);
 
                 // Add an empty spawner
                 Spawner emptySpawner = new Spawner();
-                emptySpawner.SpawnData = new SpawnData[0];
+                emptySpawner.SpawnDataIds = new List<Guid>();
                 testRoom.SpawnersHere.Add(emptySpawner);
 
                 // Save it
@@ -168,7 +169,7 @@ namespace MudServer.Entity {
                 if (World.World.Rooms.TryGetValue(stringCoord, out Room loadedRoom)) {
                     Assert(loadedRoom.SpawnersHere.Count == 1, "Only valid spawners should be loaded. Found: " + loadedRoom.SpawnersHere.Count);
                     if (loadedRoom.SpawnersHere.Count > 0) {
-                        Assert(loadedRoom.SpawnersHere[0].SpawnData != null && loadedRoom.SpawnersHere[0].SpawnData.Length > 0, "Loaded spawner should be the valid one");
+                        Assert(loadedRoom.SpawnersHere[0].SpawnDataIds != null && loadedRoom.SpawnersHere[0].SpawnDataIds.Count > 0, "Loaded spawner should be the valid one");
                     }
                 } else {
                     Assert(false, "Test room was not loaded back");
@@ -191,6 +192,103 @@ namespace MudServer.Entity {
                 Assert(false, "TestCleanupNullSpawnersOnLoad threw " + e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace);
             }
         }
+
+        public void TestMigrationOfOldSpawnDataFormat() {
+            try {
+                // Prepare a room with a spawner using the OLD "SpawnData" format (list of objects instead of list of Guids)
+                string testMapName = "test_migration_spawner.json";
+                Coordinate3 loc = new Coordinate3(777, 777, 777);
+                string stringCoord = "777 777 777";
+                
+                // We create a JSON string manually that represents the old format
+                string oldJson = @"
+{
+  ""777 777 777"": {
+    ""Location"": { ""X"": 777, ""Y"": 777, ""Z"": 777 },
+    ""MapName"": ""test_migration_spawner.json"",
+    ""SpawnersHere"": [
+      {
+        ""ID"": ""11111111-1111-1111-1111-111111111111"",
+        ""SpawnData"": [
+          {
+            ""Name"": ""MigratedRat"",
+            ""Level"": 1,
+            ""Id"": ""22222222-2222-2222-2222-222222222222"",
+            ""MaxHealth"": 10,
+            ""Str"": 8,
+            ""Dex"": 7,
+            ""Int"": 4,
+            ""Con"": 10
+          }
+        ],
+        ""MaxNumberOfSpawn"": 1,
+        ""Spawning"": true
+      }
+    ],
+    ""Name"": ""Migration Room""
+  }
+}";
+                string mapDir = System.IO.Path.GetDirectoryName(DataPaths.MapList);
+                if (string.IsNullOrEmpty(mapDir)) mapDir = ".";
+                string mapFile = System.IO.Path.Combine(mapDir, testMapName);
+                System.IO.File.WriteAllText(mapFile, oldJson);
+
+                // Add to maps.json
+                System.Web.Script.Serialization.JavaScriptSerializer serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                Dictionary<string, List<string>> mapList = new Dictionary<string, List<string>>();
+                if (System.IO.File.Exists(DataPaths.MapList)) {
+                    mapList = serializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText(DataPaths.MapList));
+                }
+                if (!mapList.ContainsKey("Maps")) mapList["Maps"] = new List<string>();
+                bool addedMap = false;
+                if (!mapList["Maps"].Contains(testMapName)) {
+                    mapList["Maps"].Add(testMapName);
+                    System.IO.File.WriteAllText(DataPaths.MapList, serializer.Serialize(mapList));
+                    addedMap = true;
+                }
+
+                // Clear memory
+                World.World.Rooms.Clear();
+                World.World.Spawners.Clear();
+                DataManager.NameSpawnPairs.Remove("MigratedRat");
+
+                // Load
+                DataManager.LoadData(DataPaths.World);
+
+                // Verify
+                if (World.World.Rooms.TryGetValue(stringCoord, out Room loadedRoom)) {
+                    Assert(loadedRoom.SpawnersHere.Count == 1, "Spawner should have been migrated, not deleted. Found: " + loadedRoom.SpawnersHere.Count);
+                    if (loadedRoom.SpawnersHere.Count > 1) {
+                        var spawner = loadedRoom.SpawnersHere[0];
+                        Assert(spawner.SpawnDataIds.Count == 1, "SpawnDataIds should be populated");
+                        Assert(spawner.SpawnDataIds.Contains(new Guid("22222222-2222-2222-2222-222222222222")), "SpawnDataId should match");
+                        Assert(DataManager.NameSpawnPairs.ContainsKey("MigratedRat"), "Template should have been added to NameSpawnPairs");
+                    } else if (loadedRoom.SpawnersHere.Count == 1) {
+                         var spawner = loadedRoom.SpawnersHere[0];
+                         Assert(spawner.SpawnDataIds.Count == 1, "SpawnDataIds should be populated. Count: " + spawner.SpawnDataIds.Count);
+                         if (spawner.SpawnDataIds.Count > 0) {
+                            Assert(spawner.SpawnDataIds[0] == new Guid("22222222-2222-2222-2222-222222222222"), "SpawnDataId should match. Found: " + spawner.SpawnDataIds[0]);
+                         }
+                         Assert(DataManager.NameSpawnPairs.ContainsKey("MigratedRat"), "Template should have been added to NameSpawnPairs");
+                    }
+                } else {
+                    Assert(false, "Migration room was not loaded");
+                }
+
+                // Cleanup
+                if (System.IO.File.Exists(mapFile)) System.IO.File.Delete(mapFile);
+                if (addedMap) {
+                    mapList["Maps"].Remove(testMapName);
+                    System.IO.File.WriteAllText(DataPaths.MapList, serializer.Serialize(mapList));
+                }
+                World.World.Rooms.Remove(stringCoord);
+                DataManager.NameSpawnPairs.Remove("MigratedRat");
+
+            } catch (Exception e) {
+                Assert(false, "TestMigrationOfOldSpawnDataFormat failed: " + e.Message + "\n" + e.StackTrace);
+            }
+        }
+
         public void TestIdDataSerialization() {
             try {
                 // Clear existing data
@@ -226,7 +324,7 @@ namespace MudServer.Entity {
                 Room room = new Room(new Coordinate3(777, 777, 777), "Null Spawners List Room");
                 room.SpawnersHere = null; // Simulate deserialization issue where it might be null
 
-                List<SpawnData> spawnList = new List<SpawnData> { new SpawnData("Test") };
+                List<Guid> spawnList = new List<Guid> { Guid.NewGuid() };
                 new Spawner(room, spawnList);
 
                 Assert(room.SpawnersHere != null, "Spawner constructor should initialize SpawnersHere if it is null");
@@ -242,7 +340,7 @@ namespace MudServer.Entity {
 
         public void TestCreateSpawnerWithNullRoom() {
             try {
-                List<SpawnData> spawnList = new List<SpawnData> { new SpawnData("Test") };
+                List<Guid> spawnList = new List<Guid> { Guid.NewGuid() };
                 Spawner spawner = new Spawner(null, spawnList);
                 Assert(true, "Spawner constructor should not throw when room is null");
                 Assert(!World.World.Spawners.Contains(spawner), "Spawner should not be added to World.World.Spawners if room is null");

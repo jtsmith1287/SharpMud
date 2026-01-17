@@ -24,6 +24,7 @@ namespace MudServer.Entity {
 
         private void HandleDeath(Stats data) {
             GameState = GameState.Dead;
+            TriggerOnDeath(data);
         }
 
         public void ExecuteLogic(int currentTick) {

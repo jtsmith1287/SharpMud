@@ -15,12 +15,17 @@ namespace MudServer.Entity {
 
 		public SpawnData() {
 			Humanoid = true;
+			Id = Guid.NewGuid();
 		}
 
 		public SpawnData(string name) : this() {
 
 			Name = name;
 			Level = 1;
+		}
+
+		public override string ToString() {
+			return $"{Name} ({Level})";
 		}
 
 		SpawnData(string name, Guid id)

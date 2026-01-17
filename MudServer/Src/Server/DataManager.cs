@@ -172,15 +172,18 @@ namespace MudServer.Server {
                                         }
 
                                         if (room.Value.SpawnersHere != null) {
-                                            room.Value.SpawnersHere.RemoveAll(
-                                                s => s.SpawnData == null || s.SpawnData.Length == 0
-                                            );
                                             foreach (var spawner in room.Value.SpawnersHere) {
                                                 spawner.Location = room.Value.Location;
-                                                if (!World.World.Spawners.Contains(spawner)) {
-                                                    World.World.Spawners.Add(spawner);
+                                                if (spawner.SpawnDataIds != null && spawner.SpawnDataIds.Count > 0) {
+                                                    if (!World.World.Spawners.Contains(spawner)) {
+                                                        World.World.Spawners.Add(spawner);
+                                                    }
                                                 }
                                             }
+
+                                            room.Value.SpawnersHere.RemoveAll(
+                                                s => (s.SpawnDataIds == null || s.SpawnDataIds.Count == 0)
+                                            );
 
                                             if (room.Value.SpawnersHere.Count > 0) {
                                                 World.World.StartAiThread();
@@ -211,15 +214,18 @@ namespace MudServer.Server {
                                         }
 
                                         if (room.Value.SpawnersHere != null) {
-                                            room.Value.SpawnersHere.RemoveAll(
-                                                s => s.SpawnData == null || s.SpawnData.Length == 0
-                                            );
                                             foreach (var spawner in room.Value.SpawnersHere) {
                                                 spawner.Location = room.Value.Location;
-                                                if (!World.World.Spawners.Contains(spawner)) {
-                                                    World.World.Spawners.Add(spawner);
+                                                if (spawner.SpawnDataIds != null && spawner.SpawnDataIds.Count > 0) {
+                                                    if (!World.World.Spawners.Contains(spawner)) {
+                                                        World.World.Spawners.Add(spawner);
+                                                    }
                                                 }
                                             }
+
+                                            room.Value.SpawnersHere.RemoveAll(
+                                                s => (s.SpawnDataIds == null || s.SpawnDataIds.Count == 0)
+                                            );
 
                                             if (room.Value.SpawnersHere.Count > 0) {
                                                 World.World.StartAiThread();

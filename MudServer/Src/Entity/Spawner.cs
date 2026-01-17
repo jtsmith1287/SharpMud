@@ -5,12 +5,29 @@ using System.Web.Script.Serialization;
 using MudServer.World;
 using MudServer.Util;
 using MudServer.Enums;
+using MudServer.Server;
 
 namespace MudServer.Entity {
 	public class Spawner {
 
 		public Guid ID;
-		public SpawnData[] SpawnData;
+		public List<Guid> SpawnDataIds = new List<Guid>();
+		public List<SpawnData> SpawnData {
+			set {
+				if (value == null) return;
+				foreach (var data in value) {
+					if (data == null) continue;
+					if (data.Id == Guid.Empty) data.Id = Guid.NewGuid();
+					if (!SpawnDataIds.Contains(data.Id)) {
+						SpawnDataIds.Add(data.Id);
+					}
+					// Ensure it's in the global list so it can be resolved
+					if (!string.IsNullOrEmpty(data.Name) && !DataManager.NameSpawnPairs.ContainsKey(data.Name)) {
+						DataManager.NameSpawnPairs[data.Name] = data;
+					}
+				}
+			}
+		}
 		[ScriptIgnore]
 		public List<NonPlayerCharacter> Spawns = new List<NonPlayerCharacter>();
 		[ScriptIgnore]
@@ -31,10 +48,10 @@ namespace MudServer.Entity {
 			SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 		}
 
-		public Spawner(Room room, List<SpawnData> spawnList) : this() {
+		public Spawner(Room room, List<Guid> spawnDataIds) : this() {
 			if (room == null) return;
 
-			SpawnData = spawnList.ToArray();
+			SpawnDataIds = spawnDataIds;
 
 			if (room.SpawnersHere == null)
 				room.SpawnersHere = new List<Spawner>();
@@ -49,15 +66,19 @@ namespace MudServer.Entity {
 
 		public void Update() {
 
-			if (!Spawning || SpawnData == null || SpawnData.Length == 0) return;
+			if (!Spawning || SpawnDataIds == null || SpawnDataIds.Count == 0) return;
 
 			if (Spawns.Count < MaxNumberOfSpawn) {
 				if (SpawnTime < DateTime.Now) {
-					NonPlayerCharacter newMob = new NonPlayerCharacter(SpawnData[Rand.Next(0, SpawnData.Length)], this);
-					Spawns.Add(newMob);
-					newMob.Stats.OnZeroHealth += QueueDestroyMob;
-					newMob.Move(Location);
-					World.World.Mobiles.Add(newMob.Id, newMob);
+					Guid randomSpawnId = SpawnDataIds[Rand.Next(0, SpawnDataIds.Count)];
+					SpawnData data = DataManager.NameSpawnPairs.Values.FirstOrDefault(s => s.Id == randomSpawnId);
+					if (data != null) {
+						NonPlayerCharacter newMob = new NonPlayerCharacter(data, this);
+						Spawns.Add(newMob);
+						newMob.Stats.OnZeroHealth += QueueDestroyMob;
+						newMob.Move(Location);
+						World.World.Mobiles.Add(newMob.Id, newMob);
+					}
 
 					SpawnTime = DateTime.Now.Add(new TimeSpan(0, 0, 1));
 				}
