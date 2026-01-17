@@ -71,8 +71,8 @@ public static class Actions {
             if (entity == null || entity.Id == player.Id) continue;
 
             if (entity is BaseMobile mobile) {
-                if (ArgumentHandler.AutoComplete(name, mobile.Name) ||
-                    (mobile.Stats != null && ArgumentHandler.AutoComplete(name, mobile.Stats.Name))) {
+                if (ArgumentHandler.TryAutoComplete(name, mobile.Name) ||
+                    (mobile.Stats != null && ArgumentHandler.TryAutoComplete(name, mobile.Stats.Name))) {
                     player.Target = mobile;
                     player.GameState = GameState.Combat;
                     break;
@@ -108,15 +108,15 @@ public static class Actions {
 
                 if (entity is BaseMobile target) {
                     if (!target.Hidden || id == player.Id) {
-                        if (ArgumentHandler.AutoComplete(targetName, target.Name) ||
-                            (target.Stats != null && ArgumentHandler.AutoComplete(targetName, target.Stats.Name))) {
+                        if (ArgumentHandler.TryAutoComplete(targetName, target.Name) ||
+                            (target.Stats != null && ArgumentHandler.TryAutoComplete(targetName, target.Stats.Name))) {
                             ViewStats(player, target);
                             return;
                         }
                     }
                 } else if (entity is Item item) {
                     if (!item.Hidden) {
-                        if (ArgumentHandler.AutoComplete(targetName, item.Name)) {
+                        if (ArgumentHandler.TryAutoComplete(targetName, item.Name)) {
                             player.SendToClient($"\n{item.Name}\n{item.Description}\n", Color.Green);
                             return;
                         }
