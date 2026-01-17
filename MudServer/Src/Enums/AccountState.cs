@@ -1,6 +1,6 @@
 using System;
 
-namespace GameCore.Util {
+namespace MudServer.Enums {
 public enum AccountState {
     Inactive,
     Active,

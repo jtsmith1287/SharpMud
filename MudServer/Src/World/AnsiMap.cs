@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
-using GameCore.Util;
+using MudServer.Util;
 
-namespace GameCore {
+namespace MudServer.World {
 public static class AnsiMap {
     public static string Display(Coordinate3 location, int radius = 6) {
         if (location == null) return string.Empty;

@@ -1,6 +1,6 @@
 using System;
 
-namespace GameCore.Util {
+namespace MudServer.Enums {
 public enum Disposition {
     Friendly,
     Hostile,

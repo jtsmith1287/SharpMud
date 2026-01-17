@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
-using GameCore;
-using GameCore.Util;
-using ServerCore.Util;
+using MudServer.Entity;
+using MudServer.Util;
+using MudServer.Actions;
+using MudServer.Enums;
 
-namespace ServerCore {
+namespace MudServer.Server {
 public class Connection : IDisposable {
     private static readonly object BigLock = new object();
     private static readonly ArrayList Connections = new ArrayList();
@@ -20,7 +21,7 @@ public class Connection : IDisposable {
     private readonly StreamWriter _writer;
     private readonly object _writeLock = new object();
 
-    private PlayerEntity _player;
+    private PlayerCharacter _player;
 
     public Connection(Socket socket) {
         this._socket = socket;
@@ -99,12 +100,12 @@ public class Connection : IDisposable {
                 if (providedPwd == truePwd) {
                     if (DataManager.UsernameIdPairs.TryGetValue(username, out var id)) {
                         if (DataManager.IdDataPairs.TryGetValue(id, out var data)) {
-                            _player = new PlayerEntity(this, data);
+                            _player = new PlayerCharacter(this, data);
                             break;
                         } else {
                             Send("Warning: User data not found. Recreating basic stats.");
                             data = new Stats(username, id);
-                            _player = new PlayerEntity(this, data);
+                            _player = new PlayerCharacter(this, data);
                             break;
                         }
                     } else {
@@ -112,7 +113,7 @@ public class Connection : IDisposable {
                         var newId = Guid.NewGuid();
                         DataManager.UsernameIdPairs.Add(username, newId);
                         var data = new Stats(username, newId);
-                        _player = new PlayerEntity(this, data);
+                        _player = new PlayerCharacter(this, data);
                         break;
                     }
                 } else {
@@ -138,7 +139,7 @@ public class Connection : IDisposable {
 
                     if (providedPwd == pwdVerify) {
                         Send("Got it! We're entering you into the system now.");
-                        _player = new PlayerEntity(this, new Stats(username, Guid.NewGuid()));
+                        _player = new PlayerCharacter(this, new Stats(username, Guid.NewGuid()));
 
                         DataManager.UsernamePwdPairs.Add(username, providedPwd);
                         DataManager.UsernameIdPairs.Add(username, _player.Id);

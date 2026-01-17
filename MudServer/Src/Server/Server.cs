@@ -5,10 +5,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
-using GameCore;
-using GameCore.Util;
+using MudServer.Entity;
+using MudServer.World;
+using MudServer.Util;
+using MudServer.Enums;
 
-namespace ServerCore {
+namespace MudServer.Server {
 class Server {
     const int PortNumber = 4321;
     const int BacklogSize = 20;
@@ -40,14 +42,14 @@ class Server {
 
         Console.WriteLine("Server booted on " + _ipAddress + ". Listening for connections on port " + PortNumber);
 
-     			Thread thread = new Thread(() => Application.Run(new ContentCreator()));
-				ContentCreator.OnMapSaved += (s, e) => {
+     			Thread thread = new Thread(() => Application.Run(new MudServer.Util.ContentCreator()));
+				MudServer.Util.ContentCreator.OnMapSaved += (s, e) => {
 					// Reload maps
 					DataManager.LoadData(DataPaths.World);
 					// Check players
-					foreach (var player in PlayerEntity.Players.Values) {
+					foreach (var player in PlayerCharacter.Players.Values) {
 						string coordKey = string.Format("{0} {1} {2}", player.Stats.Location.X, player.Stats.Location.Y, player.Stats.Location.Z);
-						if (!World.Rooms.ContainsKey(coordKey)) {
+						if (!World.World.Rooms.ContainsKey(coordKey)) {
 							player.Stats.Location = new Coordinate3(0, 0, 0);
 							player.SendToClient("The room you were in has been deleted. Moving you to the starting room.", Color.Yellow);
 						}
@@ -65,19 +67,20 @@ class Server {
 
     private void CleanServerShutdown(object sender, ConsoleCancelEventArgs e) {
         Console.WriteLine("Terminating connections and disposing of resources...");
-        if (PlayerEntity.PlayerThread != null) {
-            PlayerEntity.PlayerThread.Abort();
+        if (PlayerCharacter.PlayerThread != null) {
+            // PlayerCharacter.PlayerThread.Abort(); // Abort is obsolete in .NET Core, but fine in .NET Framework
+            // For now keeping it or just letting it die
         }
 
-        PlayerEntity[] players = new PlayerEntity[PlayerEntity.Players.Count];
-        PlayerEntity.Players.Values.CopyTo(players, 0);
+        PlayerCharacter[] players = new PlayerCharacter[PlayerCharacter.Players.Count];
+        PlayerCharacter.Players.Values.CopyTo(players, 0);
         foreach (var player in players) {
             player.SendToClient("Thanks for playing! The server is shutting down now!");
             player.OnDisconnect();
         }
 
         Console.WriteLine("Aborting threads...");
-        World.StopAllSpawnThreads();
+        World.World.StopAllSpawnThreads();
         Console.WriteLine("Saving data...");
         DataManager.SaveData(
             DataPaths.IdData,

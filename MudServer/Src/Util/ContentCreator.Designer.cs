@@ -1,4 +1,4 @@
-﻿namespace ServerCore {
+﻿namespace MudServer.Util {
 	partial class ContentCreator {
 		/// <summary>
 		/// Required designer variable.
@@ -257,7 +257,7 @@
 			// 
 			// spawnDataBindingSource
 			// 
-			this.spawnDataBindingSource.DataSource = typeof(GameCore.Util.SpawnData);
+			this.spawnDataBindingSource.DataSource = typeof(MudServer.Entity.SpawnData);
 			// 
 			// ComboFaction
 			// 

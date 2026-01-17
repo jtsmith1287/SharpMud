@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GameCore;
-using GameCore.Util;
+using MudServer.Entity;
+using MudServer.World;
+using MudServer.Enums;
 
-namespace MudServer {
+namespace MudServer.Entity {
 public class CombatTests {
     private int _passed = 0;
     private int _failed = 0;
@@ -36,7 +37,7 @@ public class CombatTests {
         }
     }
 
-    private void SetupCombatScenario(out TestMobile player, out Mobile enemy) {
+    private void SetupCombatScenario(out TestMobile player, out NonPlayerCharacter enemy) {
         // Setup a dummy room so BroadCastLocal doesn't fail or so Move works
         Coordinate3 loc = new Coordinate3(999, 999, 999);
         Room room = new Room(loc, "Test Room");
@@ -61,15 +62,15 @@ public class CombatTests {
         enemyData.MaxHealth = 50;
         enemyData.Location = loc;
 
-        enemy = new Mobile(enemyData, null);
+        enemy = new NonPlayerCharacter(enemyData, null);
         enemy.GenerateID();
-        World.Mobiles[enemy.Id] = enemy;
+        World.World.Mobiles[enemy.Id] = enemy;
         room.EntitiesHere.Add(enemy.Id);
     }
 
     public void TestDamageAndHealth() {
         TestMobile player;
-        Mobile enemy;
+        NonPlayerCharacter enemy;
         SetupCombatScenario(out player, out enemy);
 
         int initialHealth = enemy.Stats.Health;
@@ -105,7 +106,7 @@ public class CombatTests {
 
     public void TestDodging() {
         TestMobile player;
-        Mobile enemy;
+        NonPlayerCharacter enemy;
         SetupCombatScenario(out player, out enemy);
 
         // Set enemy Dex very high to increase dodge chance
@@ -126,7 +127,7 @@ public class CombatTests {
 
     public void TestSurpriseAttack() {
         TestMobile player;
-        Mobile enemy;
+        NonPlayerCharacter enemy;
         SetupCombatScenario(out player, out enemy);
 
         player.Hidden = true;
@@ -156,7 +157,7 @@ public class CombatTests {
 
     public void TestDeath() {
         TestMobile player;
-        Mobile enemy;
+        NonPlayerCharacter enemy;
         SetupCombatScenario(out player, out enemy);
 
         enemy.Stats.Health = 1;
@@ -174,23 +175,23 @@ public class CombatTests {
 
     public void TestDisengageWhenNotPresent() {
         TestMobile player;
-        Mobile enemy;
+        NonPlayerCharacter enemy;
         SetupCombatScenario(out player, out enemy);
 
         // Put enemy in combat with player
         enemy.Target = player;
         enemy.GameState = GameState.Combat;
-        enemy.LastCombatTick = World.CombatTick - 1;
+        enemy.LastCombatTick = World.World.CombatTick - 1;
 
         // Verify it's in combat
         Assert(enemy.GameState == GameState.Combat, "Enemy should be in combat");
 
         // Remove player from the room's EntitiesHere list, but keep location same
-        Room room = World.GetRoom(enemy.Stats.Location);
+        Room room = World.World.GetRoom(enemy.Stats.Location);
         room.EntitiesHere.Remove(player.Id);
 
         // Run logic
-        enemy.ExecuteLogic(World.CombatTick);
+        enemy.ExecuteLogic(World.World.CombatTick);
 
         // Verify disengage
         Assert(enemy.GameState == GameState.Idle, "Enemy should disengage when target is not in the room's entity list");
@@ -207,7 +208,7 @@ public class CombatTests {
         }
 
         public override void SendToClient(string msg, string colorSequence = "") {
-            // Do nothing in tests to avoid NullReference from PlayerEntity.SendToClient
+            // Do nothing in tests to avoid NullReference from PlayerCharacter.SendToClient
         }
     }
 }

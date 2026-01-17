@@ -7,14 +7,14 @@
     <framework targetVersion="4.8" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="MudServer.exe.manifest" size="3868">
+    <dependentAssembly dependencyType="install" codebase="MudServer.exe.manifest" size="4278">
       <assemblyIdentity name="MudServer.exe" version="1.0.0.1" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="x86" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>O4htfP625rDV8MO8NS9NuR8xodh0xFSbbJ1u3RurC4A=</dsig:DigestValue>
+        <dsig:DigestValue>uR1GPJRqpI0d3ha0XENDEQtzUYy1r2um9kK9GdF/MZg=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

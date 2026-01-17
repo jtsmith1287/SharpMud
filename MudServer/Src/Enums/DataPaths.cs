@@ -1,4 +1,4 @@
-﻿namespace GameCore.Util {
+﻿namespace MudServer.Enums {
 public struct DataPaths {
     public const string UserPwd = "userpwd.json";
     public const string UserId = "userid.json";

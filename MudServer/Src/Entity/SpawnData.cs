@@ -1,8 +1,11 @@
 using System;
 
-namespace GameCore.Util {
+using System;
+using MudServer.Enums;
+
+namespace MudServer.Entity {
 	/// <summary>
-	/// Contains data to construct a spawn. This is to be passed to a spawner which will generate a Mobile using the data.
+	/// Contains data to construct a spawn. This is to be passed to a spawner which will generate a NonPlayerCharacter using the data.
 	/// </summary>
 	public class SpawnData : Stats {
 

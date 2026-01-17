@@ -1,291 +1,288 @@
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using GameCore.Util;
+using MudServer.Interfaces;
+using MudServer.Enums;
+using MudServer.Util;
+using MudServer.World;
 
-namespace GameCore {
-public class BaseMobile {
-    public Guid Id;
-    public string Name;
-    public Stats Stats;
-    public GameState GameState = GameState.Idle;
-    public bool Hidden = false;
-    protected readonly Random Rnd = new Random();
-    public BaseMobile Target;
-    public int LastCombatTick = -1;
+namespace MudServer.Entity {
+    public abstract class BaseMobile : Entity, IActor, IDamageable, IBroadcastable {
+        public Stats Stats { get; set; }
+        public GameState GameState { get; set; } = GameState.Idle;
+        protected readonly Random Rnd = new Random();
+        public BaseMobile Target;
+        public int LastCombatTick = -1;
 
-    /// <summary>
-    /// Do not add to this event directly. Use OnDeath.
-    /// </summary>
-    event Action<BaseMobile> OnDeathEvent = delegate { };
-
-    public event Action<BaseMobile> OnDeath {
-        add {
-            //Prevent double subscription
-            OnDeathEvent -= value;
-            OnDeathEvent += value;
-        }
-        remove {
-            OnDeathEvent -= value;
-        }
-    }
-
-    /// <summary>
-    /// Generates and sets this instance's Guid.
-    /// </summary>
-    /// <returns>The generated Guid.</returns>
-    public Guid GenerateID() {
-        Id = Guid.NewGuid();
-        Stats.Id = Id;
-        return Id;
-    }
-
-    public void TriggerOnDeath(Stats data) {
-        if (data.Id == Stats.Id) {
-            OnDeathEvent(this);
-        }
-    }
-
-    public virtual void Move(Coordinate3 location) {
-        Room oldRoom = World.GetRoom(Stats.Location);
-        Room newRoom = World.GetRoom(location);
-
-        if (newRoom == null) {
-            // If we can't move to the new room, just stay where we are.
-            // We might want to notify the mobile/player.
-            SendToClient("You can't go that way.", Color.Red);
-            return;
+        public int Health {
+            get => Stats.Health;
+            set => Stats.Health = value;
         }
 
-        var thisPlayer = PlayerEntity.GetPlayerByID(Stats.Id);
-        if (thisPlayer != null && thisPlayer.GameState == GameState.Resting) {
-            thisPlayer.AccountState = AccountState.Active;
-            thisPlayer.SendToClient("You stop resting as you move.", Color.Cyan);
+        public void ApplyDamage(int amount) {
+            Health -= amount;
         }
 
-        if (Stats.Location == location) {
-            BroadcastLocal(Name + " has arrived.", Color.Yellow);
-            lock (newRoom.EntitiesHere) {
-                try {
-                    // In case we're already here, we don't want to add a duplicate of ourselves.
-                    newRoom.EntitiesHere.Remove(Id);
-                } catch (InvalidOperationException) { }
+        /// <summary>
+        /// Do not add to this event directly. Use OnDeath.
+        /// </summary>
+        event Action<BaseMobile> OnDeathEvent = delegate { };
 
-                newRoom.EntitiesHere.Add(Id);
+        public event Action<BaseMobile> OnDeath {
+            add {
+                //Prevent double subscription
+                OnDeathEvent -= value;
+                OnDeathEvent += value;
             }
-
-            if (thisPlayer != null)
-                Actions.ActionCalls["look"](thisPlayer, new string[1]);
-            return;
-        }
-
-        if (oldRoom != null) {
-            lock (oldRoom.EntitiesHere) {
-                oldRoom.EntitiesHere.Remove(Id);
-            }
-
-            if (!Hidden) {
-                BroadcastLocal(
-                    Name + " has left to the " + oldRoom.GetDirection(newRoom.Location),
-                    Color.Yellow
-                );
+            remove {
+                OnDeathEvent -= value;
             }
         }
 
-        Stats.Location = newRoom.Location;
-        if (oldRoom != null) {
-            if (!Hidden) {
-                BroadcastLocal(
-                    Name + " has arrived from the " +
-                    newRoom.GetDirection(oldRoom.Location), Color.Yellow
-                );
-                SendToClient(
-                    "You move to the " + oldRoom.GetDirection(newRoom.Location),
-                    Color.White
-                );
-            } else {
-                SendToClient(
-                    "You sneak to the " + oldRoom.GetDirection(newRoom.Location),
-                    Color.Magenta
-                );
+        /// <summary>
+        /// Generates and sets this instance's Guid.
+        /// </summary>
+        /// <returns>The generated Guid.</returns>
+        public Guid GenerateID() {
+            Id = Guid.NewGuid();
+            Stats.Id = Id;
+            return Id;
+        }
+
+        public void TriggerOnDeath(Stats data) {
+            if (data.Id == Stats.Id) {
+                OnDeathEvent(this);
             }
-        } else {
-            if (!Hidden) {
+        }
+
+        public virtual void Move(Coordinate3 location) {
+            Room oldRoom = World.World.GetRoom(Stats.Location);
+            Room newRoom = World.World.GetRoom(location);
+
+            if (newRoom == null) {
+                // If we can't move to the new room, just stay where we are.
+                // We might want to notify the mobile/player.
+                SendToClient("You can't go that way.", Color.Red);
+                return;
+            }
+
+            var thisPlayer = PlayerCharacter.GetPlayerByID(Stats.Id);
+            if (thisPlayer != null && thisPlayer.GameState == GameState.Resting) {
+                thisPlayer.AccountState = AccountState.Active;
+                thisPlayer.SendToClient("You stop resting as you move.", Color.Cyan);
+            }
+
+            if (Stats.Location == location) {
                 BroadcastLocal(Name + " has arrived.", Color.Yellow);
+                lock (newRoom.EntitiesHere) {
+                    try {
+                        // In case we're already here, we don't want to add a duplicate of ourselves.
+                        newRoom.EntitiesHere.Remove(Id);
+                    } catch (InvalidOperationException) { }
+
+                    newRoom.EntitiesHere.Add(Id);
+                }
+
+                if (thisPlayer != null)
+                    Actions.Actions.ActionCalls["look"](thisPlayer, new string[1]);
+                return;
+            }
+
+            if (oldRoom != null) {
+                lock (oldRoom.EntitiesHere) {
+                    oldRoom.EntitiesHere.Remove(Id);
+                }
+
+                if (!Hidden) {
+                    BroadcastLocal(
+                        Name + " has left to the " + oldRoom.GetDirection(newRoom.Location),
+                        Color.Yellow
+                    );
+                }
+            }
+
+            Stats.Location = newRoom.Location;
+            if (oldRoom != null) {
+                if (!Hidden) {
+                    BroadcastLocal(
+                        Name + " has arrived from the " +
+                        newRoom.GetDirection(oldRoom.Location), Color.Yellow
+                    );
+                    SendToClient(
+                        "You move to the " + oldRoom.GetDirection(newRoom.Location),
+                        Color.White
+                    );
+                } else {
+                    SendToClient(
+                        "You sneak to the " + oldRoom.GetDirection(newRoom.Location),
+                        Color.Magenta
+                    );
+                }
+            } else {
+                if (!Hidden) {
+                    BroadcastLocal(Name + " has arrived.", Color.Yellow);
+                }
+            }
+
+            lock (newRoom.EntitiesHere) {
+                if (!newRoom.EntitiesHere.Contains(Id)) {
+                    newRoom.EntitiesHere.Add(Id);
+                }
+            }
+
+            if (thisPlayer != null) {
+                Actions.Actions.ActionCalls["look"](thisPlayer, new string[1]);
+                Actions.Actions.ShowMap(thisPlayer, new string[1]);
             }
         }
 
-        lock (newRoom.EntitiesHere) {
-            if (!newRoom.EntitiesHere.Contains(Id)) {
-                newRoom.EntitiesHere.Add(Id);
+        public virtual void SendToClient(string msg, string colorSequence = "") {
+            if (World.World.GetEntity(Id) is PlayerCharacter player) {
+                player.SendToClient(msg, colorSequence);
             }
         }
 
-        if (thisPlayer != null) {
-            Actions.ActionCalls["look"](thisPlayer, new string[1]);
-            Actions.ShowMap(thisPlayer, new string[1]);
-        }
-    }
+        public void BroadcastLocal(string msg, string colorSequence = "", params Guid[] ignore) {
+            Room room = World.World.GetRoom(Stats.Location);
+            if (room != null) {
+                Guid[] entities;
+                lock (room.EntitiesHere) {
+                    entities = room.EntitiesHere.ToArray();
+                }
 
-    public virtual void SendToClient(string msg, string colorSequence = "") {
-        PlayerEntity player;
-        if (PlayerEntity.Players.TryGetValue(Id, out player)) {
-            player.SendToClient(msg, colorSequence);
-        }
-    }
+                for (int i = 0; i < entities.Length; i++) {
+                    if (World.World.GetEntity(entities[i]) is PlayerCharacter player) {
+                        if (player.Id == Id || ignore.Contains(player.Id)) {
+                            continue;
+                        }
 
-    public void BroadcastLocal(string msg, string colorSequence = "", params Guid[] ignore) {
-        PlayerEntity player;
-        Room room = World.GetRoom(Stats.Location);
-        if (room != null) {
-            Guid[] entities;
-            lock (room.EntitiesHere) {
-                entities = room.EntitiesHere.ToArray();
-            }
-
-            for (int i = 0; i < entities.Length; i++) {
-                if (PlayerEntity.Players.TryGetValue(entities[i], out player)) {
-                    if (player.Id == Id || Contains<Guid>(ignore, player.Id)) {
-                        continue;
+                        player.SendToClient(msg, colorSequence);
                     }
-
-                    player.SendToClient(msg, colorSequence);
                 }
             }
         }
-    }
 
-    protected bool Contains<T>(T[] a, T b) {
-        for (int i = 0; i < a.Length; i++) {
-            if (a[i].Equals(b))
-                return true;
+        protected void StrikeTarget(BaseMobile target) {
+            int dodgeVal = Rnd.Next(1, 101);
+            if (dodgeVal >= 108 - Math.Sqrt((double)target.Stats.Dex * 7)) {
+                BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, target.Id);
+                target.SendToClient($"You dodged {Name}'s attack!", Color.RedD);
+                SendToClient($"{target.Name} dodged your attack!", Color.RedD);
+            } else if (false) {
+                // other possibilities for no damage TBD
+            } else if (target.Stats.Health > 0 && target.GameState != GameState.Dead) {
+                int dmg = Rnd.Next((int)(Stats.Str / 4f), (int)(Stats.Str / 3f));
+                if (Hidden) {
+                    Hidden = false;
+                    SendToClient($"You surprise attack {target.Name}!", Color.White);
+                    dmg *= 2;
+                }
+
+                target.OnDeath += OnDeathEventReceiver;
+                if (target.GameState != GameState.Combat || target.Target == null ||
+                    target.Target.GameState == GameState.Dead ||
+                    (target.Target.Stats != null && target.Target.Stats.Health <= 0)) {
+                    target.Target = this;
+                    target.GameState = GameState.Combat;
+                    target.LastCombatTick = World.World.CombatTick;
+                    target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
+                }
+
+                BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.Id);
+                target.SendToClient(
+                    Color.Red + $"{Name} struck {Color.Yellow + "*" + Color.White + "You " + Color.Red}for {dmg} damage!"
+                );
+                SendToClient(
+                    Color.White + "You " + Color.Red +
+                    $"struck {target.Name} for {dmg} damage!", Color.Red
+                );
+                target.ApplyDamage(dmg);
+            } else {
+                Target = null;
+                GameState = GameState.Idle;
+                SendToClient("* Combat disengaged *", Color.White);
+            }
         }
 
-        return false;
-    }
+        public bool IsTargetPresent() {
+            if (Target == null || Target.Stats == null || Target.GameState == GameState.Dead ||
+                Target.Stats.Health <= 0) return false;
+            Room room = World.World.GetRoom(Stats.Location);
+            if (room == null) return false;
 
-    protected void StrikeTarget(BaseMobile target) {
-        int dodgeVal = Rnd.Next(1, 101);
-        if (dodgeVal >= 108 - Math.Sqrt((double)target.Stats.Dex * 7)) {
-            BroadcastLocal($"{target.Name} dodged {Name}'s attack!", Color.RedD, target.Id);
-            target.SendToClient($"You dodged {Name}'s attack!", Color.RedD);
-            SendToClient($"{target.Name} dodged your attack!", Color.RedD);
-        } else if (false) {
-            // other possibilities for no damage TBD
-        } else if (target.Stats.Health > 0 && target.GameState != GameState.Dead) {
-            int dmg = Rnd.Next((int)(Stats.Str / 4f), (int)(Stats.Str / 3f));
-            if (Hidden) {
-                Hidden = false;
-                SendToClient($"You surprise attack {target.Name}!", Color.White);
-                dmg *= 2;
+            // Basic location check
+            if (Target.Stats.Location != Stats.Location) return false;
+
+            // Precise room presence check
+            lock (room.EntitiesHere) {
+                return room.EntitiesHere.Contains(Target.Id);
+            }
+        }
+
+        void OnDeathEventReceiver(BaseMobile killed) {
+            // If this mobile is dead, it can't get experience now can it?
+            if (GameState == GameState.Dead) {
+                return;
             }
 
-            target.OnDeath += OnDeathEventReceiver;
-            if (target.GameState != GameState.Combat || target.Target == null ||
-                target.Target.GameState == GameState.Dead ||
-                (target.Target.Stats != null && target.Target.Stats.Health <= 0)) {
-                target.Target = this;
-                target.GameState = GameState.Combat;
-                target.LastCombatTick = World.CombatTick;
-                target.SendToClient($"{Name} attacked you! You're now in combat!", Color.Red);
+            int distance = (Stats.Location - killed.Stats.Location).Max();
+            // If targetting something far away and it dies, ignore it.
+            if (distance > 3 && Target.Stats.Id == killed.Stats.Id) {
+                GameState = GameState.Idle;
+                Target = null;
+                return;
             }
 
-            BroadcastLocal($"{target.Name} was struck by {Name} for {dmg} damage!", Color.Red, target.Id);
-            target.SendToClient(
-                Color.Red + $"{Name} struck {Color.Yellow + "*" + Color.White + "You " + Color.Red}for {dmg} damage!"
-            );
-            SendToClient(
-                Color.White + "You " + Color.Red +
-                $"struck {target.Name} for {dmg} damage!", Color.Red
-            );
-            target.Stats.Health -= dmg;
-        } else {
-            Target = null;
-            GameState = GameState.Idle;
+            // Only untarget and break combat if we're targetting what died and grant bonus experience.
+            if (Target.Stats.Id == killed.Stats.Id) {
+                SendToClient(
+                    "You killed " + killed.Name + "! You've gained 5 bonus experience.", Color.Cyan
+                );
+                Stats.Exp += 5;
+                GameState = GameState.Idle;
+                Target = null;
+            }
+
+            int exp = killed.Stats.GrantExperience();
+            SendToClient("You've gained " + exp + " experience!", Color.Cyan);
+            Stats.Exp += exp;
+            // Target is dead, so unsubscribe to prevent any weird chain event triggers.
+            killed.OnDeath -= OnDeathEventReceiver;
             SendToClient("* Combat disengaged *", Color.White);
         }
-    }
 
-    public bool IsTargetPresent() {
-        if (Target == null || Target.Stats == null || Target.GameState == GameState.Dead ||
-            Target.Stats.Health <= 0) return false;
-        Room room = World.GetRoom(Stats.Location);
-        if (room == null) return false;
+        public void DisplayVitals() {
+            int barWidth = 20;
+            string vitalsColor = Color.Green;
+            string enemyHealth = "";
+            int barCount;
+            string bars;
+            string spaces;
 
-        // Basic location check
-        if (Target.Stats.Location != Stats.Location) return false;
+            // A yellow '+' to indicate the player can allocate a new stat point.
+            string levelUpIndicator = Stats.StatAllocationNeeded ? Color.Yellow + " + " : "";
+            string enemyHealthColor = Color.Green;
+            if ((float)Stats.Health / Stats.MaxHealth < 0.33f)
+                vitalsColor = Color.Red;
+            if (Target != null) {
+                barCount = (int)(barWidth * (float)Target.Stats.Health / Target.Stats.MaxHealth);
+                if ((float)Target.Stats.Health / Target.Stats.MaxHealth < 0.33f)
+                    enemyHealthColor = Color.Red;
+                bars = enemyHealthColor + new string('#', barCount);
+                spaces = new string(' ', 20 - barCount);
+                enemyHealth
+                    = $"{Color.Red}{Target.Name}: {Target.Stats.Health} {Color.White}[{bars}{spaces} {Color.White}] {enemyHealthColor}{Target.Stats.MaxHealth}";
+            }
 
-        // Precise room presence check
-        lock (room.EntitiesHere) {
-            return room.EntitiesHere.Contains(Target.Id);
-        }
-    }
-
-    void OnDeathEventReceiver(BaseMobile killed) {
-        // If this mobile is dead, it can't get experience now can it?
-        if (GameState == GameState.Dead) {
-            return;
-        }
-
-        int distance = (Stats.Location - killed.Stats.Location).Max();
-        // If targetting something far away and it dies, ignore it.
-        if (distance > 3 && Target.Stats.Id == killed.Stats.Id) {
-            GameState = GameState.Idle;
-            Target = null;
-            return;
-        }
-
-        // Only untarget and break combat if we're targetting what died and grant bonus experience.
-        if (Target.Stats.Id == killed.Stats.Id) {
-            SendToClient(
-                "You killed " + killed.Name + "! You've gained 5 bonus experience.", Color.Cyan
-            );
-            Stats.Exp += 5;
-            GameState = GameState.Idle;
-            Target = null;
-        }
-
-        int exp = killed.Stats.GrantExperience();
-        SendToClient("You've gained " + exp + " experience!", Color.Cyan);
-        Stats.Exp += exp;
-        // Target is dead, so unsubscribe to prevent any weird chain event triggers.
-        killed.OnDeath -= OnDeathEventReceiver;
-        SendToClient("* Combat disengaged *", Color.White);
-    }
-
-    public void DisplayVitals() {
-        int barWidth = 20;
-        string vitalsColor = Color.Green;
-        string enemyHealth = "";
-        int barCount;
-        string bars;
-        string spaces;
-
-        // A yellow '+' to indicate the player can allocate a new stat point.
-        string levelUpIndicator = Stats.StatAllocationNeeded ? Color.Yellow + " + " : "";
-        string enemyHealthColor = Color.Green;
-        if ((float)Stats.Health / Stats.MaxHealth < 0.33f)
-            vitalsColor = Color.Red;
-        if (Target != null) {
-            barCount = (int)(barWidth * (float)Target.Stats.Health / Target.Stats.MaxHealth);
-            if ((float)Target.Stats.Health / Target.Stats.MaxHealth < 0.33f)
-                enemyHealthColor = Color.Red;
-            bars = enemyHealthColor + new string('#', barCount);
+            barCount = (int)(barWidth * (float)Stats.Health / Stats.MaxHealth);
+            bars = vitalsColor + new string('#', barCount);
             spaces = new string(' ', 20 - barCount);
-            enemyHealth
-                = $"{Color.Red}{Target.Name}: {Target.Stats.Health} {Color.White}[{bars}{spaces} {Color.White}] {enemyHealthColor}{Target.Stats.MaxHealth}";
+            string healthBar
+                = $"{vitalsColor}{Stats.Health} {Color.White}[{bars}{spaces}{Color.White}] {vitalsColor}{Stats.MaxHealth}";
+
+            SendToClient(
+                $"\n{Color.White}-- HP: {healthBar} -- {enemyHealthColor}{enemyHealth}{levelUpIndicator}\n", vitalsColor
+            );
         }
-
-        barCount = (int)(barWidth * (float)Stats.Health / Stats.MaxHealth);
-        bars = vitalsColor + new string('#', barCount);
-        spaces = new string(' ', 20 - barCount);
-        string healthBar
-            = $"{vitalsColor}{Stats.Health} {Color.White}[{bars}{spaces}{Color.White}] {vitalsColor}{Stats.MaxHealth}";
-
-        SendToClient(
-            $"\n{Color.White}-- HP: {healthBar} -- {enemyHealthColor}{enemyHealth}{levelUpIndicator}\n", vitalsColor
-        );
     }
-}
 }

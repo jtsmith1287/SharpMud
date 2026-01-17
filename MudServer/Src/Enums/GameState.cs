@@ -1,4 +1,4 @@
-﻿namespace GameCore.Util {
+﻿namespace MudServer.Enums {
 public enum GameState {
     Idle = 0,
     Combat,

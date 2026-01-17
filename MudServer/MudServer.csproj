@@ -73,13 +73,15 @@
     <Compile Include="Src\Actions\Actions.cs" />
     <Compile Include="Src\Actions\AdminActions.cs" />
     <Compile Include="Src\Actions\ArgumentHandler.cs" />
+    <Compile Include="Src\Actions\ItemActions.cs" />
     <Compile Include="Src\Entity\BaseMobile.cs" />
     <Compile Include="Src\Entity\CombatTests.cs" />
     <Compile Include="Src\Entity\Entity.cs" />
     <Compile Include="Src\Entity\EntityFactory.cs" />
-    <Compile Include="Src\Entity\Mobile.cs" />
+    <Compile Include="Src\Entity\NonPlayerCharacter.cs" />
     <Compile Include="Src\Entity\PlayerCharacter.cs" />
-    <Compile Include="Src\Entity\PlayerEntity.cs" />
+    <Compile Include="Src\Entity\Item.cs" />
+    <Compile Include="Src\Entity\ItemDef.cs" />
     <Compile Include="Src\Entity\SpawnData.cs" />
     <Compile Include="Src\Entity\Spawner.cs" />
     <Compile Include="Src\Entity\SpawnerTests.cs" />

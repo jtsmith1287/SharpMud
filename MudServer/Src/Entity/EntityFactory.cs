@@ -1,5 +1,5 @@
-﻿using System;
-using GameCore;
+using System;
+using MudServer.World;
 
 namespace MudServer.Entity {
 public static class EntityFactory {

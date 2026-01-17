@@ -1,4 +1,4 @@
-﻿namespace GameCore.Util {
+﻿namespace MudServer.Enums {
 public enum Taxonomy : int {
     // Meta
     Player = 0,

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GameCore.Util {
+namespace MudServer.Util {
 public static class Color {
     public const string RedD = "\x1b[0;31m";
     public const string Red = "\x1b[1;31m";

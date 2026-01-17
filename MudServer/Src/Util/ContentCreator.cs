@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,13 +8,12 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Web.Script.Serialization;
-using GameCore;
-using GameCore.Util;
+using MudServer.Entity;
+using MudServer.World;
+using MudServer.Enums;
+using MudServer.Server;
 
-
-
-namespace ServerCore {
-
+namespace MudServer.Util {
 	public partial class ContentCreator : Form {
 
 		SpawnData ActiveTemplate;
@@ -53,7 +52,7 @@ namespace ServerCore {
 
 				if (_currentMapRooms != null) {
 					// Synchronize with World.Rooms to ensure we use the same objects
-					// This allows AnsiMap (which uses World.GetRoom) to see our changes immediately.
+					// This allows AnsiMap (which uses MudServer.World.World.GetRoom) to see our changes immediately.
 					var keys = _currentMapRooms.Keys.ToList();
 					foreach (var key in keys) {
 						Room loadedRoom = _currentMapRooms[key];
@@ -65,11 +64,11 @@ namespace ServerCore {
 							}
 						}
 
-						Room worldRoom = World.GetRoom(loadedRoom.Location);
+						Room worldRoom = MudServer.World.World.GetRoom(loadedRoom.Location);
 						if (worldRoom != null) {
 							_currentMapRooms[key] = worldRoom;
 						} else {
-							World.AddRoom(loadedRoom);
+							MudServer.World.World.AddRoom(loadedRoom);
 						}
 					}
 				}
@@ -187,7 +186,7 @@ namespace ServerCore {
 
 				// Permanently remove from World too
 				string stringCoord = string.Format("{0} {1} {2}", _selectedRoom.Location.X, _selectedRoom.Location.Y, _selectedRoom.Location.Z);
-				World.Rooms.Remove(stringCoord);
+				MudServer.World.World.Rooms.Remove(stringCoord);
 
 				_selectedRoom = null;
 				TextRoomName.Text = "";
@@ -243,7 +242,7 @@ namespace ServerCore {
 			bool foundEmptySpaceForNewRoom = false;
 			foreach (var dir in directions) {
 				Coordinate3 adjCoord = _selectedRoom.Location + dir.Value;
-				Room adjRoom = World.GetRoom(adjCoord);
+				Room adjRoom = MudServer.World.World.GetRoom(adjCoord);
 				if (adjRoom != null) {
 					if (!_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) {
 						foundAdjacentRoomToConnect = true;
@@ -264,7 +263,7 @@ namespace ServerCore {
 			foreach (var exit in _selectedRoom.ConnectedRooms) {
 				string direction = exit.Key;
 				Coordinate3 targetCoord = exit.Value;
-				Room targetRoom = World.GetRoom(targetCoord);
+				Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
 				string targetName = targetRoom != null ? targetRoom.Name : "Unknown Room";
 
 				Panel exitItem = new Panel { 
@@ -322,7 +321,7 @@ namespace ServerCore {
 			}
 
 			// If not in current map, check if it exists in World and belongs to another map
-			Room targetRoom = World.GetRoom(coord);
+			Room targetRoom = MudServer.World.World.GetRoom(coord);
 			if (targetRoom != null && !string.IsNullOrEmpty(targetRoom.MapName)) {
 				// Switch map
 				for (int i = 0; i < ComboMapFiles.Items.Count; i++) {
@@ -359,13 +358,13 @@ namespace ServerCore {
 			
 			foreach (var part in parts) {
 				if (part.StartsWith("\x1b[")) {
-					if (part == GameCore.Util.Color.Reset) currentColor = System.Drawing.Color.White;
-					else if (part == GameCore.Util.Color.Red) currentColor = System.Drawing.Color.Red;
-					else if (part == GameCore.Util.Color.Green) currentColor = System.Drawing.Color.Green;
-					else if (part == GameCore.Util.Color.Yellow) currentColor = System.Drawing.Color.Yellow;
-					else if (part == GameCore.Util.Color.Blue) currentColor = System.Drawing.Color.Blue;
-					else if (part == GameCore.Util.Color.Cyan) currentColor = System.Drawing.Color.Cyan;
-					else if (part == GameCore.Util.Color.Magenta) currentColor = System.Drawing.Color.Magenta;
+					if (part == MudServer.Util.Color.Reset) currentColor = System.Drawing.Color.White;
+					else if (part == MudServer.Util.Color.Red) currentColor = System.Drawing.Color.Red;
+					else if (part == MudServer.Util.Color.Green) currentColor = System.Drawing.Color.Green;
+					else if (part == MudServer.Util.Color.Yellow) currentColor = System.Drawing.Color.Yellow;
+					else if (part == MudServer.Util.Color.Blue) currentColor = System.Drawing.Color.Blue;
+					else if (part == MudServer.Util.Color.Cyan) currentColor = System.Drawing.Color.Cyan;
+					else if (part == MudServer.Util.Color.Magenta) currentColor = System.Drawing.Color.Magenta;
 					// Add more as needed
 				} else {
 					rtb.SelectionStart = rtb.TextLength;
@@ -418,7 +417,7 @@ namespace ServerCore {
 			if (!_selectedRoom.ConnectedRooms.ContainsKey(direction)) return;
 
 			Coordinate3 targetCoord = _selectedRoom.ConnectedRooms[direction];
-			Room targetRoom = World.GetRoom(targetCoord);
+			Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
 			string targetName = targetRoom != null ? targetRoom.Name : "Unknown Room";
 
 			// Identify rooms that will be disconnected
@@ -557,7 +556,7 @@ namespace ServerCore {
 			bool foundAny = false;
 			foreach (var dir in directions) {
 				Coordinate3 adjCoord = _selectedRoom.Location + dir.Value;
-				Room adjRoom = World.GetRoom(adjCoord);
+				Room adjRoom = MudServer.World.World.GetRoom(adjCoord);
 				if (adjRoom != null) {
 					if (!_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) {
 						listOptions.Items.Add(new AdjRoomItem { 
@@ -649,7 +648,7 @@ namespace ServerCore {
 			bool foundAny = false;
 			foreach (var dir in directions) {
 				Coordinate3 targetCoord = _selectedRoom.Location + dir.Value;
-				Room existingRoom = World.GetRoom(targetCoord);
+				Room existingRoom = MudServer.World.World.GetRoom(targetCoord);
 				if (existingRoom == null) {
 					listOptions.Items.Add(new NewRoomOption {
 						Direction = dir.Key,
@@ -694,7 +693,7 @@ namespace ServerCore {
 				newRoom.ConnectedRooms[GetReverseDirection(selected.Direction)] = _selectedRoom.Location;
 
 				// Add to World too so GetRoom works
-				World.AddRoom(newRoom);
+				MudServer.World.World.AddRoom(newRoom);
 
 				// Refresh room list
 				RefreshRoomList();

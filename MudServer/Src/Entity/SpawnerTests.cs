@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using GameCore;
-using GameCore.Util;
-using ServerCore;
+using MudServer.Entity;
+using MudServer.World;
+using MudServer.Server;
+using MudServer.Enums;
 
-namespace MudServer {
+namespace MudServer.Entity {
     public class SpawnerTests {
         private int _passed = 0;
         private int _failed = 0;
@@ -63,7 +64,7 @@ namespace MudServer {
         public void TestSaveAllMapsOnShutdown() {
             try {
                 // Clear rooms to avoid interference from other tests
-                World.Rooms.Clear();
+                World.World.Rooms.Clear();
 
                 // Ensure there is at least one room with a MapName
                 string testMapName = "test_shutdown_map.json";
@@ -102,7 +103,7 @@ namespace MudServer {
                 if (System.IO.File.Exists(mapFile)) {
                     System.IO.File.Delete(mapFile);
                 }
-                World.Rooms.Remove("999 999 999");
+                World.World.Rooms.Remove("999 999 999");
 
             } catch (Exception e) {
                 Assert(false, "TestSaveAllMapsOnShutdown threw " + e.GetType().Name + ": " + e.Message);
@@ -156,15 +157,15 @@ namespace MudServer {
                 }
 
                 // Clear everything
-                World.Rooms.Clear();
-                World.Spawners.Clear();
+                World.World.Rooms.Clear();
+                World.World.Spawners.Clear();
 
                 // Load it back
                 DataManager.LoadData(DataPaths.World); 
 
                 // Verify
                 string stringCoord = "888 888 888";
-                if (World.Rooms.TryGetValue(stringCoord, out Room loadedRoom)) {
+                if (World.World.Rooms.TryGetValue(stringCoord, out Room loadedRoom)) {
                     Assert(loadedRoom.SpawnersHere.Count == 1, "Only valid spawners should be loaded. Found: " + loadedRoom.SpawnersHere.Count);
                     if (loadedRoom.SpawnersHere.Count > 0) {
                         Assert(loadedRoom.SpawnersHere[0].SpawnData != null && loadedRoom.SpawnersHere[0].SpawnData.Length > 0, "Loaded spawner should be the valid one");
@@ -184,7 +185,7 @@ namespace MudServer {
                     System.IO.File.WriteAllText(mapListPath, serializer.Serialize(mapList));
                 }
 
-                World.Rooms.Remove(stringCoord);
+                World.World.Rooms.Remove(stringCoord);
 
             } catch (Exception e) {
                 Assert(false, "TestCleanupNullSpawnersOnLoad threw " + e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace);
@@ -235,7 +236,7 @@ namespace MudServer {
             } catch (Exception e) {
                 Assert(false, "TestCreateSpawnerInRoomWithNullSpawnersList threw " + e.GetType().Name + ": " + e.Message);
             } finally {
-                World.Rooms.Remove("777 777 777");
+                World.World.Rooms.Remove("777 777 777");
             }
         }
 
@@ -244,7 +245,7 @@ namespace MudServer {
                 List<SpawnData> spawnList = new List<SpawnData> { new SpawnData("Test") };
                 Spawner spawner = new Spawner(null, spawnList);
                 Assert(true, "Spawner constructor should not throw when room is null");
-                Assert(!World.Spawners.Contains(spawner), "Spawner should not be added to World.Spawners if room is null");
+                Assert(!World.World.Spawners.Contains(spawner), "Spawner should not be added to World.World.Spawners if room is null");
             } catch (Exception e) {
                 Assert(false, "TestCreateSpawnerWithNullRoom threw " + e.GetType().Name + ": " + e.Message);
             }

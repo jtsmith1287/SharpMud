@@ -1,7 +1,7 @@
 using System;
 using System.Web.Script.Serialization;
 
-namespace GameCore.Util {
+namespace MudServer.World {
 public class Coordinate3 {
     public int X { get; set; }
     public int Y { get; set; }

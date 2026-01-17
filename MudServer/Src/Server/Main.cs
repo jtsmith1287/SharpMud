@@ -1,13 +1,14 @@
 using System;
-using GameCore;
-using GameCore.Util;
+using MudServer.Entity;
+using MudServer.World;
+using MudServer.Enums;
 
-namespace ServerCore {
+namespace MudServer.Server {
 	public class Program {
 		public static void Main(string[] args) {
 			if (args.Length > 0 && args[0] == "--test") {
-				new MudServer.CombatTests().RunTests();
-				new MudServer.SpawnerTests().RunTests();
+				new MudServer.Entity.CombatTests().RunTests();
+				new MudServer.Entity.SpawnerTests().RunTests();
 				return;
 			}
 			try {

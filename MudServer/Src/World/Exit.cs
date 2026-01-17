@@ -1,6 +1,4 @@
-﻿using GameCore.Util;
-
-namespace MudServer.World {
+﻿namespace MudServer.World {
 public class Exit {
     /// <summary>
     /// Represents the path of the exit, with two coordinates defining the start and end points.
