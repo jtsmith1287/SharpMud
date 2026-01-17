@@ -24,6 +24,7 @@ public class Connection : IDisposable {
     private PlayerCharacter _player;
 
     public Connection(Socket socket) {
+        if (socket == null) return;
         this._socket = socket;
         Reader = new StreamReader(new NetworkStream(socket, false));
         _writer = new StreamWriter(new NetworkStream(socket, true));
@@ -58,7 +59,7 @@ public class Connection : IDisposable {
         }
     }
 
-    public void Send(string msg) {
+    public virtual void Send(string msg) {
         try {
             lock (_writeLock) {
                 if (_writer != null) {

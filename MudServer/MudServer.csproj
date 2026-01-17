@@ -105,6 +105,7 @@
     <Compile Include="Src\World\Coordinate3.cs" />
     <Compile Include="Src\World\Exit.cs" />
     <Compile Include="Src\World\Room.cs" />
+    <Compile Include="Src\World\RoomTests.cs" />
     <Compile Include="Src\World\World.cs" />
   </ItemGroup>
   <ItemGroup>

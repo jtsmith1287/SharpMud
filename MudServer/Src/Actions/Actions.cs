@@ -158,7 +158,27 @@ public static class Actions {
             sb.Append(Color.Yellow + "Items: " + visibleItems.TrimEnd(',', ' ') + "\n");
         }
 
-        string exits = room.ConnectedRooms.Aggregate("", (current, entry) => current + $"{entry.Key}, ");
+        string exits = "";
+        foreach (var entry in room.ConnectedRooms) {
+            bool isSecret = false;
+            bool isHidden = false;
+            bool isOpen = true;
+
+            if (room.Exits.TryGetValue(entry.Key, out Exit exit)) {
+                int index = exit.Path[0].Equals(room.Location) ? 0 : 1;
+                isSecret = exit.Secret[index];
+                isHidden = exit.Hidden[index];
+                isOpen = exit.Open;
+            }
+
+            if (!isSecret && !isHidden) {
+                string exitName = entry.Key;
+                if (!isOpen) {
+                    exitName += " (closed)";
+                }
+                exits += $"{exitName}, ";
+            }
+        }
         sb.Append(Color.White + "Exits: " + exits.TrimEnd(',', ' ') + "\n" + Color.Reset);
 
         player.SendToClient(sb.ToString(), Color.GreenD);
@@ -168,11 +188,26 @@ public static class Actions {
         Room room = World.World.GetRoom(player.Location);
         if (room != null) {
             Coordinate3 locationOfNewRoom;
-            if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom) ||
-                room.InvisibleConnections.TryGetValue(args[0], out locationOfNewRoom)) {
-                player.Move(locationOfNewRoom);
-                if (player.GameState == GameState.Resting) {
-                    player.GameState = GameState.Idle;
+            if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom)) {
+                bool isHidden = false;
+                bool isOpen = true;
+                if (room.Exits.TryGetValue(args[0], out Exit exit)) {
+                    int index = exit.Path[0].Equals(room.Location) ? 0 : 1;
+                    isHidden = exit.Hidden[index];
+                    isOpen = exit.Open;
+                }
+
+                if (!isHidden) {
+                    if (isOpen) {
+                        player.Move(locationOfNewRoom);
+                        if (player.GameState == GameState.Resting) {
+                            player.GameState = GameState.Idle;
+                        }
+                    } else {
+                        player.SendToClient("The door is closed.", Color.Red);
+                    }
+                } else {
+                    player.SendToClient("There's no exit in that direction!", Color.Red);
                 }
             } else {
                 player.SendToClient("There's no exit in that direction!", Color.Red);

@@ -9,7 +9,8 @@ namespace MudServer.Server {
 			if (args.Length > 0 && args[0] == "--test") {
 				new MudServer.Entity.CombatTests().RunTests();
 				new MudServer.Entity.SpawnerTests().RunTests();
-				return;
+				new MudServer.World.RoomTests().RunTests();
+				Environment.Exit(0);
 			}
 			try {
 				Server server = new Server();

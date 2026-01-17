@@ -26,7 +26,6 @@ namespace MudServer.World {
         public string MapName;
         public Dictionary<string, Coordinate3> ConnectedRooms = new Dictionary<string, Coordinate3>();
         public Dictionary<string, Exit> Exits = new Dictionary<string, Exit>();
-        public Dictionary<string, Coordinate3> InvisibleConnections = new Dictionary<string, Coordinate3>();
         public bool IsEntryRoom = false;
         [ScriptIgnore]
         public List<Guid> EntitiesHere = new List<Guid>();

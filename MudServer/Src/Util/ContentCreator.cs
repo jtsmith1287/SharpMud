@@ -386,6 +386,22 @@ namespace MudServer.Util {
 					SelectRoomByCoordinate((Coordinate3)((Control)s).Tag);
 				};
 
+				Button btnEdit = new Button { 
+					Text = "E", 
+					Location = new Point(exitItem.Width - 60, 5), 
+					Size = new Size(25, 25),
+					Tag = direction,
+					BackColor = System.Drawing.Color.FromArgb(63, 63, 70),
+					ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+					FlatStyle = FlatStyle.Flat,
+					Font = new Font("Segoe UI", 8, FontStyle.Bold)
+				};
+				btnEdit.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(100, 100, 100);
+
+				btnEdit.Click += (s, e) => {
+					ShowEditExitDialog((string)((Control)s).Tag);
+				};
+
 				Button btnDelete = new Button { 
 					Text = "X", 
 					Location = new Point(exitItem.Width - 30, 5), 
@@ -403,6 +419,7 @@ namespace MudServer.Util {
 				};
 
 				exitItem.Controls.Add(lblExit);
+				exitItem.Controls.Add(btnEdit);
 				exitItem.Controls.Add(btnDelete);
 				PanelExits.Controls.Add(exitItem);
 			}
@@ -565,6 +582,104 @@ namespace MudServer.Util {
 				if (targetRoom != null && targetOriginalExits != null) {
 					targetRoom.ConnectedRooms = targetOriginalExits;
 				}
+			}
+		}
+
+		private void ShowEditExitDialog(string direction) {
+			if (_selectedRoom == null) return;
+			if (!_selectedRoom.ConnectedRooms.TryGetValue(direction, out Coordinate3 targetCoord)) return;
+
+			Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
+			Exit exit;
+			if (!_selectedRoom.Exits.TryGetValue(direction, out exit)) {
+				// Create new exit metadata
+				exit = new Exit {
+					Path = new Coordinate3[] { _selectedRoom.Location, targetCoord }
+				};
+				_selectedRoom.Exits[direction] = exit;
+			}
+
+			int index = exit.Path[0].Equals(_selectedRoom.Location) ? 0 : 1;
+
+			Form editDialog = new Form {
+				Text = $"Edit Exit: {direction}",
+				Size = new Size(300, 350),
+				FormBorderStyle = FormBorderStyle.FixedDialog,
+				StartPosition = FormStartPosition.CenterParent,
+				BackColor = System.Drawing.Color.FromArgb(45, 45, 48),
+				ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+				Font = new Font("Segoe UI", 9)
+			};
+
+			CheckBox chkHidden = new CheckBox { Text = "Hidden (One-way)", Checked = exit.Hidden[index], Location = new Point(20, 20), AutoSize = true };
+			CheckBox chkSecret = new CheckBox { Text = "Secret (One-way)", Checked = exit.Secret[index], Location = new Point(20, 50), AutoSize = true };
+			CheckBox chkLocked = new CheckBox { Text = "Locked (Global)", Checked = exit.Locked, Location = new Point(20, 80), AutoSize = true };
+			CheckBox chkOpen = new CheckBox { Text = "Open (Global)", Checked = exit.Open, Location = new Point(20, 110), AutoSize = true };
+
+			Button btnSave = new Button {
+				Text = "Save",
+				DialogResult = DialogResult.OK,
+				Location = new Point(100, 250),
+				Size = new Size(100, 35),
+				BackColor = System.Drawing.Color.FromArgb(63, 63, 70),
+				ForeColor = System.Drawing.Color.FromArgb(241, 241, 241),
+				FlatStyle = FlatStyle.Flat
+			};
+			btnSave.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(100, 100, 100);
+
+			editDialog.Controls.AddRange(new Control[] { chkHidden, chkSecret, chkLocked, chkOpen, btnSave });
+
+			if (editDialog.ShowDialog() == DialogResult.OK) {
+				bool hiddenChanged = exit.Hidden[index] != chkHidden.Checked;
+				bool secretChanged = exit.Secret[index] != chkSecret.Checked;
+				bool lockedChanged = exit.Locked != chkLocked.Checked;
+				bool openChanged = exit.Open != chkOpen.Checked;
+
+				exit.Hidden[index] = chkHidden.Checked;
+				exit.Secret[index] = chkSecret.Checked;
+				exit.Locked = chkLocked.Checked;
+				exit.Open = chkOpen.Checked;
+
+				if (targetRoom != null) {
+					string reverseDir = GetReverseDirection(direction);
+					bool shouldSyncVisibility = false;
+					
+					if (hiddenChanged || secretChanged) {
+						DialogResult syncResult = MessageBox.Show(
+							"Update the connected room's exit visibility as well?",
+							"Synchronize Visibility",
+							MessageBoxButtons.YesNo,
+							MessageBoxIcon.Question
+						);
+						shouldSyncVisibility = (syncResult == DialogResult.Yes);
+					}
+
+					// We always sync Locked/Open if they changed, as they are global properties of the door
+					// if the user intended them to be asymmetrical, they wouldn't be "Locked/Open" properties
+					// of a single Exit object concept.
+					
+					Exit targetExit;
+					if (!targetRoom.Exits.TryGetValue(reverseDir, out targetExit)) {
+						if (shouldSyncVisibility || lockedChanged || openChanged || exit.Hidden[1-index] || exit.Secret[1-index]) {
+							targetExit = new Exit {
+								Path = new Coordinate3[] { targetCoord, _selectedRoom.Location }
+							};
+							targetRoom.Exits[reverseDir] = targetExit;
+						}
+					}
+
+					if (targetExit != null) {
+						int targetIndex = targetExit.Path[0].Equals(targetCoord) ? 0 : 1;
+						if (shouldSyncVisibility) {
+							targetExit.Hidden[targetIndex] = exit.Hidden[index];
+							targetExit.Secret[targetIndex] = exit.Secret[index];
+						}
+						targetExit.Locked = exit.Locked;
+						targetExit.Open = exit.Open;
+					}
+				}
+
+				RefreshExitList();
 			}
 		}
 

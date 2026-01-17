@@ -6,7 +6,7 @@ public class Exit {
     /// </summary>
     public Coordinate3[] Path = new Coordinate3[2];
     public bool Locked { get; set; }
-    public bool Open { get; set; }
+    public bool Open { get; set; } = true;
     /// <summary>
     /// True if the exit is functionally nonexistent until a certain condition is met. Not displayed to players.
     /// <remarks>Indexes should match that of Path. Exits can be hidden from one direction, but not the other.</remarks>

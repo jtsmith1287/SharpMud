@@ -1,6 +1,4 @@
 using System;
-
-using System;
 using MudServer.Enums;
 
 namespace MudServer.Entity {
