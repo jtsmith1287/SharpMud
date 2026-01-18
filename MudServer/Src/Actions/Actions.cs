@@ -25,7 +25,174 @@ public static class Actions {
             { "sneak", Sneak },
             { "map", ShowMap },
             { "rest", Rest },
+            { "picklock", PickLock },
+            { "unlock", Unlock },
+            { "bash", Bash },
+            { "search", Search }
         };
+
+    private static void Search(PlayerCharacter player, string[] args) {
+        if (player.Hidden) {
+            player.SendToClient("You can't search while sneaking.");
+            return;
+        }
+
+        Room room = World.World.GetRoom(player.Location);
+        if (room == null) return;
+
+        bool foundSomething = false;
+        foreach (var exitEntry in room.Exits) {
+            Exit exit = exitEntry.Value;
+            if (exit.IsSecret(room.Location) || exit.IsHidden(room.Location)) {
+                string exitId = exit.GetPathId();
+                if (!player.QuestLog.DiscoveredExits.Contains(exitId)) {
+                    // Reveal it to everyone in the room
+                    foreach (Guid id in room.EntitiesHere) {
+                        PlayerCharacter p = PlayerCharacter.GetPlayerByID(id);
+                        if (p != null) {
+                            if (!p.QuestLog.DiscoveredExits.Contains(exitId)) {
+                                p.QuestLog.DiscoveredExits.Add(exitId);
+                            }
+                            p.SendToClient($"You have discovered a secret exit to the {exitEntry.Key}!", Color.Cyan);
+                        }
+                    }
+                    foundSomething = true;
+                }
+            }
+        }
+
+        foreach (Guid id in room.EntitiesHere) {
+            Entity.Entity entity = World.World.GetEntity(id);
+            if (entity != null && entity.Hidden && entity.Id != player.Id) {
+                entity.Hidden = false;
+                foundSomething = true;
+                player.SendToClient($"You have revealed {entity.Name}!", Color.Cyan);
+                player.BroadcastLocal($"{player.Name} has revealed {entity.Name}!", Color.Yellow);
+            }
+        }
+
+        if (!foundSomething) {
+            player.SendToClient("You search around but find nothing unusual.");
+            player.BroadcastLocal(player.Name + " searches the area thoroughly.", Color.Yellow);
+        }
+    }
+
+    private static void Unlock(PlayerCharacter player, string[] args) {
+        if (args.Length < 2) {
+            player.SendToClient("Unlock what direction?", Color.Red);
+            return;
+        }
+
+        string direction = args[1];
+        Room room = World.World.GetRoom(player.Location);
+        if (room == null) return;
+
+        if (room.ConnectedRooms.TryGetValue(direction, out _)) {
+            if (room.Exits.TryGetValue(direction, out Exit exit)) {
+                if (!exit.Locked) {
+                    player.SendToClient("It's already unlocked.");
+                    return;
+                }
+
+                // Stub: Assume key is always present for now
+                bool hasKey = true; 
+
+                if (hasKey) {
+                    exit.Locked = false;
+                    player.SendToClient($"You unlock the door to the {direction}.", Color.Green);
+                    player.BroadcastLocal($"{player.Name} unlocks the door to the {direction}.", Color.Yellow);
+                } else {
+                    player.SendToClient("You don't have the key.", Color.Red);
+                }
+            } else {
+                player.SendToClient("There's nothing to unlock that way.");
+            }
+        } else {
+            player.SendToClient("There's no exit in that direction.");
+        }
+    }
+
+    private static void PickLock(PlayerCharacter player, string[] args) {
+        if (args.Length < 2) {
+            player.SendToClient("Picklock what direction?", Color.Red);
+            return;
+        }
+
+        string direction = args[1];
+        Room room = World.World.GetRoom(player.Location);
+        if (room == null) return;
+
+        if (room.ConnectedRooms.TryGetValue(direction, out _)) {
+            if (room.Exits.TryGetValue(direction, out Exit exit)) {
+                if (!exit.Locked) {
+                    player.SendToClient("It's already unlocked.");
+                    return;
+                }
+
+                // Stub: Assume lockpick is always present for now
+                bool hasLockpick = true;
+
+                if (hasLockpick) {
+                    // 50/50 chance at 10 Dex. formula: Dex / 20.0
+                    double chance = player.Stats.Dex / 20.0;
+                    Random rnd = new Random();
+                    if (rnd.NextDouble() < chance) {
+                        exit.Locked = false;
+                        player.SendToClient($"*Click* You successfully pick the lock to the {direction}!", Color.Green);
+                        player.BroadcastLocal($"{player.Name} successfully picks the lock to the {direction}.", Color.Yellow);
+                    } else {
+                        player.SendToClient("You fail to pick the lock.", Color.Red);
+                        player.BroadcastLocal($"{player.Name} attempts to pick the lock to the {direction} but fails.", Color.Yellow);
+                    }
+                } else {
+                    player.SendToClient("You need a lockpick to do that.", Color.Red);
+                }
+            } else {
+                player.SendToClient("There's nothing to picklock that way.");
+            }
+        } else {
+            player.SendToClient("There's no exit in that direction.");
+        }
+    }
+
+    private static void Bash(PlayerCharacter player, string[] args) {
+        if (args.Length < 2) {
+            player.SendToClient("Bash what direction?", Color.Red);
+            return;
+        }
+
+        string direction = args[1];
+        Room room = World.World.GetRoom(player.Location);
+        if (room == null) return;
+
+        if (room.ConnectedRooms.TryGetValue(direction, out _)) {
+            if (room.Exits.TryGetValue(direction, out Exit exit)) {
+                if (!exit.Locked) {
+                    player.SendToClient("It's already unlocked.");
+                    return;
+                }
+
+                // 50/50 chance at 10 Str. formula: Str / 20.0
+                double chance = player.Stats.Str / 20.0;
+                Random rnd = new Random();
+                if (rnd.NextDouble() < chance) {
+                    exit.Locked = false;
+                    player.SendToClient($"With a heavy thud, you bash open the door to the {direction}!", Color.Green);
+                    player.BroadcastLocal($"{player.Name} bashes open the door to the {direction}!", Color.Yellow);
+                } else {
+                    int damage = (int)(player.Stats.Str * 0.10);
+                    if (damage < 1) damage = 1;
+                    player.ApplyDamage(damage);
+                    player.SendToClient($"You slam into the door to the {direction} but it holds firm! You take {damage} damage.", Color.Red);
+                    player.BroadcastLocal($"{player.Name} slams into the door to the {direction} but fails to budge it.", Color.Yellow);
+                }
+            } else {
+                player.SendToClient("There's nothing to bash that way.");
+            }
+        } else {
+            player.SendToClient("There's no exit in that direction.");
+        }
+    }
 
 
     public static void ShowMap(PlayerCharacter player, string[] args) {
@@ -66,26 +233,21 @@ public static class Actions {
         }
 
         string name = args[1];
-        foreach (Guid id in room.EntitiesHere) {
-            var entity = World.World.GetEntity(id);
-            if (entity == null || entity.Id == player.Id) continue;
+        foreach (Entity.Entity entity in room.EntitiesHere.Select(World.World.GetEntity)
+                     .Where(entity => entity != null && entity.Id != player.Id)) {
+            if (!(entity is BaseMobile mobile)) continue;
 
-            if (entity is BaseMobile mobile) {
-                if (ArgumentHandler.TryAutoComplete(name, mobile.Name) ||
-                    (mobile.Stats != null && ArgumentHandler.TryAutoComplete(name, mobile.Stats.Name))) {
-                    player.Target = mobile;
-                    player.GameState = GameState.Combat;
-                    break;
-                }
-            }
+            if (!ArgumentHandler.TryAutoComplete(name, mobile.Name) &&
+                (mobile.Stats == null || !ArgumentHandler.TryAutoComplete(name, mobile.Stats.Name))) continue;
+            player.Target = mobile;
+            player.GameState = GameState.Combat;
+            break;
         }
 
         if (player.GameState == GameState.Combat) {
             player.LastCombatTick = World.World.CombatTick;
             player.SendToClient(
-                string.Format(
-                    "* Combat engaged with {0}! *", player.Target.Name
-                ), Color.White
+                $"* Combat engaged with {player.Target.Name}! *", Color.Cyan
             );
         } else {
             player.SendToClient("Nothing here by that name...", Color.Red);
@@ -103,25 +265,27 @@ public static class Actions {
             string targetName = args[1];
 
             foreach (Guid id in room.EntitiesHere) {
-                var entity = World.World.GetEntity(id);
-                if (entity == null) continue;
-
-                if (entity is BaseMobile target) {
-                    if (!target.Hidden || id == player.Id) {
-                        if (ArgumentHandler.TryAutoComplete(targetName, target.Name) ||
-                            (target.Stats != null && ArgumentHandler.TryAutoComplete(targetName, target.Stats.Name))) {
-                            ViewStats(player, target);
-                            return;
-                        }
-                    }
-                } else if (entity is Item item) {
-                    if (!item.Hidden) {
-                        if (ArgumentHandler.TryAutoComplete(targetName, item.Name)) {
-                            player.SendToClient($"\n{item.Name}\n{item.Description}\n", Color.Green);
-                            return;
-                        }
-                    }
+                Entity.Entity entity = World.World.GetEntity(id);
+                switch (entity) {
+                    case null:
+                    case BaseMobile target when target.Hidden && id != player.Id:
+                        continue;
+                    case BaseMobile target when !ArgumentHandler.TryAutoComplete(targetName, target.Name) &&
+                                                (target.Stats == null || !ArgumentHandler.TryAutoComplete(
+                                                    targetName, target.Stats.Name
+                                                )):
+                        continue;
+                    case BaseMobile target:
+                        ViewStats(player, target);
+                        return;
                 }
+
+                if (!(entity is Item item)) continue;
+                if (item.Hidden) continue;
+                if (!ArgumentHandler.TryAutoComplete(targetName, item.Name)) continue;
+
+                player.SendToClient($"\n{item.Name}\n{item.Description}\n", Color.Green);
+                return;
             }
         }
 
@@ -130,15 +294,19 @@ public static class Actions {
         string visibleItems = "";
 
         foreach (Guid id in room.EntitiesHere.Where(id => id != player.Id)) {
-            var entity = World.World.GetEntity(id);
+            Entity.Entity entity = World.World.GetEntity(id);
             if (entity == null || entity.Hidden) continue;
 
-            if (entity is PlayerCharacter p) {
-                visiblePlayers += $"{p.Name}, ";
-            } else if (entity is NonPlayerCharacter npc) {
-                visibleMobs += $"{npc.Name}, ";
-            } else if (entity is Item item) {
-                visibleItems += $"{item.Name}, ";
+            switch (entity) {
+                case PlayerCharacter p:
+                    visiblePlayers += $"{p.Name}, ";
+                    break;
+                case NonPlayerCharacter npc:
+                    visibleMobs += $"{npc.Name}, ";
+                    break;
+                case Item item:
+                    visibleItems += $"{item.Name}, ";
+                    break;
             }
         }
 
@@ -159,26 +327,33 @@ public static class Actions {
         }
 
         string exits = "";
-        foreach (var entry in room.ConnectedRooms) {
+        foreach (KeyValuePair<string, Coordinate3> entry in room.ConnectedRooms) {
             bool isSecret = false;
             bool isHidden = false;
             bool isOpen = true;
 
             if (room.Exits.TryGetValue(entry.Key, out Exit exit)) {
-                int index = exit.Path[0].Equals(room.Location) ? 0 : 1;
-                isSecret = exit.Secret[index];
-                isHidden = exit.Hidden[index];
+                isSecret = exit.IsSecret(room.Location);
+                isHidden = exit.IsHidden(room.Location);
+
+                if ((isSecret || isHidden) && player.QuestLog.DiscoveredExits.Contains(exit.GetPathId())) {
+                    isSecret = false;
+                    isHidden = false;
+                }
+
                 isOpen = exit.Open;
             }
 
-            if (!isSecret && !isHidden) {
-                string exitName = entry.Key;
-                if (!isOpen) {
-                    exitName += " (closed)";
-                }
-                exits += $"{exitName}, ";
+            if (isSecret || isHidden) continue;
+
+            string exitName = entry.Key;
+            if (!isOpen) {
+                exitName += " (closed)";
             }
+
+            exits += $"{exitName}, ";
         }
+
         sb.Append(Color.White + "Exits: " + exits.TrimEnd(',', ' ') + "\n" + Color.Reset);
 
         player.SendToClient(sb.ToString(), Color.GreenD);
@@ -191,14 +366,42 @@ public static class Actions {
             if (room.ConnectedRooms.TryGetValue(args[0], out locationOfNewRoom)) {
                 bool isHidden = false;
                 bool isOpen = true;
-                if (room.Exits.TryGetValue(args[0], out Exit exit)) {
-                    int index = exit.Path[0].Equals(room.Location) ? 0 : 1;
-                    isHidden = exit.Hidden[index];
+                bool isSecret = false;
+                Exit exit = null;
+                if (room.Exits.TryGetValue(args[0], out exit)) {
+                    isHidden = exit.IsHidden(room.Location);
+                    isSecret = exit.IsSecret(room.Location);
+
+                    if (isHidden && player.QuestLog.DiscoveredExits.Contains(exit.GetPathId())) {
+                        isHidden = false;
+                    }
+
                     isOpen = exit.Open;
                 }
 
                 if (!isHidden) {
                     if (isOpen) {
+                        if (exit != null && exit.Locked) {
+                            player.SendToClient("The door is locked.", Color.Red);
+                            return;
+                        }
+
+                        // Reveal if it was a secret or hidden exit and we are not sneaking
+                        if (exit != null && (isSecret || exit.IsHidden(room.Location)) && !player.Hidden) {
+                            string exitId = exit.GetPathId();
+                            if (!player.QuestLog.DiscoveredExits.Contains(exitId)) {
+                                foreach (Guid id in room.EntitiesHere) {
+                                    PlayerCharacter p = PlayerCharacter.GetPlayerByID(id);
+                                    if (p != null) {
+                                        if (!p.QuestLog.DiscoveredExits.Contains(exitId)) {
+                                            p.QuestLog.DiscoveredExits.Add(exitId);
+                                        }
+                                        p.SendToClient($"You have discovered a secret exit to the {args[0]}!", Color.Cyan);
+                                    }
+                                }
+                            }
+                        }
+
                         player.Move(locationOfNewRoom);
                         if (player.GameState == GameState.Resting) {
                             player.GameState = GameState.Idle;

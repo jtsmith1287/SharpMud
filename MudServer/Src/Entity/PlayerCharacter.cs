@@ -18,6 +18,11 @@ namespace MudServer.Entity {
         int TickDuration = 3000;
         Connection Conn;
 
+        public QuestLog QuestLog {
+            get => Stats.QuestLog;
+            set => Stats.QuestLog = value;
+        }
+
         public Coordinate3 Location {
             get => Stats.Location;
             set => Stats.Location = value;

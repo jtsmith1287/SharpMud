@@ -135,13 +135,14 @@ namespace MudServer.Server {
                                              new Dictionary<string, Guid>();
                             break;
                         case DataPaths.IdData:
-                            Dictionary<string, Stats> stringStats =
-                                serializer.Deserialize<Dictionary<string, Stats>>(json) ??
-                                new Dictionary<string, Stats>();
-                            IdDataPairs = stringStats.ToDictionary(
-                                kvp => Guid.Parse(kvp.Key),
-                                kvp => kvp.Value
-                            );
+                            var stringStats = serializer.Deserialize<Dictionary<string, Stats>>(json) ??
+                                              new Dictionary<string, Stats>();
+                            IdDataPairs = new Dictionary<Guid, Stats>();
+                            foreach (var kvp in stringStats) {
+                                if (Guid.TryParse(kvp.Key, out Guid id)) {
+                                    IdDataPairs[id] = kvp.Value;
+                                }
+                            }
                             break;
                         case DataPaths.World:
                             string mapsDir = Path.GetDirectoryName(DataPaths.MapList);
@@ -158,6 +159,8 @@ namespace MudServer.Server {
                                     if (rooms == null) continue;
                                     foreach (KeyValuePair<string, Room> room in rooms) {
                                         room.Value.MapName = mapFileName;
+
+
                                         if (room.Value.Location == null || (room.Value.Location.X == 0 &&
                                                                             room.Value.Location.Y == 0 &&
                                                                             room.Value.Location.Z == 0)) {

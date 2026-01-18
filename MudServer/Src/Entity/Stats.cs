@@ -105,6 +105,8 @@ namespace MudServer.Entity {
         [field: ScriptIgnore]
         public event Action<Stats, int> OnLevelUp = delegate { };
 
+        public QuestLog QuestLog = new QuestLog();
+
         public Stats() { }
 
         public Stats(string username, Guid id) {

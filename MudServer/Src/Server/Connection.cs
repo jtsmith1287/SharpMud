@@ -32,6 +32,8 @@ public class Connection : IDisposable {
     }
 
     void ClientLoop() {
+        string identifier = "Unauthenticated connection";
+        string lastLine = null;
         try {
             OnConnect();
 
@@ -39,20 +41,29 @@ public class Connection : IDisposable {
                 return;
             }
 
+            identifier = $"{_player.Name} ({_player.Id})";
+
             while (_socket.Connected) {
-                string line = Reader.ReadLine();
-                if (line == null) {
+                lastLine = Reader.ReadLine();
+                if (lastLine == null) {
                     break;
                 }
 
                 lock (BigLock) {
                     if (_player != null) {
-                        ArgumentHandler.HandleLine(line.Trim(), _player);
+                        ArgumentHandler.HandleLine(lastLine.Trim(), _player);
                     }
                 }
             }
+        } catch (IOException ioe) {
+            Console.WriteLine($"[INFO] Connection lost for {identifier}: {ioe.Message}");
+        } catch (ObjectDisposedException) {
+            Console.WriteLine($"[INFO] Connection closed for {identifier}.");
         } catch (Exception e) {
-            Console.WriteLine("Error in ClientLoop: " + e.Message);
+            Console.WriteLine($"[ERROR] Unexpected error in ClientLoop for {identifier}: {e.Message}");
+            if (lastLine != null) {
+                Console.WriteLine($"Last input received: '{lastLine}'");
+            }
             Console.WriteLine(e.StackTrace);
         } finally {
             OnDisconnect();
@@ -184,20 +195,17 @@ public class Connection : IDisposable {
 
         if (_player != null) {
             _player.Close();
-            Console.WriteLine(_player.Id + " has disconnected");
+            Console.WriteLine($"{_player.Name} ({_player.Id}) has disconnected.");
         } else {
-            Console.WriteLine("An unauthenticated connection has disconnected");
+            Console.WriteLine("An unauthenticated connection has disconnected.");
         }
 
         Dispose();
     }
 
     public void Dispose() {
-        if (_player != null) {
-            Console.Write("Disposing of " + _player.Name + "'s resources...");
-        } else {
-            Console.Write("Disposing of unauthenticated connection's resources...");
-        }
+        string name = _player != null ? _player.Name : "unauthenticated connection";
+        Console.Write($"Disposing of {name}'s resources...");
 
         if (Reader != null) {
             Reader.Dispose();
@@ -209,9 +217,7 @@ public class Connection : IDisposable {
                     _writer.Dispose();
                 }
             } catch (IOException) {
-                if (_player != null) {
-                    Console.WriteLine(_player.Name + " might not have been fully disposed of.");
-                }
+                Console.WriteLine($"\nWarning: {name}'s writer might not have been fully disposed of.");
             }
         }
 

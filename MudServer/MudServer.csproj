@@ -82,6 +82,7 @@
     <Compile Include="Src\Entity\PlayerCharacter.cs" />
     <Compile Include="Src\Entity\Item.cs" />
     <Compile Include="Src\Entity\ItemDef.cs" />
+    <Compile Include="Src\Entity\QuestLog.cs" />
     <Compile Include="Src\Entity\SpawnData.cs" />
     <Compile Include="Src\Entity\Spawner.cs" />
     <Compile Include="Src\Entity\SpawnerTests.cs" />
