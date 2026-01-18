@@ -3,7 +3,7 @@
   <asmv1:assemblyIdentity name="MudServer.exe" version="1.0.0.1" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="x86" type="win32" />
   <application />
   <entryPoint>
-    <assemblyIdentity name="MudServer" version="1.0.9514.17456" language="neutral" processorArchitecture="x86" />
+    <assemblyIdentity name="MudServer" version="1.0.9514.21680" language="neutral" processorArchitecture="x86" />
     <commandLine file="MudServer.exe" parameters="" />
   </entryPoint>
   <trustInfo>
@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="123904">
-      <assemblyIdentity name="MudServer" version="1.0.9514.17456" language="neutral" processorArchitecture="x86" />
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MudServer.exe" size="143360">
+      <assemblyIdentity name="MudServer" version="1.0.9514.21680" language="neutral" processorArchitecture="x86" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>dzqecftJIWv7G7CJjHfSHdAX5686eECiynjzDC09soM=</dsig:DigestValue>
+        <dsig:DigestValue>ipF9ozTxZBhGwI1QX7iRY/LEiXaNq+6pe5WHi8huB/g=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

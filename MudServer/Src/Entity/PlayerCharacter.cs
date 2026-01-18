@@ -16,7 +16,7 @@ namespace MudServer.Entity {
         System.Diagnostics.Stopwatch HealTick = new System.Diagnostics.Stopwatch();
         System.Diagnostics.Stopwatch ReviveTick = new System.Diagnostics.Stopwatch();
         int TickDuration = 3000;
-        Connection Conn;
+        public Connection Conn { get; private set; }
 
         public QuestLog QuestLog {
             get => Stats.QuestLog;
@@ -52,14 +52,14 @@ namespace MudServer.Entity {
                 Stats.Health = Stats.MaxHealth;
             }
 
-            if (data.Location != null && World.World.GetRoom(data.Location) != null) {
+            if (data.Location == null || !World.World.TryGetRoom(data.Location, out _)) {
+                Move(Coordinate3.Zero);
+            } else {
                 Move(data.Location);
                 if (data.Location == Coordinate3.Purgatory) {
                     GameState = GameState.Dead;
                     ReviveTick.Start();
                 }
-            } else {
-                Move(Coordinate3.Zero);
             }
 
             Conn.Send("Welcome!");
@@ -174,15 +174,14 @@ namespace MudServer.Entity {
                 Players.Remove(Id);
             }
 
-            Room room = World.World.GetRoom(Stats.Location);
-            if (room != null) {
-                lock (room.EntitiesHere) {
-                    room.EntitiesHere.Remove(Id);
-                }
-            }
-
             Target = null;
             GameState = GameState.Idle;
+
+            if (!World.World.TryGetRoom(Stats.Location, out Room room)) return;
+
+            lock (room.EntitiesHere) {
+                room.EntitiesHere.Remove(Id);
+            }
         }
 
         public override void SendToClient(string msg, string colorSequence = "") {

@@ -56,10 +56,8 @@ namespace MudServer.Entity {
         }
 
         public virtual void Move(Coordinate3 location) {
-            Room oldRoom = World.World.GetRoom(Stats.Location);
-            Room newRoom = World.World.GetRoom(location);
-
-            if (newRoom == null) {
+            World.World.TryGetRoom(Stats.Location, out Room oldRoom);
+            if (!World.World.TryGetRoom(location, out Room newRoom)) {
                 // If we can't move to the new room, just stay where we are.
                 // We might want to notify the mobile/player.
                 SendToClient("You can't go that way.", Color.Red);
@@ -143,21 +141,20 @@ namespace MudServer.Entity {
         }
 
         public void BroadcastLocal(string msg, string colorSequence = "", params Guid[] ignore) {
-            Room room = World.World.GetRoom(Stats.Location);
-            if (room != null) {
-                Guid[] entities;
-                lock (room.EntitiesHere) {
-                    entities = room.EntitiesHere.ToArray();
-                }
+            if (!World.World.TryGetRoom(Stats.Location, out Room room)) return;
 
-                for (int i = 0; i < entities.Length; i++) {
-                    if (World.World.GetEntity(entities[i]) is PlayerCharacter player) {
-                        if (player.Id == Id || ignore.Contains(player.Id)) {
-                            continue;
-                        }
+            Guid[] entities;
+            lock (room.EntitiesHere) {
+                entities = room.EntitiesHere.ToArray();
+            }
 
-                        player.SendToClient(msg, colorSequence);
+            for (int i = 0; i < entities.Length; i++) {
+                if (World.World.GetEntity(entities[i]) is PlayerCharacter player) {
+                    if (player.Id == Id || ignore.Contains(player.Id)) {
+                        continue;
                     }
+
+                    player.SendToClient(msg, colorSequence);
                 }
             }
         }
@@ -207,8 +204,8 @@ namespace MudServer.Entity {
         public bool IsTargetPresent() {
             if (Target == null || Target.Stats == null || Target.GameState == GameState.Dead ||
                 Target.Stats.Health <= 0) return false;
-            Room room = World.World.GetRoom(Stats.Location);
-            if (room == null) return false;
+            
+            if (!World.World.TryGetRoom(Stats.Location, out Room room)) return false;
 
             // Basic location check
             if (Target.Stats.Location != Stats.Location) return false;
@@ -264,25 +261,29 @@ namespace MudServer.Entity {
             string enemyHealthColor = Color.Green;
             if ((float)Stats.Health / Stats.MaxHealth < 0.33f)
                 vitalsColor = Color.Red;
-            if (Target != null) {
-                barCount = (int)(barWidth * (float)Target.Stats.Health / Target.Stats.MaxHealth);
+            if (Target != null && Target.Stats != null && Target.Stats.MaxHealth > 0) {
+                barCount = (int)(barWidth * (float)Math.Max(0, Target.Stats.Health) / Target.Stats.MaxHealth);
+                barCount = Math.Min(barWidth, Math.Max(0, barCount));
                 if ((float)Target.Stats.Health / Target.Stats.MaxHealth < 0.33f)
                     enemyHealthColor = Color.Red;
                 bars = enemyHealthColor + new string('#', barCount);
-                spaces = new string(' ', 20 - barCount);
+                spaces = new string(' ', barWidth - barCount);
                 enemyHealth
                     = $"{Color.Red}{Target.Name}: {Target.Stats.Health} {Color.White}[{bars}{spaces} {Color.White}] {enemyHealthColor}{Target.Stats.MaxHealth}";
             }
 
-            barCount = (int)(barWidth * (float)Stats.Health / Stats.MaxHealth);
-            bars = vitalsColor + new string('#', barCount);
-            spaces = new string(' ', 20 - barCount);
-            string healthBar
-                = $"{vitalsColor}{Stats.Health} {Color.White}[{bars}{spaces}{Color.White}] {vitalsColor}{Stats.MaxHealth}";
+            if (Stats.MaxHealth > 0) {
+                barCount = (int)(barWidth * (float)Math.Max(0, Stats.Health) / Stats.MaxHealth);
+                barCount = Math.Min(barWidth, Math.Max(0, barCount));
+                bars = vitalsColor + new string('#', barCount);
+                spaces = new string(' ', barWidth - barCount);
+                string healthBar
+                    = $"{vitalsColor}{Stats.Health} {Color.White}[{bars}{spaces}{Color.White}] {vitalsColor}{Stats.MaxHealth}";
 
-            SendToClient(
-                $"\n{Color.White}-- HP: {healthBar} -- {enemyHealthColor}{enemyHealth}{levelUpIndicator}\n", vitalsColor
-            );
+                SendToClient(
+                    $"\n{Color.White}-- HP: {healthBar} -- {enemyHealthColor}{enemyHealth}{levelUpIndicator}\n", vitalsColor
+                );
+            }
         }
     }
 }

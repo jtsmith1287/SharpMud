@@ -21,51 +21,51 @@ public static class AnsiMap {
 
             for (int x = minX; x <= maxX; x++) {
                 Coordinate3 currentPos = new Coordinate3(x, y, location.Z);
-                Room room = World.GetRoom(currentPos);
-
-                if (room != null) {
-                    bool isCurrent = (x == location.X && y == location.Y);
-
-                    // Room representation
-                    string roomColor = isCurrent ? Color.Green : Color.White;
-                    string roomSymbol = "#";
-
-                    // Check for Up/Down exits
-                    bool hasUp = false;
-                    bool hasDown = false;
-                    foreach (var exit in room.ConnectedRooms.Values) {
-                        if (exit.Z > room.Location.Z) hasUp = true;
-                        if (exit.Z < room.Location.Z) hasDown = true;
-                    }
-
-                    if (hasUp && hasDown) roomSymbol = "B"; // Both
-                    else if (hasUp) roomSymbol = "U";
-                    else if (hasDown) roomSymbol = "D";
-
-                    roomRow.Append(roomColor + roomSymbol + Color.Reset);
-
-                    // East connection
-                    if (x < maxX) {
-                        Coordinate3 eastPos = new Coordinate3(x + 1, y, location.Z);
-                        Room eastRoom = World.GetRoom(eastPos);
-                        if (eastRoom != null && HasConnection(room, eastRoom)) {
-                            roomRow.Append(Color.Yellow + "--" + Color.Reset);
-                        } else {
-                            roomRow.Append("  ");
-                        }
-                    }
-                } else {
+                if (!World.TryGetRoom(currentPos, out Room room)) {
                     roomRow.Append("   ");
+                    if (y > minY) {
+                        connRow.Append("   ".Substring(0, x < maxX ? 3 : 1));
+                    }
+                    continue;
+                }
+
+                bool isCurrent = (x == location.X && y == location.Y);
+
+                // Room representation
+                string roomColor = isCurrent ? Color.Green : Color.White;
+                string roomSymbol = "#";
+
+                // Check for Up/Down exits
+                bool hasUp = false;
+                bool hasDown = false;
+                foreach (var exit in room.ConnectedRooms.Values) {
+                    if (exit.Z > room.Location.Z) hasUp = true;
+                    if (exit.Z < room.Location.Z) hasDown = true;
+                }
+
+                if (hasUp && hasDown) roomSymbol = "B"; // Both
+                else if (hasUp) roomSymbol = "U";
+                else if (hasDown) roomSymbol = "D";
+
+                roomRow.Append(roomColor + roomSymbol + Color.Reset);
+
+                // East connection
+                if (x < maxX) {
+                    Coordinate3 eastPos = new Coordinate3(x + 1, y, location.Z);
+                    if (!World.TryGetRoom(eastPos, out Room eastRoom) || !HasConnection(room, eastRoom)) {
+                        roomRow.Append("  ");
+                    } else {
+                        roomRow.Append(Color.Yellow + "--" + Color.Reset);
+                    }
                 }
 
                 // South connection
                 if (y > minY) {
                     Coordinate3 southPos = new Coordinate3(x, y - 1, location.Z);
-                    Room southRoom = World.GetRoom(southPos);
-                    if (room != null && southRoom != null && HasConnection(room, southRoom)) {
-                        connRow.Append(Color.Yellow + "|" + Color.Reset + (x < maxX ? "  " : ""));
-                    } else {
+                    if (!World.TryGetRoom(southPos, out Room southRoom) || !HasConnection(room, southRoom)) {
                         connRow.Append("   ".Substring(0, x < maxX ? 3 : 1));
+                    } else {
+                        connRow.Append(Color.Yellow + "|" + Color.Reset + (x < maxX ? "  " : ""));
                     }
                 }
             }

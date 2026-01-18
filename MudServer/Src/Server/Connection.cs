@@ -23,6 +23,8 @@ public class Connection : IDisposable {
 
     private PlayerCharacter _player;
 
+    public Connection() { } // For testing
+
     public Connection(Socket socket) {
         if (socket == null) return;
         this._socket = socket;
@@ -51,7 +53,7 @@ public class Connection : IDisposable {
 
                 lock (BigLock) {
                     if (_player != null) {
-                        ArgumentHandler.HandleLine(lastLine.Trim(), _player);
+                        Actions.Actions.DoAction(_player, lastLine.Trim());
                     }
                 }
             }

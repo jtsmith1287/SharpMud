@@ -101,20 +101,24 @@ namespace MudServer.Entity {
 		}
 
 		private void DestroyMob(NonPlayerCharacter mob) {
-
 			lock (Spawns) {
 				Spawns.Remove(mob);
 			}
-			Room room = World.World.GetRoom(mob.Stats.Location);
-			if (room != null) {
-				lock (room.EntitiesHere) {
-					room.EntitiesHere.Remove(mob.Id);
-				}
-			}
+
 			lock (World.World.Mobiles) {
 				World.World.Mobiles.Remove(mob.Id);
 			}
+
 			mob.BroadcastLocal(mob.Name + " has died!", Color.Yellow);
+
+			if (!World.World.TryGetRoom(mob.Stats.Location, out Room room)) {
+				mob.Stats.Location = null;
+				return;
+			}
+
+			lock (room.EntitiesHere) {
+				room.EntitiesHere.Remove(mob.Id);
+			}
 			mob.Stats.Location = null;
 		}
 

@@ -37,14 +37,14 @@ namespace MudServer.World {
             return true;
         }
 
-        public static Room GetRoom(Coordinate3 location) {
+        public static bool TryGetRoom(Coordinate3 location, out Room room) {
+            room = null;
             if (location == null) {
-                return null;
+                return false;
             }
 
             string stringCoord = $"{location.X} {location.Y} {location.Z}";
-            Rooms.TryGetValue(stringCoord, out Room room);
-            return room;
+            return Rooms.TryGetValue(stringCoord, out room);
         }
 
         /// <summary>

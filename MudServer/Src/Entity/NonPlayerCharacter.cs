@@ -89,15 +89,14 @@ namespace MudServer.Entity {
         }
 
         private bool TryFollow(BaseMobile target) {
-            Room targetsRoom = World.World.GetRoom(target.Stats.Location);
-            Room thisRoom = World.World.GetRoom(this.Stats.Location);
-            if (thisRoom != null && targetsRoom != null) {
-                lock (thisRoom.ConnectedRooms) {
-                    foreach (var entry in thisRoom.ConnectedRooms) {
-                        if (entry.Value == targetsRoom.Location) {
-                            Move(entry.Value);
-                            return true;
-                        }
+            if (!World.World.TryGetRoom(target.Stats.Location, out Room targetsRoom)) return false;
+            if (!World.World.TryGetRoom(this.Stats.Location, out Room thisRoom)) return false;
+
+            lock (thisRoom.ConnectedRooms) {
+                foreach (var entry in thisRoom.ConnectedRooms) {
+                    if (entry.Value == targetsRoom.Location) {
+                        Move(entry.Value);
+                        return true;
                     }
                 }
             }
@@ -123,8 +122,7 @@ namespace MudServer.Entity {
         }
 
         private void SeekTarget() {
-            Room room = World.World.GetRoom(Stats.Location);
-            if (room == null) return;
+            if (!World.World.TryGetRoom(Stats.Location, out Room room)) return;
 
             SpawnData thisData = (SpawnData)Stats;
             foreach (Guid id in room.EntitiesHere) {
@@ -160,8 +158,7 @@ namespace MudServer.Entity {
         }
 
         private void Wander() {
-            Room room = World.World.GetRoom(Stats.Location);
-            if (room == null) return;
+            if (!World.World.TryGetRoom(Stats.Location, out Room room)) return;
 
             lock (room.ConnectedRooms) {
                 if (room.ConnectedRooms.Count <= 0) return;

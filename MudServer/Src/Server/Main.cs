@@ -10,6 +10,7 @@ namespace MudServer.Server {
 				new MudServer.Entity.CombatTests().RunTests();
 				new MudServer.Entity.SpawnerTests().RunTests();
 				new MudServer.World.RoomTests().RunTests();
+				new MudServer.Actions.ActionTests().RunTests();
 				Environment.Exit(0);
 			}
 			try {

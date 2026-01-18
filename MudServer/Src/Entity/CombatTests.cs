@@ -210,7 +210,7 @@ public class CombatTests {
         Assert(enemy.GameState == GameState.Combat, "Enemy should be in combat");
 
         // Remove player from the room's EntitiesHere list, but keep location same
-        Room room = World.World.GetRoom(enemy.Stats.Location);
+        if (!World.World.TryGetRoom(enemy.Stats.Location, out Room room)) return;
         room.EntitiesHere.Remove(player.Id);
 
         // Run logic

@@ -61,6 +61,10 @@ public static class ArgumentHandler {
             return false;
         }
 
+        if (full.StartsWith(typed, StringComparison.OrdinalIgnoreCase)) {
+            return true;
+        }
+
         string[] words = full.Split(' ');
         return words.Any(word => word.StartsWith(typed, StringComparison.OrdinalIgnoreCase));
     }

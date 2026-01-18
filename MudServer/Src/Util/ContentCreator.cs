@@ -65,12 +65,11 @@ namespace MudServer.Util {
 							}
 						}
 
-						Room worldRoom = MudServer.World.World.GetRoom(loadedRoom.Location);
-						if (worldRoom != null) {
-							_currentMapRooms[key] = worldRoom;
-						} else {
+						if (!MudServer.World.World.TryGetRoom(loadedRoom.Location, out Room worldRoom)) {
 							MudServer.World.World.AddRoom(loadedRoom);
+							continue;
 						}
+						_currentMapRooms[key] = worldRoom;
 					}
 				}
 
@@ -112,9 +111,8 @@ namespace MudServer.Util {
 		private void ListRooms_SelectedIndexChanged(object sender, EventArgs e) {
 			if (ListRooms.SelectedItems.Count == 0) return;
 			string coordKey = ListRooms.SelectedItems[0].Tag as string;
-			if (coordKey != null && _currentMapRooms.TryGetValue(coordKey, out _selectedRoom)) {
-				UpdateRoomDetails();
-			}
+			if (coordKey == null || !_currentMapRooms.TryGetValue(coordKey, out _selectedRoom)) return;
+			UpdateRoomDetails();
 		}
 
 		private void ListRooms_MouseDown(object sender, MouseEventArgs e) {
@@ -243,13 +241,13 @@ namespace MudServer.Util {
 			bool foundEmptySpaceForNewRoom = false;
 			foreach (var dir in directions) {
 				Coordinate3 adjCoord = _selectedRoom.Location + dir.Value;
-				Room adjRoom = MudServer.World.World.GetRoom(adjCoord);
-				if (adjRoom != null) {
-					if (!_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) {
-						foundAdjacentRoomToConnect = true;
-					}
-				} else {
+				if (!MudServer.World.World.TryGetRoom(adjCoord, out Room adjRoom)) {
 					foundEmptySpaceForNewRoom = true;
+					continue;
+				}
+
+				if (!_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) {
+					foundAdjacentRoomToConnect = true;
 				}
 			}
 
@@ -363,7 +361,7 @@ namespace MudServer.Util {
 			foreach (var exit in _selectedRoom.ConnectedRooms) {
 				string direction = exit.Key;
 				Coordinate3 targetCoord = exit.Value;
-				Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
+				MudServer.World.World.TryGetRoom(targetCoord, out Room targetRoom);
 				string targetName = targetRoom != null ? targetRoom.Name : "Unknown Room";
 
 				Panel exitItem = new Panel { 
@@ -438,9 +436,10 @@ namespace MudServer.Util {
 			}
 
 			// If not in current map, check if it exists in World and belongs to another map
-			Room targetRoom = MudServer.World.World.GetRoom(coord);
-			if (targetRoom != null && !string.IsNullOrEmpty(targetRoom.MapName)) {
-				// Switch map
+			if (!MudServer.World.World.TryGetRoom(coord, out Room targetRoom)) return;
+			if (string.IsNullOrEmpty(targetRoom.MapName)) return;
+
+			// Switch map
 				for (int i = 0; i < ComboMapFiles.Items.Count; i++) {
 					if (ComboMapFiles.Items[i].ToString() == targetRoom.MapName) {
 						ComboMapFiles.SelectedIndex = i;
@@ -457,7 +456,6 @@ namespace MudServer.Util {
 						break;
 					}
 				}
-			}
 			
 			MessageBox.Show("Room is not in the current map view and could not be found in other maps.");
 		}
@@ -534,7 +532,7 @@ namespace MudServer.Util {
 			if (!_selectedRoom.ConnectedRooms.ContainsKey(direction)) return;
 
 			Coordinate3 targetCoord = _selectedRoom.ConnectedRooms[direction];
-			Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
+			MudServer.World.World.TryGetRoom(targetCoord, out Room targetRoom);
 			string targetName = targetRoom != null ? targetRoom.Name : "Unknown Room";
 
 			// Identify rooms that will be disconnected
@@ -589,7 +587,7 @@ namespace MudServer.Util {
 			if (_selectedRoom == null) return;
 			if (!_selectedRoom.ConnectedRooms.TryGetValue(direction, out Coordinate3 targetCoord)) return;
 
-			Room targetRoom = MudServer.World.World.GetRoom(targetCoord);
+			MudServer.World.World.TryGetRoom(targetCoord, out Room targetRoom);
 			Exit exit;
 			if (!_selectedRoom.Exits.TryGetValue(direction, out exit)) {
 				// Create new exit metadata
@@ -771,17 +769,15 @@ namespace MudServer.Util {
 			bool foundAny = false;
 			foreach (var dir in directions) {
 				Coordinate3 adjCoord = _selectedRoom.Location + dir.Value;
-				Room adjRoom = MudServer.World.World.GetRoom(adjCoord);
-				if (adjRoom != null) {
-					if (!_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) {
-						listOptions.Items.Add(new AdjRoomItem { 
-							Direction = dir.Key, 
-							Room = adjRoom, 
-							Display = $"{dir.Key.ToUpper()}: {adjRoom.Name} ({adjRoom.Location.X} {adjRoom.Location.Y} {adjRoom.Location.Z})" 
-						});
-						foundAny = true;
-					}
-				}
+				if (!MudServer.World.World.TryGetRoom(adjCoord, out Room adjRoom)) continue;
+				if (_selectedRoom.ConnectedRooms.ContainsKey(dir.Key)) continue;
+
+				listOptions.Items.Add(new AdjRoomItem { 
+					Direction = dir.Key, 
+					Room = adjRoom, 
+					Display = $"{dir.Key.ToUpper()}: {adjRoom.Name} ({adjRoom.Location.X} {adjRoom.Location.Y} {adjRoom.Location.Z})" 
+				});
+				foundAny = true;
 			}
 
 			if (!foundAny) {
@@ -863,8 +859,7 @@ namespace MudServer.Util {
 			bool foundAny = false;
 			foreach (var dir in directions) {
 				Coordinate3 targetCoord = _selectedRoom.Location + dir.Value;
-				Room existingRoom = MudServer.World.World.GetRoom(targetCoord);
-				if (existingRoom == null) {
+				if (!MudServer.World.World.TryGetRoom(targetCoord, out Room existingRoom)) {
 					listOptions.Items.Add(new NewRoomOption {
 						Direction = dir.Key,
 						Coordinate = targetCoord,
