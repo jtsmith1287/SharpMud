@@ -93,7 +93,9 @@ namespace MudServer.Entity {
 
                 if (!Hidden) {
                     BroadcastLocal(
-                        Name + " has left to the " + oldRoom.GetDirection(newRoom.Location),
+                        Name + " has left " + (location == Coordinate3.Purgatory ? 
+                                "this mortal realm!" :
+                                "to the " + oldRoom.GetDirection(newRoom.Location)),
                         Color.Yellow
                     );
                 }

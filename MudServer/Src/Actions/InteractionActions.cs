@@ -213,7 +213,18 @@ public static class InteractionActions {
     }
 
     public static void Say(PlayerCharacter player, string[] args) {
-        throw new NotImplementedException();
+        if (args.Length == 0) {
+            player.SendToClient("Say what?");
+            return;
+        }
+
+        string message = string.Join(" ", args.Skip(1));
+        ActionUtility.SendMessage(
+            player,
+            $"You say, \"{message}\"",
+            $"{player.Name} says, \"{message}\"",
+            ActionUtility.MessageType.PublicChat
+        );
     }
 }
 }
