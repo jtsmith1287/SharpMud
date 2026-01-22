@@ -59,8 +59,9 @@ public static class InteractionActions {
         }
 
         player.GameState = GameState.Resting;
-        ActionUtility.SendSuccess(
-            player, "You sit down and begin to rest...", player.Name + " sits down and begins to rest."
+        ActionUtility.SendMessage(
+            player,
+            "You sit down and begin to rest...", player.Name + " sits down and begins to rest."
         );
     }
 
@@ -100,8 +101,11 @@ public static class InteractionActions {
         }
 
         exit.Locked = false;
-        ActionUtility.SendSuccess(
-            player, $"You unlock the door to the {direction}.", $"{player.Name} unlocks the door to the {direction}."
+        ActionUtility.SendMessage(
+            player,
+            $"You unlock the door to the {direction}.",
+            $"{player.Name} unlocks the door to the {direction}.",
+            ActionUtility.MessageType.Success
         );
     }
 
@@ -142,14 +146,18 @@ public static class InteractionActions {
 
         if (ActionUtility.RollSuccess(player.Stats.Dex)) {
             exit.Locked = false;
-            ActionUtility.SendSuccess(
-                player, $"*Click* You successfully pick the lock to the {direction}!",
-                $"{player.Name} successfully picks the lock to the {direction}."
+            ActionUtility.SendMessage(
+                player,
+                $"*Click* You successfully pick the lock to the {direction}!",
+                $"{player.Name} successfully picks the lock to the {direction}.",
+                ActionUtility.MessageType.Success
             );
         } else {
-            ActionUtility.SendFailure(
-                player, "You fail to pick the lock.",
-                $"{player.Name} attempts to pick the lock to the {direction} but fails."
+            ActionUtility.SendMessage(
+                player,
+                "You fail to pick the lock.",
+                $"{player.Name} attempts to pick the lock to the {direction} but fails.",
+                ActionUtility.MessageType.Failure
             );
         }
     }
@@ -184,19 +192,28 @@ public static class InteractionActions {
 
         if (ActionUtility.RollSuccess(player.Stats.Str)) {
             exit.Locked = false;
-            ActionUtility.SendSuccess(
-                player, $"With a heavy thud, you bash open the door to the {direction}!",
-                $"{player.Name} bashes open the door to the {direction}!"
+            exit.Open = true;
+            ActionUtility.SendMessage(
+                player,
+                $"With a heavy thud, you bash open the door to the {direction}!",
+                $"{player.Name} bashes open the door to the {direction}!",
+                ActionUtility.MessageType.Success
             );
         } else {
             int damage = (int)(player.Stats.Str * 0.10);
             if (damage < 1) damage = 1;
             player.ApplyDamage(damage);
-            ActionUtility.SendFailure(
-                player, $"You slam into the door to the {direction} but it holds firm! You take {damage} damage.",
-                $"{player.Name} slams into the door to the {direction} but fails to budge it."
+            ActionUtility.SendMessage(
+                player,
+                $"You slam into the door to the {direction} but it holds firm! You take {damage} damage.",
+                $"{player.Name} slams into the door to the {direction} but fails to budge it.",
+                ActionUtility.MessageType.Failure
             );
         }
+    }
+
+    public static void Say(PlayerCharacter player, string[] args) {
+        throw new NotImplementedException();
     }
 }
 }

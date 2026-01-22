@@ -11,7 +11,7 @@ namespace MudServer.Actions {
 public static class Actions {
     public static bool UseNewSystem = true;
 
-    public static readonly Dictionary<string, Action<PlayerCharacter, string[]>> NewActionCalls =
+    public static readonly Dictionary<string, Action<PlayerCharacter, string[]>> ActionMap =
         new Dictionary<string, Action<PlayerCharacter, string[]>> {
             { "attack", CombatActions.Attack },
             { "north", MovementActions.Move },
@@ -30,7 +30,8 @@ public static class Actions {
             { "picklock", InteractionActions.PickLock },
             { "unlock", InteractionActions.Unlock },
             { "bash", InteractionActions.Bash },
-            { "search", InteractionActions.Search }
+            { "search", InteractionActions.Search },
+            { "say ", InteractionActions.Say}
         };
 
     private static readonly Dictionary<string, Func<PlayerCharacter, string, string>> ArgumentAutocompleters =
@@ -53,8 +54,8 @@ public static class Actions {
             return;
         }
 
-        string[] args = ArgumentHandler.ProcessLine(line);
-        if (args.Length == 0) {
+        string[] inputArgs = ArgumentHandler.ProcessLine(line);
+        if (inputArgs.Length == 0) {
             player.DisplayVitals();
             return;
         }
@@ -63,39 +64,39 @@ public static class Actions {
         string commandName = null;
         Action<PlayerCharacter, string[]> action = null;
 
-        foreach (var entry in NewActionCalls) {
-            if (ArgumentHandler.TryAutoComplete(args[0], entry.Key)) {
+        foreach (KeyValuePair<string, Action<PlayerCharacter, string[]>> entry in ActionMap
+                     .Where(entry => ArgumentHandler.TryAutoComplete(inputArgs[0], entry.Key))) {
+            commandName = entry.Key;
+            action = entry.Value;
+            break;
+        }
+
+        if (commandName == null && player.Admin) {
+            foreach (KeyValuePair<string, Action<PlayerCharacter, string[]>> entry in AdminActions.ActionCalls
+                         .Where(entry => ArgumentHandler.TryAutoComplete(inputArgs[0], entry.Key))) {
                 commandName = entry.Key;
                 action = entry.Value;
                 break;
             }
         }
 
-        if (commandName == null && player.Admin) {
-            foreach (var entry in AdminActions.ActionCalls) {
-                if (ArgumentHandler.TryAutoComplete(args[0], entry.Key)) {
-                    commandName = entry.Key;
-                    action = entry.Value;
-                    break;
-                }
-            }
-        }
-
         if (commandName == null) {
-            player.SendToClient("Nope, that's not a thing, sorry!", Color.Yellow);
+            player.SendToClient("Nope, that's not a thing you can do, sorry!", Color.Yellow);
             return;
         }
 
         // 2. Autocomplete arguments if needed
-        string[] expandedArgs = new string[args.Length];
+        string[] expandedArgs = new string[inputArgs.Length];
         expandedArgs[0] = commandName;
 
-        for (int i = 1; i < args.Length; i++) {
-            if (i == 1 && ArgumentAutocompleters.TryGetValue(commandName, out var autocompleter)) {
-                string expanded = autocompleter(player, args[i]);
-                expandedArgs[i] = expanded ?? args[i];
+        for (int i = 1; i < inputArgs.Length; i++) {
+            if (i == 1 && ArgumentAutocompleters.TryGetValue(
+                    commandName, out Func<PlayerCharacter, string, string> autocompleter
+                )) {
+                string expanded = autocompleter(player, inputArgs[i]);
+                expandedArgs[i] = expanded ?? inputArgs[i];
             } else {
-                expandedArgs[i] = args[i];
+                expandedArgs[i] = inputArgs[i];
             }
         }
 
@@ -106,22 +107,18 @@ public static class Actions {
 
     private static string AutocompleteMobileInRoom(PlayerCharacter player, string input) {
         if (!World.World.TryGetRoom(player.Location, out Room room)) return null;
-        var mobile = ActionUtility.FindMobileInRoom(room, input, player);
+        BaseMobile mobile = ActionUtility.FindMobileInRoom(room, input, player);
         return mobile?.Name;
     }
 
     private static string AutocompleteEntityInRoom(PlayerCharacter player, string input) {
         if (!World.World.TryGetRoom(player.Location, out Room room)) return null;
-        var entity = ActionUtility.FindEntityInRoom(room, input, player);
+        Entity.Entity entity = ActionUtility.FindEntityInRoom(room, input, player);
         return entity?.Name;
     }
 
     private static string AutocompleteDirection(PlayerCharacter player, string input) {
-        if (ActionUtility.TryGetDirection(input, out string direction)) {
-            return direction;
-        }
-
-        return null;
+        return ActionUtility.TryGetDirection(input, out string direction) ? direction : null;
     }
 
     public static readonly Dictionary<string, Action<PlayerCharacter, string[]>> ActionCalls =

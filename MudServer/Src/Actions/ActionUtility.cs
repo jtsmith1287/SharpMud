@@ -7,6 +7,25 @@ using MudServer.World;
 
 namespace MudServer.Actions {
 public static class ActionUtility {
+    public enum MessageType {
+        Generic,
+        Info,
+        Success,
+        Failure,
+        PublicChat,
+        PrivateChat,
+    }
+
+    public static Dictionary<MessageType, string> MessageColorMap = new Dictionary<MessageType, string>() {
+        { MessageType.Generic, Color.White },
+        { MessageType.Info, Color.Yellow },
+        { MessageType.Success, Color.Green },
+        { MessageType.Failure, Color.Red },
+        { MessageType.PublicChat, Color.GreenD },
+        { MessageType.PrivateChat, Color.Magenta }
+        
+    };
+    
     public static bool TryGetRoom(PlayerCharacter player, out Room room) {
         if (World.World.TryGetRoom(player.Location, out room)) {
             return true;
@@ -59,24 +78,10 @@ public static class ActionUtility {
         return room.Exits.TryGetValue(direction, out exit);
     }
 
-    public static void SendSuccess(PlayerCharacter player, string selfMsg, string localMsg = null) {
-        player.SendToClient(selfMsg, Color.Green);
-        if (!string.IsNullOrEmpty(localMsg)) {
-            player.BroadcastLocal(localMsg, Color.Yellow);
-        }
-    }
-
-    public static void SendFailure(PlayerCharacter player, string selfMsg, string localMsg = null) {
-        player.SendToClient(selfMsg, Color.Red);
-        if (!string.IsNullOrEmpty(localMsg)) {
-            player.BroadcastLocal(localMsg, Color.Yellow);
-        }
-    }
-
-    public static void SendInfo(PlayerCharacter player, string selfMsg, string localMsg = null) {
-        player.SendToClient(selfMsg, Color.Cyan);
-        if (!string.IsNullOrEmpty(localMsg)) {
-            player.BroadcastLocal(localMsg, Color.Yellow);
+    public static void SendMessage(PlayerCharacter player, string localMsg, string roomMsg = null, MessageType type = MessageType.Generic) {
+        player.SendToClient(localMsg, MessageColorMap[type]);
+        if (!string.IsNullOrEmpty(roomMsg)) {
+            player.BroadcastLocal(roomMsg, MessageColorMap[type]);
         }
     }
 
