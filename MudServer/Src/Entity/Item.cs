@@ -23,7 +23,7 @@ namespace MudServer.Entity {
         }
 
         public void Use(IActor actor) {
-            foreach (var action in OnUseActions) {
+            foreach (IItemAction action in OnUseActions) {
                 action.Execute(actor, this);
             }
         }

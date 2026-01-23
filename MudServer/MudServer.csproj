@@ -84,6 +84,7 @@
     <Compile Include="Src\Entity\CombatTests.cs" />
     <Compile Include="Src\Entity\Entity.cs" />
     <Compile Include="Src\Entity\EntityFactory.cs" />
+    <Compile Include="Src\Entity\Inventory.cs" />
     <Compile Include="Src\Entity\NonPlayerCharacter.cs" />
     <Compile Include="Src\Entity\PlayerCharacter.cs" />
     <Compile Include="Src\Entity\Item.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Src\Enums\GameState.cs" />
     <Compile Include="Src\Enums\Taxonomy.cs" />
     <Compile Include="Src\Interfaces\IDamageable.cs" />
+    <Compile Include="Src\Interfaces\IInventory.cs" />
     <Compile Include="Src\Server\Connection.cs" />
     <Compile Include="Src\Server\DataManager.cs" />
     <Compile Include="Src\Server\Main.cs" />

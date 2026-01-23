@@ -31,7 +31,8 @@ public static class Actions {
             { "unlock", InteractionActions.Unlock },
             { "bash", InteractionActions.Bash },
             { "search", InteractionActions.Search },
-            { "say ", InteractionActions.Say}
+            { "say ", InteractionActions.Say },
+            { "inventory", InteractionActions.Inventory }
         };
 
     private static readonly Dictionary<string, Func<PlayerCharacter, string, string>> ArgumentAutocompleters =

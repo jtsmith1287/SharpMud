@@ -9,6 +9,7 @@ using MudServer.World;
 namespace MudServer.Entity {
     public abstract class BaseMobile : Entity, IActor, IDamageable, IBroadcastable {
         public Stats Stats { get; set; }
+        public IInventory Inventory { get; set; }
         public GameState GameState { get; set; } = GameState.Idle;
         protected readonly Random Rnd = new Random();
         public BaseMobile Target;
@@ -288,4 +289,4 @@ namespace MudServer.Entity {
             }
         }
     }
-}
+    }

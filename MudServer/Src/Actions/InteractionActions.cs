@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using MudServer.Entity;
 using MudServer.Enums;
 using MudServer.Util;
@@ -225,6 +225,17 @@ public static class InteractionActions {
             $"{player.Name} says, \"{message}\"",
             ActionUtility.MessageType.PublicChat
         );
+    }
+
+    public static void Inventory(PlayerCharacter player, string[] args) {
+        StringBuilder message = new StringBuilder();
+
+        foreach (Item item in player.Inventory.GetItems()
+                     .OrderBy(i => i.Name)) {
+            message.AppendLine(item.Name);
+        }
+
+        player.SendToClient(message.ToString());
     }
 }
 }
