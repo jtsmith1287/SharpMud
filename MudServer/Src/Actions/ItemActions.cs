@@ -8,6 +8,9 @@ public class RevealItemAction : IItemAction {
 
     public void Execute(IActor actor, Item item) {
         // Example: drawer reveals note
+        if (actor is IBroadcastable broadcastable) {
+            broadcastable.SendToClient($"You pull the lever and hear a click from the {TargetId}!", Util.Color.Cyan);
+        }
     }
 }
 

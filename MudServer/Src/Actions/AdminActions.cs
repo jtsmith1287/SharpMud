@@ -15,8 +15,35 @@ public static class AdminActions {
             { "spawn", CreateSpawner },
             { "view", ViewEntity },
             { "save", SaveAll },
-            { "god", GodMode }
+            { "god", GodMode },
+            { "add", AddItemToRoom }
         };
+
+    public static void AddItemToRoom(PlayerCharacter player, string[] args) {
+        if (!ActionUtility.TryGetRoom(player, out Room room)) {
+            return;
+        }
+
+        if (args.Length < 2) {
+            player.SendToClient("Add what item ID?", Color.Red);
+            return;
+        }
+
+        string itemId = args[1].ToLower();
+        if (!ItemDef.Registry.TryGetValue(itemId, out ItemDef def)) {
+            player.SendToClient($"Item ID '{itemId}' not found in registry.", Color.Red);
+            return;
+        }
+
+        Item item = new Item(def);
+        room.ItemsHereIds.Add(def.Id);
+        room.EntitiesHere.Add(item.Id);
+        
+        DataManager.SaveMap(room.MapName);
+
+        player.SendToClient($"Added {def.Name} ({def.Id}) to the room and saved to {room.MapName}.", Color.Green);
+        player.BroadcastLocal($"{player.Name} creates {def.Name} out of thin air!", Color.Yellow);
+    }
 
     public static void GodMode(PlayerCharacter player, string[] args) {
         player.GodMode = !player.GodMode;
@@ -27,6 +54,7 @@ public static class AdminActions {
         DataManager.SaveData(
             DataPaths.IdData,
             DataPaths.Creatures,
+            DataPaths.Items,
             DataPaths.UserId,
             DataPaths.UserPwd
         );

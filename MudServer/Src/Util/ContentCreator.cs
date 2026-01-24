@@ -667,13 +667,14 @@ namespace MudServer.Util {
 					}
 
 					if (targetExit != null) {
-						int targetIndex = targetExit.Path[0].Equals(targetCoord) ? 0 : 1;
+						// Ensure they are the same object
+						targetRoom.Exits[reverseDir] = exit;
+						
+						int targetIndex = exit.Path[0].Equals(targetCoord) ? 0 : 1;
 						if (shouldSyncVisibility) {
-							targetExit.Hidden[targetIndex] = exit.Hidden[index];
-							targetExit.Secret[targetIndex] = exit.Secret[index];
+							exit.Hidden[targetIndex] = exit.Hidden[index];
+							exit.Secret[targetIndex] = exit.Secret[index];
 						}
-						targetExit.Locked = exit.Locked;
-						targetExit.Open = exit.Open;
 					}
 				}
 

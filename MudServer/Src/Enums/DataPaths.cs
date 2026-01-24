@@ -6,5 +6,6 @@ public struct DataPaths {
     public const string World = "world.json";
     public const string MapList = "maps\\maps.json";
     public const string Creatures = "creatures.json";
+    public const string Items = "items.json";
 }
 }

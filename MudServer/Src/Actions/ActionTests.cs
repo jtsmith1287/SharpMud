@@ -29,6 +29,10 @@ public class ActionTests {
             TestActionUtility();
             TestInteractionDetailed();
             TestLookItem();
+            TestSharedExitInstance();
+            TestExitInstanceSynchronizationAfterLoading();
+            TestFullExitSynchronizationFlow();
+            Console.WriteLine("All ActionTests passed!");
         } catch (Exception e) {
             Console.WriteLine("[ERROR] Exception during tests: " + e.Message);
             Console.WriteLine(e.StackTrace);
@@ -251,6 +255,17 @@ public class ActionTests {
         Actions.DoAction(player, "bash e");
         Assert(exit.Locked, "Bash with 0 str should fail");
         Assert(player.Stats.Health < initialHealth, "Bash failure should deal damage");
+
+        // Test Open
+        exit.Locked = false;
+        exit.Open = false;
+        Actions.DoAction(player, "open e");
+        Assert(exit.Open, "Open east should open the door");
+
+        exit.Open = false;
+        exit.Locked = true;
+        Actions.DoAction(player, "open e");
+        Assert(!exit.Open, "Open locked door should not work");
     }
 
     public void TestLookItem() {
@@ -265,6 +280,111 @@ public class ActionTests {
 
         Actions.DoAction(player, "look key");
         Assert(conn.SentMessages.Any(m => m.Contains("shiny key")), "Looking at 'key' should show description");
+    }
+
+    public void TestSharedExitInstance() {
+        Coordinate3 loc1 = new Coordinate3(10000, 10000, 0);
+        Coordinate3 loc2 = new Coordinate3(10001, 10000, 0);
+        Room room1 = CreateTestRoom(loc1, "Shared Room 1");
+        Room room2 = CreateTestRoom(loc2, "Shared Room 2");
+
+        // Manually link rooms as it would be in a real map
+        room1.ConnectedRooms["east"] = loc2;
+        room2.ConnectedRooms["west"] = loc1;
+
+        // Create a single exit and share it
+        Exit exit = new Exit { Path = new[] { loc1, loc2 }, Open = false, Locked = false };
+        room1.Exits["east"] = exit;
+        room2.Exits["west"] = exit;
+
+        PlayerCharacter player1 = CreateTestPlayer("Player1", loc1);
+        PlayerCharacter player2 = CreateTestPlayer("Player2", loc2);
+        var conn2 = (MockConnection)player2.Conn;
+
+        // Verify initial state
+        Assert(!exit.Open, "Initial state: exit should be closed");
+
+        // Player 1 opens the door
+        Actions.DoAction(player1, "open east");
+
+        // Verify the exit state in both rooms
+        Assert(exit.Open, "Exit should be open in the shared instance");
+        
+        // Also verify that the exit object is the same in both rooms
+        Assert(room1.Exits["east"] == room2.Exits["west"], "Exit instances MUST be shared between both rooms for consistency");
+
+        // Player 2 should see that the door is open
+        conn2.SentMessages.Clear();
+        Actions.DoAction(player2, "look");
+        Assert(conn2.SentMessages.Any(m => m.Contains("west") && !m.Contains("(closed)")), 
+            "Anyone standing in the other room should see the door open (verified by Player 2)");
+    }
+
+    public void TestExitInstanceSynchronizationAfterLoading() {
+        Coordinate3 loc1 = new Coordinate3(20000, 20000, 0);
+        Coordinate3 loc2 = new Coordinate3(20001, 20000, 0);
+        Room room1 = CreateTestRoom(loc1, "Sync Room 1");
+        Room room2 = CreateTestRoom(loc2, "Sync Room 2");
+
+        room1.ConnectedRooms["east"] = loc2;
+        room2.ConnectedRooms["west"] = loc1;
+
+        // Simulate independent exit instances being created (like after JSON deserialization)
+        Exit exit1 = new Exit { Path = new[] { loc1, loc2 }, Open = false, Locked = false };
+        Exit exit2 = new Exit { Path = new[] { loc1, loc2 }, Open = false, Locked = false };
+        
+        room1.Exits["east"] = exit1;
+        room2.Exits["west"] = exit2;
+
+        Assert(room1.Exits["east"] != room2.Exits["west"], "Initially, they are different objects");
+
+        // Use the production unification logic
+        DataManager.UnifyExits();
+
+        Assert(room1.Exits["east"] == room2.Exits["west"], "After unification, they MUST be the same object");
+        
+        // Verify state sharing
+        room1.Exits["east"].Open = true;
+        Assert(room2.Exits["west"].Open, "State change in one should be reflected in the other after unification");
+    }
+
+    public void TestFullExitSynchronizationFlow() {
+        Coordinate3 loc1 = new Coordinate3(30000, 30000, 0);
+        Coordinate3 loc2 = new Coordinate3(30001, 30000, 0);
+        Room room1 = CreateTestRoom(loc1, "Flow Room 1");
+        Room room2 = CreateTestRoom(loc2, "Flow Room 2");
+
+        room1.ConnectedRooms["east"] = loc2;
+        room2.ConnectedRooms["west"] = loc1;
+
+        // 1. Setup separate instances
+        Exit exit1 = new Exit { Path = new[] { loc1, loc2 }, Open = false, Locked = false };
+        Exit exit2 = new Exit { Path = new[] { loc1, loc2 }, Open = false, Locked = false };
+        room1.Exits["east"] = exit1;
+        room2.Exits["west"] = exit2;
+
+        PlayerCharacter player1 = CreateTestPlayer("P1", loc1);
+        PlayerCharacter player2 = CreateTestPlayer("P2", loc2);
+
+        // 2. Demonstrate the BUG: inconsistency when not unified
+        Actions.DoAction(player1, "open east");
+        Assert(room1.Exits["east"].Open, "Room 1 door is open");
+        Assert(!room2.Exits["west"].Open, "BUG DEMONSTRATED: Room 2 door is still closed because instances are not shared");
+
+        // 3. Apply the FIX: Unify
+        DataManager.UnifyExits();
+        Assert(room1.Exits["east"] == room2.Exits["west"], "Now they share the same instance");
+
+        // 4. Demonstrate the FIX: consistency after unification
+        // Note: UnifyExits currently picks one of the existing exits. 
+        // In our case it might pick exit1 (open) or exit2 (closed) depending on room order.
+        // Let's ensure it's closed first to test the opening.
+        room1.Exits["east"].Open = false; 
+        Assert(!room2.Exits["west"].Open, "Both should be closed now");
+
+        Actions.DoAction(player1, "open east");
+        Assert(room1.Exits["east"].Open, "Room 1 door opened");
+        Assert(room2.Exits["west"].Open, "FIX VERIFIED: Room 2 door is also open because they share the same instance");
     }
 }
 }

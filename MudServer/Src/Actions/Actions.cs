@@ -27,10 +27,13 @@ public static class Actions {
             { "sneak", MovementActions.Sneak },
             { "map", InformationActions.ShowMap },
             { "rest", InteractionActions.Rest },
+            { "open", InteractionActions.Open },
             { "picklock", InteractionActions.PickLock },
             { "unlock", InteractionActions.Unlock },
             { "bash", InteractionActions.Bash },
             { "search", InteractionActions.Search },
+            { "take", InteractionActions.Take },
+            { "use", InteractionActions.Use },
             { "say ", InteractionActions.Say },
             { "inventory", InteractionActions.Inventory }
         };
@@ -42,6 +45,7 @@ public static class Actions {
             { "unlock", AutocompleteDirection },
             { "picklock", AutocompleteDirection },
             { "bash", AutocompleteDirection },
+            { "open", AutocompleteDirection },
         };
 
     public static void DoAction(PlayerCharacter player, string line) {
@@ -141,7 +145,9 @@ public static class Actions {
             { "picklock", PickLock },
             { "unlock", Unlock },
             { "bash", Bash },
-            { "search", Search }
+            { "search", InteractionActions.Search },
+            { "take", InteractionActions.Take },
+            { "use", InteractionActions.Use }
         };
 
     private const bool DEFAULT_IS_HIDDEN = false;

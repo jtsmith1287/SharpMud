@@ -28,12 +28,14 @@ namespace MudServer.World {
         public Dictionary<string, Exit> Exits = new Dictionary<string, Exit>();
         public bool IsEntryRoom = false;
         [ScriptIgnore]
-        public List<Guid> EntitiesHere = new List<Guid>();
-        public List<Spawner> SpawnersHere = new List<Spawner>();
+        public List<Guid> EntitiesHere;
+        public List<Spawner> SpawnersHere;
+        public List<string> ItemsHereIds;
 
         public Room() {
             EntitiesHere = new List<Guid>();
             SpawnersHere = new List<Spawner>();
+            ItemsHereIds = new List<string>();
         }
 
         public Room(Coordinate3 location, string name) : this() {

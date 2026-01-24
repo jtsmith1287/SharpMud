@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MudServer.Entity;
 using MudServer.Enums;
 using MudServer.Util;
 using MudServer.World;
+using MudServer.Server;
 
 namespace MudServer.Actions {
 public static class InteractionActions {
@@ -34,18 +36,108 @@ public static class InteractionActions {
             foundSomething = true;
         }
 
-        foreach (Entity.Entity entity in room.EntitiesHere.Select(World.World.GetEntity)
-                     .Where(entity => entity != null && entity.Hidden && entity.Id != player.Id)) {
-            entity.Hidden = false;
-            foundSomething = true;
-            player.SendToClient($"You have revealed {entity.Name}!", Color.Cyan);
-            player.BroadcastLocal($"{player.Name} has revealed {entity.Name}!", Color.Yellow);
+        foreach (Guid id in room.EntitiesHere) {
+            Entity.Entity entity = World.World.GetEntity(id);
+            if (entity == null || id == player.Id) continue;
+
+            if (entity is Item item && item.Secret) {
+                string secretId = $"{room.Location.X}_{room.Location.Y}_{room.Location.Z}_{item.Def?.Id ?? item.Id.ToString()}";
+                if (!player.QuestLog.DiscoveredSecrets.Contains(secretId)) {
+                    player.QuestLog.DiscoveredSecrets.Add(secretId);
+                    player.SendToClient($"[Secret] {item.Description}", Color.Cyan);
+                    foundSomething = true;
+                }
+            }
+
+            if (entity.Hidden) {
+                entity.Hidden = false;
+                foundSomething = true;
+                player.SendToClient($"You have revealed {entity.Name}!", Color.Cyan);
+                player.BroadcastLocal($"{player.Name} has revealed {entity.Name}!", Color.Yellow);
+            }
         }
 
         if (foundSomething) return;
 
         player.SendToClient("You search around but find nothing unusual.");
         player.BroadcastLocal(player.Name + " searches the area thoroughly.", Color.Yellow);
+    }
+
+    public static void Take(PlayerCharacter player, string[] args) {
+        if (args.Length < 2) {
+            player.SendToClient("Take what?", Color.Red);
+            return;
+        }
+
+        if (!ActionUtility.TryGetRoom(player, out Room room)) return;
+
+        string itemName = args[1];
+        Item item = FindItemInRoom(room, itemName, player);
+
+        if (item == null) {
+            player.SendToClient($"You don't see a '{itemName}' here.");
+            return;
+        }
+
+        if (item.Def != null && !item.Def.Takeable) {
+            player.SendToClient("You can't take that.");
+            return;
+        }
+
+        room.EntitiesHere.Remove(item.Id);
+        player.Inventory.AddItem(item);
+
+        // Remove from ItemsHereIds if it was there (persistence)
+        if (item.Def != null && room.ItemsHereIds.Contains(item.Def.Id)) {
+            room.ItemsHereIds.Remove(item.Def.Id);
+            DataManager.SaveMap(room.MapName);
+        }
+
+        ActionUtility.SendMessage(player, $"You take {item.Name}.", $"{player.Name} takes {item.Name}.", ActionUtility.MessageType.Success);
+    }
+
+    public static void Use(PlayerCharacter player, string[] args) {
+        if (args.Length < 2) {
+            player.SendToClient("Use what?", Color.Red);
+            return;
+        }
+
+        if (!ActionUtility.TryGetRoom(player, out Room room)) return;
+
+        string itemName = args[1];
+        Item item = FindItemInRoom(room, itemName, player);
+        if (item == null) {
+            player.Inventory.TryGetItem(itemName, out item);
+        }
+
+        if (item == null) {
+            player.SendToClient($"You don't have or see a '{itemName}'.");
+            return;
+        }
+
+        item.Use(player);
+        ActionUtility.SendMessage(player, $"You use {item.Name}.", $"{player.Name} uses {item.Name}.");
+    }
+
+    private static Item FindItemInRoom(Room room, string itemName, PlayerCharacter player) {
+        foreach (Guid id in room.EntitiesHere) {
+            Entity.Entity entity = World.World.GetEntity(id);
+            if (entity is Item item) {
+                if (ArgumentHandler.TryAutoComplete(itemName, item.Name)) {
+                    // Check if discovered if it's secret
+                    if (item.Secret) {
+                        string secretId = $"{room.Location.X}_{room.Location.Y}_{room.Location.Z}_{item.Def?.Id ?? item.Id.ToString()}";
+                        if (!player.QuestLog.DiscoveredSecrets.Contains(secretId)) {
+                            continue;
+                        }
+                    }
+
+                    return item;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static void Rest(PlayerCharacter player, string[] args) {
@@ -236,6 +328,51 @@ public static class InteractionActions {
         }
 
         player.SendToClient(message.ToString());
+    }
+
+    public static void Open(PlayerCharacter player, string[] args) {
+        // Opens the door in the specified direction if the door is present and unlocked.
+        if (args.Length < 2) {
+            player.SendToClient("Open what?");
+            return;
+        }
+
+        if (!ActionUtility.TryGetDirection(args[1], out string direction)) {
+            player.SendToClient("That's not a valid direction.");
+            return;
+        }
+
+        if (!ActionUtility.TryGetRoom(player, out Room room)) {
+            return;
+        }
+
+        if (!room.ConnectedRooms.ContainsKey(direction)) {
+            player.SendToClient("There's no exit in that direction.");
+            return;
+        }
+
+        if (!room.Exits.TryGetValue(direction, out Exit exit)) {
+            player.SendToClient("There's nothing to open that way.");
+            return;
+        }
+
+        if (exit.Open) {
+            player.SendToClient("It's already open.");
+            return;
+        }
+
+        if (exit.Locked) {
+            player.SendToClient("It's locked.");
+            return;
+        }
+
+        exit.Open = true;
+        ActionUtility.SendMessage(
+            player,
+            $"You open the door to the {direction}.",
+            $"{player.Name} opens the door to the {direction}.",
+            ActionUtility.MessageType.Success
+        );
     }
 }
 }

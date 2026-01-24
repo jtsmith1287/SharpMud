@@ -7,7 +7,10 @@ namespace MudServer.Entity {
     public class QuestLog {
         // Stores IDs of discovered secret exits
         public List<string> DiscoveredExits { get; set; } = new List<string>();
-        
+
+        // Stores IDs of discovered secret items
+        public List<string> DiscoveredSecrets { get; set; } = new List<string>();
+
         // Stores quest progress. Key is Quest Guid as string.
         public Dictionary<string, QuestProgress> Quests { get; set; } = new Dictionary<string, QuestProgress>();
     }
